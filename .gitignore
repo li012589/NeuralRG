@@ -1,0 +1,11 @@
+**/*.*~
+**/*.pyc
+**/.DS_Store
+**/test.py
+**/*.png
+test/*
+tfSummary/*
+!tfSummary/placehodler
+savedNetwork/*
+!savedNetwork/placeholder
+etc/folderTree.txt
