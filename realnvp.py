@@ -10,30 +10,30 @@ class RealNVP(torch.nn.Module):
         """
         super(RealNVP, self).__init__()
         self.Nvars = Nvars
-        self.Nhalf = Nhalf
+        self.Nhalf = int(Nvars/2)
 
         self.s1 = torch.nn.Sequential(
-                 torch.nn.Linear(Nhalf, Hs),
+                 torch.nn.Linear(self.Nhalf, Hs),
                  torch.nn.Sigmoid(),
-                 torch.nn.Linear(Hs, Nhalf)
+                 torch.nn.Linear(Hs, self.Nhalf)
             )
 
         self.s2 = torch.nn.Sequential(
-                 torch.nn.Linear(Nhalf, Hs),
+                 torch.nn.Linear(self.Nhalf, Hs),
                  torch.nn.Sigmoid(),
-                 torch.nn.Linear(Hs, Nhalf)
+                 torch.nn.Linear(Hs, self.Nhalf)
             )
 
         self.t1 = torch.nn.Sequential(
-                 torch.nn.Linear(Nhalf, Ht),
+                 torch.nn.Linear(self.Nhalf, Ht),
                  torch.nn.Sigmoid(),
-                 torch.nn.Linear(Ht, Nhalf)
+                 torch.nn.Linear(Ht, self.Nhalf)
             )
 
         self.t2 = torch.nn.Sequential(
-                 torch.nn.Linear(Nhalf, Ht),
+                 torch.nn.Linear(self.Nhalf, Ht),
                  torch.nn.Sigmoid(),
-                 torch.nn.Linear(Ht, Nhalf)
+                 torch.nn.Linear(Ht, self.Nhalf)
             )
 
     def forward(self, x):
@@ -69,7 +69,6 @@ if __name__=="__main__":
 
     Nsamples = 1000
     Nvars = 2
-    Nhalf = int(Nvars/2)
 
     model = RealNVP(Nvars)
     
