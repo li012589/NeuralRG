@@ -1,17 +1,37 @@
 import numpy as np
+from scipy.linalg import eigh
+
+A = np.array([[1.,  0.5], 
+              [0.5, 0.5]])
 
 def test_logprob(x):
     '''
     unnormalized logprob
     '''
-    x0, x1 = x
-    return -x0**2/2.- x1**2/4.-x0*x1/2.
+    return -0.5*np.dot(np.transpose(x), np.dot(A, x)) 
+
+def transform(z):
+    '''
+    how to obtain p(x) distribution using direct sampling
+    '''
+
+    w, v = eigh(A)
+    z /= np.sqrt(w)
+    return np.dot(v, z)
 
 if __name__=='__main__':
-    #randomly generate some train sample (not according to their logp at the moment)
     Nsamples = 10000 
-    x = np.random.randn(Nsamples, 2)
+    z = np.random.randn(Nsamples, 2)
 
     print('#x, logp(x)')
     for i in range(Nsamples):
-        print (x[i, 0], x[i, 1], test_logprob(x[i]))  
+        #randomly generate some train sample (not according to their logp at the moment)
+        #print (z[i, 0], z[i, 1], test_logprob(z[i]))  
+
+        x = transform(z[i])
+        print (x[0], x[1], test_logprob(x))  
+
+#import matplotlib.pyplot as plt 
+#x = np.loadtxt('train.dat', dtype=np.float32, usecols=(0, 1))
+#plt.scatter(x[:,0], x[:,1], alpha=0.5, label='$x$')
+#plt.show()
