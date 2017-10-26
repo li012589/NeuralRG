@@ -30,3 +30,35 @@ for epoch in range(500):
     optimizer.zero_grad()
     loss.backward() 
     optimizer.step()
+
+#after training, plot the samples draw from the realnvp net 
+Nsamples = 1000
+z = Variable(torch.randn(Nsamples, Nvars))
+x = model.backward(z)
+
+x = x.data.numpy()
+
+import matplotlib.pyplot as plt 
+plt.scatter(x[:,0], x[:,1], alpha=0.5, label='$x$')
+
+plt.xlim([-5, 5])
+plt.ylim([-5, 5])
+
+plt.ylabel('$x_1$')
+plt.xlabel('$x_2$')
+plt.legend() 
+
+
+###########################
+from generate_samples import test_logprob 
+x = np.arange(-5, 5, 0.01)
+y = np.arange(-5, 5, 0.01)
+X, Y = np.meshgrid(x, y)
+Z = np.zeros_like(X)
+for i in range(Z.shape[0]):
+    for j in range(Z.shape[1]):
+        Z[i,j] = np.exp( test_logprob([x[i], y[j]]) ) 
+plt.contour(X, Y, Z)
+###########################
+
+plt.show()

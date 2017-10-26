@@ -49,9 +49,21 @@ class RealNVP(torch.nn.Module):
         self.logjac = self.s1(x[:, 0:self.Nhalf]).sum(dim=1) 
 
         y0 = y0 * torch.exp(self.s2(y1)) +  self.t2(y1)
-        #y1 = y1 nothing happens here 
 
         self.logjac += self.s2(y1).sum(dim=1)
+
+        return torch.cat((y0, y1), 1)
+
+    def backward(self, z):
+        '''
+        x = f^{-1}(z) = g(z)
+        '''
+
+        y0 = (z[:,0:self.Nhalf] - self.t2(z[:, self.Nhalf:self.Nvars])) \
+                * torch.exp(-self.s2(z[:,self.Nhalf:self.Nvars]))
+        y1 = z[:,self.Nhalf:self.Nvars]
+
+        y1 = (y1-self.t1(y0)) * torch.exp(-self.s1(y0))  
 
         return torch.cat((y0, y1), 1)
 
@@ -75,9 +87,14 @@ if __name__=="__main__":
     x = Variable(torch.randn(Nsamples, Nvars))
     z = model.forward(x)
 
-    logp = model.logp(x)
+    #print (x)
+    #print (z)
+    #print (model.backward(z))
 
-    print(logp)
+    print (x - model.backward(z)) # should be all zero 
+
+    logp = model.logp(x)
+    #print (logp)
 
     x = x.data.numpy()
     z = z.data.numpy()
