@@ -14,7 +14,7 @@ print (y_data.data.shape)
 Nvars = x_data.data.shape[-1]
 print (Nvars)
 
-model = RealNVP(Nvars, Hs=10, Ht=10)
+model = RealNVP(Nvars, Nlayers=4, Hs=10, Ht=10)
 
 criterion = torch.nn.MSELoss(size_average=True)
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)

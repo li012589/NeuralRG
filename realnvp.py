@@ -5,16 +5,17 @@ import numpy as np
 
 class RealNVP(torch.nn.Module):
 
-    def __init__(self, Nvars, Hs=10, Ht=10):
+    def __init__(self, Nvars, Nlayers=2,Hs=10, Ht=10):
         """
         """
         super(RealNVP, self).__init__()
         self.Nvars = Nvars
         self.Nhalf = int(Nvars/2)
+        self.Nlayers = Nlayers
         
-        self.s = []
-        self.t = []
-        for i in range(2):
+        self.s = torch.nn.ModuleList() 
+        self.t = torch.nn.ModuleList()
+        for i in range(self.Nlayers):
             self.s.append ( 
                  torch.nn.Sequential(
                  torch.nn.Linear(self.Nhalf, Hs),
@@ -29,22 +30,22 @@ class RealNVP(torch.nn.Module):
                  torch.nn.Linear(Ht, self.Nhalf)
                  ))
 
-
     def forward(self, x):
         """
         z = f(x)
         now only 2-layers 
         """
-       
+
         y0 = x[:,0:self.Nhalf]
-        y1 = x[:,self.Nhalf:self.Nvars] * torch.exp( self.s[0](x[:, 0:self.Nhalf]))  \
-                                                   + self.t[0](x[:, 0:self.Nhalf])
+        y1 = x[:,self.Nhalf:self.Nvars] 
 
-        self.logjac = self.s[0](x[:, 0:self.Nhalf]).sum(dim=1) 
-
-        y0 = y0 * torch.exp(self.s[1](y1)) +  self.t[1](y1)
-
-        self.logjac += self.s[1](y1).sum(dim=1)
+        for i in range(self.Nlayers): 
+            if (i%2==0):
+                y1 = y1 * torch.exp( self.s[i](y0))  + self.t[i](y0)
+                self.logjac = self.s[i](y0).sum(dim=1) 
+            else:
+                y0 = y0 * torch.exp(self.s[i](y1)) +  self.t[i](y1)
+                self.logjac += self.s[i](y1).sum(dim=1)
 
         return torch.cat((y0, y1), 1)
 
@@ -53,11 +54,14 @@ class RealNVP(torch.nn.Module):
         x = f^{-1}(z) = g(z)
         '''
 
-        y0 = (z[:,0:self.Nhalf] - self.t[1](z[:, self.Nhalf:self.Nvars])) \
-                * torch.exp(-self.s[1](z[:,self.Nhalf:self.Nvars]))
+        y0 = z[:,0:self.Nhalf]
         y1 = z[:,self.Nhalf:self.Nvars]
-
-        y1 = (y1-self.t[0](y0)) * torch.exp(-self.s[0](y0))  
+        
+        for i in list(range(self.Nlayers))[::-1]:
+            if (i%2==1):
+                y0 = (y0 - self.t[i](y1)) * torch.exp(-self.s[i](y1))
+            else:
+                y1 = (y1 - self.t[i](y0)) * torch.exp(-self.s[i](y0))
 
         return torch.cat((y0, y1), 1)
 
@@ -75,8 +79,10 @@ if __name__=="__main__":
 
     Nsamples = 1000
     Nvars = 2
+    Nlayers = 4
 
-    model = RealNVP(Nvars)
+    model = RealNVP(Nvars, Nlayers)
+    print(model.parameters())
     
     x = Variable(torch.randn(Nsamples, Nvars))
     z = model.forward(x)

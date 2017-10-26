@@ -9,7 +9,7 @@ def test_logprob(x):
 
 if __name__=='__main__':
     #randomly generate some train sample (not according to their logp at the moment)
-    Nsamples = 5000 
+    Nsamples = 2000 
     x = np.random.randn(Nsamples, 2)
 
     print('#x, logp(x)')
