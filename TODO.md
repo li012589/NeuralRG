@@ -1,0 +1,16 @@
+- [ ] write a Metropolis MC for $\pi(x)$ (`test_prob(x)` in `generate_samples.py`)
+
+- [ ] use the trained real NVP net to make MC proposal 
+      $$
+      A(x\rightarrow x') = \min\left[ 1,  \frac{p(x)}{p(x')}\cdot \frac{\pi(x')}{\pi(x)}  \right]
+      $$
+      Following the following steps 
+
+      ```
+      z = Variable(torch.randn(Nsamples, Nvars))
+      x = model.backward(z)
+      r = model.logp(xold)- model.logp(x) + test_prob(x) - test_prob(xold)
+      ```
+
+
+- [ ] report acceptance ratio, autocorrelation time etc of the improved approach 

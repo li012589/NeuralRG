@@ -114,8 +114,8 @@ if __name__=="__main__":
     plt.xlim([-5, 5])
     plt.ylim([-5, 5])
 
-    plt.ylabel('$x_1$')
-    plt.xlabel('$x_2$')
+    plt.xlabel('$x_1$')
+    plt.ylabel('$x_2$')
     plt.legend() 
 
     plt.show()
