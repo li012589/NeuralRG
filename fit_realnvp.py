@@ -14,7 +14,7 @@ print (y_data.data.shape)
 Nvars = x_data.data.shape[-1]
 print (Nvars)
 
-model = RealNVP(Nvars, Nlayers=6, Hs=8, Ht=8)
+model = RealNVP(Nvars, Nlayers=8, Hs=4, Ht=4)
 
 criterion = torch.nn.MSELoss(size_average=True)
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
@@ -46,17 +46,18 @@ logp_model_test = model.logp(x)
 logp_data_test = [test_logprob(x[i].data.numpy()) for i in range(x.data.shape[0]) ] 
 
 import matplotlib.pyplot as plt 
+plt.figure() 
 plt.scatter(logp_model_train.data.numpy(), logp_data_train, alpha=0.5, label='train')
 plt.scatter(logp_model_test.data.numpy(), logp_data_test, alpha=0.5, label='test')
 
 plt.legend() 
-plt.show() 
-
-import sys
-sys.exit(0)
+#plt.show() 
+#import sys
+#sys.exit(0)
 
 x = x.data.numpy()
 
+plt.figure()
 plt.scatter(x[:,0], x[:,1], alpha=0.5, label='$x$')
 
 plt.xlim([-5, 5])
@@ -74,7 +75,7 @@ X, Y = np.meshgrid(x, y)
 Z = np.zeros_like(X)
 for i in range(Z.shape[0]):
     for j in range(Z.shape[1]):
-        Z[i,j] = np.exp( test_logprob([x[i], y[j]]) ) 
+        Z[i,j] = np.exp( test_logprob([X[i,j], Y[i,j]]) ) 
 plt.contour(X, Y, Z)
 ###########################
 
