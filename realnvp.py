@@ -43,10 +43,11 @@ class RealNVP(torch.nn.Module):
         y0 = x[:,0:self.Nhalf]
         y1 = x[:,self.Nhalf:self.Nvars] 
 
+        self.logjac = Variable(torch.zeros(x.data.shape[0]))
         for i in range(self.Nlayers): 
             if (i%2==0):
-                y1 = y1 * torch.exp( self.s[i](y0))  + self.t[i](y0)
-                self.logjac = self.s[i](y0).sum(dim=1) 
+                y1 = y1 * torch.exp(self.s[i](y0))  + self.t[i](y0)
+                self.logjac += self.s[i](y0).sum(dim=1) 
             else:
                 y0 = y0 * torch.exp(self.s[i](y1)) +  self.t[i](y1)
                 self.logjac += self.s[i](y1).sum(dim=1)

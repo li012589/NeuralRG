@@ -12,15 +12,13 @@ print (x_data.data.shape)
 Nvars = x_data.data.shape[-1]
 print (Nvars)
 
-model = RealNVP(Nvars, Nlayers=4, Hs=4, Ht=4)
-
-criterion = torch.nn.MSELoss(size_average=True)
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
+model = RealNVP(Nvars, Nlayers=8, Hs=10, Ht=10)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.001)
 
 for epoch in range(500):
 
-    y_pred = model.logp(x_data)
-    loss = criterion(y_pred, 0.)
+    logp = model.logp(x_data)
+    loss = -logp.mean()
 
     print (epoch, loss.data[0]) 
 
@@ -29,7 +27,7 @@ for epoch in range(500):
     optimizer.step()
 
 #after training, generate some data from the network
-Nsamples = 1000
+Nsamples = 1000 # test samples 
 z = Variable(torch.randn(Nsamples, Nvars))
 x = model.backward(z)
 
