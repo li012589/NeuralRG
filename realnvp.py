@@ -11,30 +11,24 @@ class RealNVP(torch.nn.Module):
         super(RealNVP, self).__init__()
         self.Nvars = Nvars
         self.Nhalf = int(Nvars/2)
-
-        self.s1 = torch.nn.Sequential(
+        
+        self.s = []
+        self.t = []
+        for i in range(2):
+            self.s.append ( 
+                 torch.nn.Sequential(
                  torch.nn.Linear(self.Nhalf, Hs),
                  torch.nn.Sigmoid(),
                  torch.nn.Linear(Hs, self.Nhalf)
-            )
-
-        self.s2 = torch.nn.Sequential(
-                 torch.nn.Linear(self.Nhalf, Hs),
-                 torch.nn.Sigmoid(),
-                 torch.nn.Linear(Hs, self.Nhalf)
-            )
-
-        self.t1 = torch.nn.Sequential(
+                 ))
+                 
+            self.t.append(
+                 torch.nn.Sequential(
                  torch.nn.Linear(self.Nhalf, Ht),
                  torch.nn.Sigmoid(),
                  torch.nn.Linear(Ht, self.Nhalf)
-            )
+                 ))
 
-        self.t2 = torch.nn.Sequential(
-                 torch.nn.Linear(self.Nhalf, Ht),
-                 torch.nn.Sigmoid(),
-                 torch.nn.Linear(Ht, self.Nhalf)
-            )
 
     def forward(self, x):
         """
@@ -43,14 +37,14 @@ class RealNVP(torch.nn.Module):
         """
        
         y0 = x[:,0:self.Nhalf]
-        y1 = x[:,self.Nhalf:self.Nvars] * torch.exp( self.s1(x[:, 0:self.Nhalf]))  \
-                                                   + self.t1(x[:, 0:self.Nhalf])
+        y1 = x[:,self.Nhalf:self.Nvars] * torch.exp( self.s[0](x[:, 0:self.Nhalf]))  \
+                                                   + self.t[0](x[:, 0:self.Nhalf])
 
-        self.logjac = self.s1(x[:, 0:self.Nhalf]).sum(dim=1) 
+        self.logjac = self.s[0](x[:, 0:self.Nhalf]).sum(dim=1) 
 
-        y0 = y0 * torch.exp(self.s2(y1)) +  self.t2(y1)
+        y0 = y0 * torch.exp(self.s[1](y1)) +  self.t[1](y1)
 
-        self.logjac += self.s2(y1).sum(dim=1)
+        self.logjac += self.s[1](y1).sum(dim=1)
 
         return torch.cat((y0, y1), 1)
 
@@ -59,11 +53,11 @@ class RealNVP(torch.nn.Module):
         x = f^{-1}(z) = g(z)
         '''
 
-        y0 = (z[:,0:self.Nhalf] - self.t2(z[:, self.Nhalf:self.Nvars])) \
-                * torch.exp(-self.s2(z[:,self.Nhalf:self.Nvars]))
+        y0 = (z[:,0:self.Nhalf] - self.t[1](z[:, self.Nhalf:self.Nvars])) \
+                * torch.exp(-self.s[1](z[:,self.Nhalf:self.Nvars]))
         y1 = z[:,self.Nhalf:self.Nvars]
 
-        y1 = (y1-self.t1(y0)) * torch.exp(-self.s1(y0))  
+        y1 = (y1-self.t[0](y0)) * torch.exp(-self.s[0](y0))  
 
         return torch.cat((y0, y1), 1)
 
