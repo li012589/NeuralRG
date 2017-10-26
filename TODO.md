@@ -2,9 +2,9 @@
 
 - [ ] use the trained real NVP net to make MC proposal 
       $$
-      A(x\rightarrow x') = \min\left[ 1,  \frac{p(x)}{p(x')}\cdot \frac{\pi(x')}{\pi(x)}  \right]
+      A(x\rightarrow x') = \min\left[ 1,  \frac{p(x)}{p(x')}\cdot \frac{\pi(x')}{\pi(x)}  \right],
       $$
-      Following the following steps 
+      following these steps (this is actually called Metropolis Independent Sampler)
 
       ```
       z = Variable(torch.randn(Nsamples, Nvars))
@@ -14,3 +14,4 @@
 
 
 - [ ] report acceptance ratio, autocorrelation time etc of the improved approach 
+
