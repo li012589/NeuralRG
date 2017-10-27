@@ -2,12 +2,12 @@ import torch
 torch.manual_seed(42)
 from torch.autograd import Variable 
 import numpy as np 
+import matplotlib.pyplot as plt 
 
 from realnvp.realnvp import RealNVP 
 from train.generate_samples import test_logprob 
 
-if __name__=="__main__":
-
+def fit():
     xy = np.loadtxt('train.dat', dtype=np.float32)
     x_data = Variable(torch.from_numpy(xy[:, 0:-1]))
     y_data = Variable(torch.from_numpy(xy[:, -1]))
@@ -34,11 +34,13 @@ if __name__=="__main__":
         loss.backward() 
         optimizer.step()
 
+    return Nvars, x_data, model 
+
+def visualize(Nvars, x_data, model):
     #after training, generate some data from the network
     Nsamples = 1000 # test samples 
     z = Variable(torch.randn(Nsamples, Nvars))
     x = model.backward(z)
-
 
     # on training data 
     logp_model_train = model.logp(x_data)
@@ -48,7 +50,6 @@ if __name__=="__main__":
     logp_model_test = model.logp(x)
     logp_data_test = [test_logprob(x[i].data.numpy()) for i in range(x.data.shape[0]) ] 
 
-    import matplotlib.pyplot as plt 
     plt.figure() 
     plt.scatter(logp_model_train.data.numpy(), logp_data_train, alpha=0.5, label='train')
     plt.scatter(logp_model_test.data.numpy(), logp_data_test, alpha=0.5, label='test')
@@ -71,7 +72,6 @@ if __name__=="__main__":
     plt.xlabel('$x_2$')
     plt.legend() 
 
-
     ###########################
     x = np.arange(-5, 5, 0.01)
     y = np.arange(-5, 5, 0.01)
@@ -84,3 +84,8 @@ if __name__=="__main__":
     ###########################
 
     plt.show()
+
+if __name__=="__main__":
+    Nvars, x_data, model = fit()
+    visualize(Nvars, x_data, model) 
+
