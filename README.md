@@ -3,7 +3,7 @@
 First, generate some samples for training 
 
 ```python
-python generate_samples.py > train.dat
+python train/generate_samples.py > train.dat
 ```
 
 It will write three column data like this, where the last column is the log-probability
@@ -20,8 +20,8 @@ It will write three column data like this, where the last column is the log-prob
 Then, you can learn the probability either in the supervised or unsupervised way. The supervised approach fits `model.logp(x)` to data. While the unsupervised way performs maximum log-likelihood estimation on the sample data.
 
 ```python
-python sl_realnvp.py 
-python ul_realnvp.py
+python train/sl_realnvp.py 
+python train/ul_realnvp.py
 ```
 
 After learning, one can use the real NVP net to generate new samples by doing

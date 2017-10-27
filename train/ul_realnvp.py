@@ -1,28 +1,26 @@
 import torch 
+torch.manual_seed(42)
 from torch.autograd import Variable 
 import numpy as np 
 
-from realnvp import RealNVP 
+from realnvp.realnvp import RealNVP 
+from train.generate_samples import test_logprob 
 
 xy = np.loadtxt('train.dat', dtype=np.float32)
 x_data = Variable(torch.from_numpy(xy[:, 0:-1]))
-y_data = Variable(torch.from_numpy(xy[:, -1]))
 
 print (x_data.data.shape)
-print (y_data.data.shape)
 
 Nvars = x_data.data.shape[-1]
 print (Nvars)
 
 model = RealNVP(Nvars, Nlayers=8, Hs=10, Ht=10)
-
-criterion = torch.nn.MSELoss(size_average=True)
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.001)
 
 for epoch in range(500):
 
-    y_pred = model.logp(x_data)
-    loss = criterion(y_pred, y_data)
+    logp = model.logp(x_data)
+    loss = -logp.mean()
 
     print (epoch, loss.data[0]) 
 
@@ -34,8 +32,6 @@ for epoch in range(500):
 Nsamples = 1000 # test samples 
 z = Variable(torch.randn(Nsamples, Nvars))
 x = model.backward(z)
-
-from generate_samples import test_logprob 
 
 # on training data 
 logp_model_train = model.logp(x_data)
@@ -51,7 +47,6 @@ plt.scatter(logp_model_train.data.numpy(), logp_data_train, alpha=0.5, label='tr
 plt.scatter(logp_model_test.data.numpy(), logp_data_test, alpha=0.5, label='test')
 
 plt.legend() 
-
 #plt.show() 
 #import sys
 #sys.exit(0)
@@ -67,7 +62,6 @@ plt.ylim([-5, 5])
 plt.ylabel('$x_1$')
 plt.xlabel('$x_2$')
 plt.legend() 
-
 
 ###########################
 x = np.arange(-5, 5, 0.01)

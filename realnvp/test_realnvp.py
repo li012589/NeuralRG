@@ -1,7 +1,9 @@
 import torch 
+torch.manual_seed(42)
 from torch.autograd import Variable
 import numpy as np 
-from realnvp import RealNVP 
+
+from .realnvp import RealNVP 
 
 def test_invertible():
 

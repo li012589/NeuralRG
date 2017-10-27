@@ -1,4 +1,5 @@
 import numpy as np
+np.random.seed(42)
 from scipy.linalg import eigh
 
 __all__ = ["test_logprob", "transform"]
