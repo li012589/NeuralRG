@@ -17,11 +17,11 @@ It will write three column data like this, where the last column is the log-prob
 ... 
 ```
 
-Then, you can learn the probability either in the supervised or unsupervised way. The supervised approach fits `model.logp(x)` to data. While the unsupervised way performs maximum log-likelihood estimation on the sample data.
+Then, you can learn the probability either in the supervised  or unsupervised way. The supervised approach fits `model.logp(x)` to data. While the unsupervised way performs maximum log-likelihood estimation on the sample data.
 
 ```python
-python train/sl_realnvp.py 
-python train/ul_realnvp.py
+python train/learn_model.py -supervised 
+python train/learn_model.py -unsupervised 
 ```
 
 After learning, one can use the real NVP net to generate new samples by doing
