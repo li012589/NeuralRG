@@ -2,17 +2,17 @@ import torch
 from torch.autograd import Variable
 import numpy as np
 
+__all__ = ['RealNVP']
 
 class RealNVP(torch.nn.Module):
-
+    """
+    Args: 
+        Nvars (int): number variables 
+        Nlayers (int): number of layers 
+        Hs (int): number of hidden neurons of the s neural network
+        Ht (int): number of hidden neurons of the t neural network
+    """
     def __init__(self, Nvars, Nlayers=2,Hs=10, Ht=10):
-        """
-        Args: 
-            Nvars (int): number variables 
-            Nlayers (int): number of layers 
-            Hs (int): number of hidden neurons of the s neural network
-            Ht (int): number of hidden neurons of the t neural network
-        """
         super(RealNVP, self).__init__()
         self.Nvars = Nvars
         self.Nhalf = int(Nvars/2)

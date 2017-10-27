@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.linalg import eigh
 
+__all__ = ["test_logprob", "transform"]
+
 A = np.array([[1.,  0.5], 
               [0.5, 0.5]])
 
