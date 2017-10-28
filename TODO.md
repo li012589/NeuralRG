@@ -1,4 +1,6 @@
-- [ ] write a Metropolis MC for $\pi(x)$ (`test_prob(x)` in `generate_samples.py`)
+- [ ] pytorch-lize `generate_sapmles.py`, in particule `test_prob(x)`
+
+- [ ] write a Metropolis MC for $\pi(x)$, i.e.`test_prob(x)` in `generate_samples.py`
 
 - [ ] use the trained real NVP net to make MC proposal 
       $$
