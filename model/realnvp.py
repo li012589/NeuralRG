@@ -17,6 +17,13 @@ class RealNVP(torch.nn.Module):
         self.Nvars = Nvars
         self.Nhalf = int(Nvars/2)
         self.Nlayers = Nlayers
+        self.Hs = Hs
+        self.Ht = Ht 
+
+        self.name = 'realnvp-'           \
+                   +'N'+str(self.Nlayers) \
+                   +'Hs'+str(self.Hs)  \
+                   +'Ht'+str(self.Ht)
         
         self.s = torch.nn.ModuleList() 
         self.t = torch.nn.ModuleList()

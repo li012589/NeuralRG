@@ -23,6 +23,12 @@ def transform(z):
     return np.dot(v, z)
 
 if __name__=='__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument("-plot", action='store_true',  help="supervised")
+ 
+    args = parser.parse_args()
+ 
     Nsamples = 10000 
     z = np.random.randn(Nsamples, 2)
 
@@ -33,8 +39,9 @@ if __name__=='__main__':
 
         x = transform(z[i])
         print (x[0], x[1], test_logprob(x))  
-
-#import matplotlib.pyplot as plt 
-#x = np.loadtxt('train.dat', dtype=np.float32, usecols=(0, 1))
-#plt.scatter(x[:,0], x[:,1], alpha=0.5, label='$x$')
-#plt.show()
+    
+    if args.plot:
+        import matplotlib.pyplot as plt 
+        x = np.loadtxt('train.dat', dtype=np.float32, usecols=(0, 1))
+        plt.scatter(x[:,0], x[:,1], alpha=0.5, label='$x$')
+        plt.show()

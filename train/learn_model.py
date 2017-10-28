@@ -39,7 +39,8 @@ def fit(supervised):
         optimizer.zero_grad()
         loss.backward() 
         optimizer.step()
- 
+    
+    torch.save(model.state_dict(), './'+model.name)
     return Nvars, x_data, model
 
 def visualize(Nvars, x_data, model):
