@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from model.realnvp import RealNVP 
 from train.generate_samples import test_logprob 
 
-def fit(supervised):
+def fit(Nlayers, Hs, Ht, Nepochs, supervised):
     xy = np.loadtxt('train.dat', dtype=np.float32)
     x_data = Variable(torch.from_numpy(xy[:, 0:-1]))
     print (x_data.data.shape)
@@ -21,12 +21,12 @@ def fit(supervised):
     Nvars = x_data.data.shape[-1]
     print (Nvars)
 
-    model = RealNVP(Nvars, Nlayers=8, Hs=10, Ht=10)
+    model = RealNVP(Nvars, Nlayers=Nlayers, Hs=Hs, Ht=Ht)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.001)
     if supervised:
         criterion = torch.nn.MSELoss(size_average=True)
 
-    for epoch in range(500):
+    for epoch in range(Nepochs):
 
         logp = model.logp(x_data)
         if supervised:
@@ -46,13 +46,13 @@ def fit(supervised):
 def visualize(Nvars, x_data, model):
 
     #after training, generate some data from the network
-    Nsamples = 1000 # test samples 
+    Nsamples = 10000 # test samples 
     z = Variable(torch.randn(Nsamples, Nvars), volatile=True)
-    x = model.backward(z)
+    x = model.backward(z)  
 
     # on training data 
     logp_model_train = model.logp(x_data)
-    logp_data_train = [test_logprob(x_data[i].data.numpy()) for i in range(x_data.data.shape[0]) ] 
+    logp_data_train = [test_logprob(x_data[i].data.numpy()) for i in range(x_data.data.shape[0])] 
 
     # on test data
     logp_model_test = model.logp(x)
@@ -68,6 +68,12 @@ def visualize(Nvars, x_data, model):
     #sys.exit(0)
 
     x = x.data.numpy()
+    
+    #overwites training data 
+    #f = open('train.dat','w')
+    #for i in range(x.shape[0]):
+    #    f.write("%g %g %g\n"%(x[i, 0], x[i, 1], test_logprob(x[i, :])))  
+    #f.close() 
 
     plt.figure()
     plt.scatter(x[:,0], x[:,1], alpha=0.5, label='$x$')
@@ -95,12 +101,20 @@ def visualize(Nvars, x_data, model):
 if __name__=="__main__":
     import argparse
     parser = argparse.ArgumentParser(description='')
+    parser.add_argument("-Nlayers", type=int, default=8, help="")
+    parser.add_argument("-Hs", type=int, default=10, help="")
+    parser.add_argument("-Ht", type=int, default=10, help="")
+    parser.add_argument("-Nepochs", type=int, default=100, help="")
+
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-supervised", action='store_true',  help="supervised")
-    group.add_argument("-unsupervised", action='store_true',  help="unsupervised")
- 
+    group.add_argument("-supervised", action='store_true', help="supervised")
+    group.add_argument("-unsupervised", action='store_true', help="unsupervised")
     args = parser.parse_args()
     
-    Nvars, x_data, model = fit(args.supervised)
+    Nvars, x_data, model = fit(args.Nlayers, 
+                               args.Hs, args.Ht, 
+                               args.Nepochs, 
+                               args.supervised)
+
     visualize(Nvars, x_data, model) 
 
