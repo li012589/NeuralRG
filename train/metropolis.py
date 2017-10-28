@@ -6,7 +6,6 @@ import numpy as np
 from model.realnvp import RealNVP 
 from train.objectives import ring2d
 
-
 def _accept(e1,e2):
    diff = e1-e2
    return diff.exp()-diff.uniform_()>=0.0
@@ -19,7 +18,7 @@ class MCMC:
         self.logp = logp 
         self.model = model
 
-        self.x = torch.randn(1, 2)
+        self.x = torch.randn(self.batchsize, self.nvars)
         
     def run(self,ntherm,nmeasure,nskip):
         self.nmeasure= nmeasure 
