@@ -20,10 +20,11 @@ class RealNVP(torch.nn.Module):
         self.Hs = Hs
         self.Ht = Ht 
 
-        self.name = 'realnvp-'           \
-                   +'N'+str(self.Nlayers) \
+        self.name ='Nvars'+str(self.Nvars) \
+                   +'Nlayers'+str(self.Nlayers) \
                    +'Hs'+str(self.Hs)  \
-                   +'Ht'+str(self.Ht)
+                   +'Ht'+str(self.Ht) \
+                   +'.realnvp'
         
         self.s = torch.nn.ModuleList() 
         self.t = torch.nn.ModuleList()
