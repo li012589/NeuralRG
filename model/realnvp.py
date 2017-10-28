@@ -33,8 +33,8 @@ class RealNVP(torch.nn.Module):
                  torch.nn.Sequential(
                  torch.nn.Linear(self.Nhalf, Hs),
                  torch.nn.ReLU(),
-                 torch.nn.Linear(Hs, Hs),
-                 torch.nn.ReLU(),
+                 #torch.nn.Linear(Hs, Hs),
+                 #torch.nn.ReLU(),
                  torch.nn.Linear(Hs, self.Nhalf)
                  ))
                  
@@ -42,8 +42,8 @@ class RealNVP(torch.nn.Module):
                  torch.nn.Sequential(
                  torch.nn.Linear(self.Nhalf, Ht),
                  torch.nn.ReLU(),
-                 torch.nn.Linear(Ht, Ht),
-                 torch.nn.ReLU(),
+                 #torch.nn.Linear(Ht, Ht),
+                 #torch.nn.ReLU(),
                  torch.nn.Linear(Ht, self.Nhalf)
                  ))
 

@@ -22,7 +22,7 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
     print (Nvars)
 
     model = RealNVP(Nvars, Nlayers=Nlayers, Hs=Hs, Ht=Ht)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.001)
     if supervised:
         criterion = torch.nn.MSELoss(size_average=True)
 
@@ -62,6 +62,9 @@ def visualize(Nvars, x_data, model):
     plt.scatter(logp_model_train.data.numpy(), logp_data_train, alpha=0.5, label='train')
     plt.scatter(logp_model_test.data.numpy(), logp_data_test, alpha=0.5, label='test')
 
+    plt.xlabel('model')
+    plt.ylabel('baseline')
+
     plt.legend() 
     #plt.show() 
     #import sys
@@ -81,8 +84,8 @@ def visualize(Nvars, x_data, model):
     plt.xlim([-5, 5])
     plt.ylim([-5, 5])
 
-    plt.ylabel('$x_1$')
-    plt.xlabel('$x_2$')
+    plt.xlabel('$x_1$')
+    plt.ylabel('$x_2$')
     plt.legend() 
 
     ###########################
