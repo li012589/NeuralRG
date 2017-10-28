@@ -7,7 +7,7 @@
       following these steps (this is actually called Metropolis Independent Sampler)
 
       ```
-      z = Variable(torch.randn(Nsamples, Nvars))
+      z = Variable(torch.randn(Nsamples, Nvars), volatile=True)
       x = model.backward(z)
       r = model.logp(xold)- model.logp(x) + test_prob(x) - test_prob(xold)
       ```

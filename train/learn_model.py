@@ -32,7 +32,7 @@ def fit(supervised):
         if supervised:
             loss = criterion(logp, y_data)
         else:
-            loss = -logp.mean()
+            loss = -logp.mean() # NLL 
 
         print (epoch, loss.data[0]) 
 
@@ -46,7 +46,7 @@ def visualize(Nvars, x_data, model):
 
     #after training, generate some data from the network
     Nsamples = 1000 # test samples 
-    z = Variable(torch.randn(Nsamples, Nvars))
+    z = Variable(torch.randn(Nsamples, Nvars), volatile=True)
     x = model.backward(z)
 
     # on training data 
