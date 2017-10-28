@@ -116,7 +116,8 @@ if __name__=="__main__":
     args = parser.parse_args()
     
     Nvars, x_data, model = fit(args.Nlayers, 
-                               args.Hs, args.Ht, 
+                               args.Hs, 
+                               args.Ht, 
                                args.Nepochs, 
                                args.supervised)
 

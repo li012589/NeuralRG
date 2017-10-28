@@ -6,6 +6,8 @@ import numpy as np
 from model.realnvp import RealNVP 
 from train.objectives import ring2d
 
+__all__ = ["MCMC"]
+
 def _accept(e1,e2):
    diff = e1-e2
    return diff.exp()-diff.uniform_()>=0.0
@@ -53,7 +55,8 @@ class MCMC:
         #              )
 
         x = torch.randn(self.batchsize, self.nvars)
-        accept = _accept(self.logp(x), self.logp(self.x)).view(self.batchsize, -1)
+        accept = _accept(self.logp(x)+(x**2).sum(dim=1)/2., 
+                          self.logp(self.x)+(self.x**2).sum(dim=1)/2).view(self.batchsize, -1)
         accept = torch.cat((accept, accept), 1)
         reject = 1-accept 
         self.x = self.x * reject.float() + x* accept.float()
@@ -86,5 +89,5 @@ if __name__ == '__main__':
     nvars = 2
     batchsize = 100
     mcmc = MCMC(nvars, batchsize, ring2d) #, model=model)
-    mcmc.run(0, 100, 10)
+    mcmc.run(0, 100, 100)
 
