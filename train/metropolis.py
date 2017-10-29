@@ -13,6 +13,16 @@ def _accept(e1,e2):
    return diff.exp()-diff.uniform_()>=0.0
 
 class MCMC:
+    """
+    Markov Chain Monte Carlo 
+
+    Args:
+        nvars (int): number of variables.
+        batchsize (int): batch size.
+        logp (function): target log-probability.
+        model (): model used for update proposal.
+    """
+
     def __init__(self, nvars, batchsize, logp, model=None):
         
         self.batchsize = batchsize
