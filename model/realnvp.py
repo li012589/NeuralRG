@@ -6,11 +6,13 @@ __all__ = ['RealNVP']
 
 class RealNVP(torch.nn.Module):
     """
+
     Args: 
-        Nvars (int): number variables 
-        Nlayers (int): number of layers 
-        Hs (int): number of hidden neurons of the s neural network
-        Ht (int): number of hidden neurons of the t neural network
+        Nvars (int): number variables.
+        Nlayers (int): number of layers.
+        Hs (int): number of hidden neurons of the s neural network.
+        Ht (int): number of hidden neurons of the t neural network.
+
     """
     def __init__(self, Nvars, Nlayers=2,Hs=10, Ht=10):
         super(RealNVP, self).__init__()
@@ -49,7 +51,7 @@ class RealNVP(torch.nn.Module):
 
     def forward(self, x):
         """
-        z = f(x)
+        :math:`z = f(x)`
         """
 
         y0 = x[:,0:self.Nhalf]
@@ -68,7 +70,7 @@ class RealNVP(torch.nn.Module):
 
     def backward(self, z):
         '''
-        x = f^{-1}(z) = g(z)
+        :math:`x = f^{-1}(z) = g(z)`
         '''
 
         y0 = z[:,0:self.Nhalf]
@@ -84,7 +86,7 @@ class RealNVP(torch.nn.Module):
 
     def logp(self, x):
         """
-        logp(x) = logp(z) + logdet 
+        :math:`\log p(x) = \log p(z) + \log\det`
         """
 
         z = self.forward(x)

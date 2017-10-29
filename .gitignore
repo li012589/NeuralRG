@@ -9,3 +9,4 @@ tfSummary/*
 savedNetwork/*
 !savedNetwork/placeholder
 etc/folderTree.txt
+docs/_build
