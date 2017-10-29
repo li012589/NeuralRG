@@ -53,7 +53,7 @@ class MCMC:
 
         accratio = accept.float().mean()
         accept = accept.view(self.batchsize, -1)
-        accept = torch.cat((accept, accept), 1)
+        accept = torch.cat((accept, accept), 1) # well, this assumes nvars = 2 
         reject = 1-accept 
         
         #TODO: try to avoid this if 
