@@ -29,37 +29,40 @@ class MCMC:
         for n in range(ntherm): 
             self.step()
         
+        accratio = 0.0 
         for n in range(nmeasure):
             for i in range(nskip):
-                self.step()
+                accratio += self.step()
             self.measure()
+        print ('#accratio:', accratio/float(nmeasure*nskip)) 
 
     def step(self):
-        #x = torch.randn(self.batchsize, self.nvars)
-        #x = self.model.backward(z)
-        #ratio = torch.exp(self.logp(x) - self.logp(self.x))
-        #print(ratio)
+        #TODO: change this if to something more elegant  
+        if self.model is None:
+            #no model 
+            x = torch.randn(self.batchsize, self.nvars)
+            accept = _accept(self.logp(x)+(x**2).sum(dim=1)/2., 
+                             self.logp(self.x)+(self.x**2).sum(dim=1)/2)
+        else: 
+            #use a model 
+            z = Variable(torch.randn(self.batchsize, self.nvars), volatile=True) # prior 
+            x = self.model.backward(z)
 
-        #print(x)
-        #print(self.x.reshape(1,-1))
-        #print(torch.from_numpy(self.x.reshape(1, -1)))
-        #print(model.logp(Variable(torch.from_numpy(self.x.reshape(1, -1)))).data.numpy()[0])
-        #print(model.logp(x).data.numpy()[0])
-        #print(self.logp(x.data.numpy().reshape(2,)))
-        #print(self.logp(self.x))
+            accept = _accept(self.logp(x.data)-self.model.logp(x).data, 
+                             self.logp(self.x)-self.model.logp(Variable(self.x, volatile=True)).data)
 
-        #ratio = np.exp(  model.logp(Variable(torch.from_numpy(self.x.reshape(1, -1)))).data.numpy()[0]
-        #               - model.logp(x).data.numpy()[0]
-        #               + self.logp(x.data.numpy().reshape(2,)) 
-        #               - self.logp(self.x)
-        #              )
-
-        x = torch.randn(self.batchsize, self.nvars)
-        accept = _accept(self.logp(x)+(x**2).sum(dim=1)/2., 
-                          self.logp(self.x)+(self.x**2).sum(dim=1)/2).view(self.batchsize, -1)
+        accratio = accept.float().mean()
+        accept = accept.view(self.batchsize, -1)
         accept = torch.cat((accept, accept), 1)
         reject = 1-accept 
-        self.x = self.x * reject.float() + x* accept.float()
+        
+        #TODO: try to avoid this if 
+        if self.model is None:
+            self.x = self.x * reject.float() + x* accept.float()
+        else:
+            self.x = self.x * reject.float() + x.data* accept.float()
+
+        return accratio
 
     def measure(self):
         x = self.x.numpy()
@@ -69,25 +72,26 @@ class MCMC:
 
 if __name__ == '__main__': 
     from numpy.random.mtrand import RandomState 
-
-    #import argparse
-    #parser = argparse.ArgumentParser(description='')
-    #group = parser.add_argument_group('group')
-    #group.add_argument("-Nvars", type=int,  help="")
-    #group.add_argument("-Nlayers", type=int,  help="")
-    #group.add_argument("-Hs", type=int,  help="")
-    #group.add_argument("-Ht", type=int,  help="")
-    #args = parser.parse_args()
+    
+    #TODO: use a model or not in a more elegant way 
+    import argparse
+    parser = argparse.ArgumentParser(description='')
+    group = parser.add_argument_group('group')
+    group.add_argument("-Nvars", type=int,  help="")
+    group.add_argument("-Nlayers", type=int,  help="")
+    group.add_argument("-Hs", type=int,  help="")
+    group.add_argument("-Ht", type=int,  help="")
+    args = parser.parse_args()
     
     #construct model 
-    #model = RealNVP(Nvars = args.Nvars, 
-    #                Nlayers = args.Nlayers, 
-    #                Hs = args.Hs, 
-    #                Ht = args.Ht)
-    #model.load_state_dict(torch.load(model.name))
+    model = RealNVP(Nvars = args.Nvars, 
+                    Nlayers = args.Nlayers, 
+                    Hs = args.Hs, 
+                    Ht = args.Ht)
+    model.load_state_dict(torch.load(model.name))
     
     nvars = 2
     batchsize = 100
-    mcmc = MCMC(nvars, batchsize, ring2d) #, model=model)
+    mcmc = MCMC(nvars, batchsize, ring2d, model=None)
     mcmc.run(0, 100, 100)
 
