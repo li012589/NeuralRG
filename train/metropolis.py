@@ -82,29 +82,35 @@ class MCMC:
 
 if __name__ == '__main__': 
     from numpy.random.mtrand import RandomState 
-    import os 
+    import os, sys 
     import argparse
 
     parser = argparse.ArgumentParser(description='')
     group = parser.add_argument_group('group')
     group.add_argument("-Nvars", type=int, default=2, help="")
+    group.add_argument("-Batchsize", type=int, default=100, help="")
+    group.add_argument("-loadmodel", action='store_true', help="load model")
+
     group.add_argument("-Nlayers", type=int, default=4, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
-    group.add_argument("-Batchsize", type=int, default=100, help="")
     args = parser.parse_args()
 
-    #construct model 
-    model = RealNVP(Nvars = args.Nvars, 
-                    Nlayers = args.Nlayers, 
-                    Hs = args.Hs, 
-                    Ht = args.Ht)
-    
-    if os.path.exists(model.name):
-        model.load_state_dict(torch.load(model.name))
+   
+    if args.loadmodel:
+        #construct model 
+        model = RealNVP(Nvars = args.Nvars, 
+                        Nlayers = args.Nlayers, 
+                        Hs = args.Hs, 
+                        Ht = args.Ht)
+        try: 
+            model.load_state_dict(torch.load(model.name))
+        except FileNotFoundError:
+            print ('model file not found:', model.name)
+            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model 
     else:
+        #start from a fresh model 
         model = None
     
     mcmc = MCMC(args.Nvars, args.Batchsize, ring2d, model=model)
     mcmc.run(0, 100, 10)
-
