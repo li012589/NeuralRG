@@ -1,34 +1,42 @@
+
+
 # Real NVP 
 
-First, generate some samples for training 
+First, generate some training samples using metropolis
 
 ```python
-python train/generate_samples.py > train.dat
+python train/metropolis.py -Nvars 2 -Nlayers 4 -Hs 10 -Ht 10 > train.dat
 ```
 
 It will write three column data like this, where the last column is the log-probability
 
 ```
-#x, logp(x) 
--0.307216382173 -1.8566450028 -1.19416949971 
--3.38369414161 3.54963339913 -2.8692304703 
-0.6690070947 -2.29146205847 -0.769982650559 
--2.14597762639 1.06654130027 -1.44260068878
+1.41873 -2.37144 -1.8213218450546265
+-0.135188 -1.87742 -0.04330186918377876
+-0.940416 1.6424 -0.0360623337328434
+-1.18222 1.79976 -0.07345814257860184
 ... 
+#accratio: 0.26450299999999755
 ```
 
 Then, you can learn the probability either in the supervised  or unsupervised way. The supervised approach fits `model.logp(x)` to data. While the unsupervised way performs maximum log-likelihood estimation on the sample data.
 
 ```python
-python train/learn_model.py -supervised 
-python train/learn_model.py -unsupervised 
+python train/learn_model.py -supervised -Nvars 2 -Nlayers 4 -Hs 10 -Ht 10
+python train/learn_model.py -unsupervised -Nvars 2 -Nlayers 4 -Hs 10 -Ht 10
 ```
 
-After learning, one can use the real NVP net to generate new samples by doing
+After learning, it will write the model to disk, e.g. the file`Nvars2Nlayers4Hs10Ht10.realnvp`
+
+Next, one can use the real NVP net to generate new samples
 
 ```python
-z = Variable(torch.randn(Nsamples, Nvars))
-x = model.backward(z)
+python train/sample_model.py -Nvars 2 -Nlayers 4 -Hs 10 -Ht 10
 ```
 
-The log-probability of which is `model.logp(x)`
+Or, use the model to make MC update proposal
+
+```python
+python train/metropolis.py -Nvars 2 -Nlayers 4 -Hs 10 -Ht 10
+```
+
