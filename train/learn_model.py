@@ -108,7 +108,7 @@ if __name__=="__main__":
     parser.add_argument("-Nlayers", type=int, default=8, help="")
     parser.add_argument("-Hs", type=int, default=10, help="")
     parser.add_argument("-Ht", type=int, default=10, help="")
-    parser.add_argument("-Nepochs", type=int, default=100, help="")
+    parser.add_argument("-Nepochs", type=int, default=500, help="")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-supervised", action='store_true', help="supervised")

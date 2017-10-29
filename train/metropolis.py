@@ -82,26 +82,29 @@ class MCMC:
 
 if __name__ == '__main__': 
     from numpy.random.mtrand import RandomState 
-    
-    #TODO: use a model or not in a more elegant way 
+    import os 
     import argparse
+
     parser = argparse.ArgumentParser(description='')
     group = parser.add_argument_group('group')
-    group.add_argument("-Nvars", type=int,  help="")
-    group.add_argument("-Nlayers", type=int,  help="")
-    group.add_argument("-Hs", type=int,  help="")
-    group.add_argument("-Ht", type=int,  help="")
+    group.add_argument("-Nvars", type=int, default=2, help="")
+    group.add_argument("-Nlayers", type=int, default=4, help="")
+    group.add_argument("-Hs", type=int, default=10, help="")
+    group.add_argument("-Ht", type=int, default=10, help="")
+    group.add_argument("-Batchsize", type=int, default=100, help="")
     args = parser.parse_args()
-    
+
     #construct model 
     model = RealNVP(Nvars = args.Nvars, 
                     Nlayers = args.Nlayers, 
                     Hs = args.Hs, 
                     Ht = args.Ht)
-    model.load_state_dict(torch.load(model.name))
     
-    nvars = 2
-    batchsize = 100
-    mcmc = MCMC(nvars, batchsize, ring2d, model=None)
-    mcmc.run(0, 100, 100)
+    if os.path.exists(model.name):
+        model.load_state_dict(torch.load(model.name))
+    else:
+        model = None
+    
+    mcmc = MCMC(args.Nvars, args.Batchsize, ring2d, model=model)
+    mcmc.run(0, 100, 10)
 
