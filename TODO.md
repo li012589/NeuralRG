@@ -1,5 +1,6 @@
 - [ ] add GPU support for realNVP(if needed).
 - [ ] add parallel between GPUs features to RealNVP.
+- [ ] a saver for RealNVP model.
 
 - [x] pytorch-lize `generate_sapmles.py`, in particule `test_prob(x)`
 
