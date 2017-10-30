@@ -1,3 +1,6 @@
+- [ ] add GPU support for realNVP(if needed).
+- [ ] add parallel between GPUs features to RealNVP.
+
 - [x] pytorch-lize `generate_sapmles.py`, in particule `test_prob(x)`
 
 - [x] write a Metropolis MC for $\pi(x)$, i.e.`test_prob(x)` in `generate_samples.py`
