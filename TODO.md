@@ -6,7 +6,7 @@
 
 - [x] write a Metropolis MC for $\pi(x)$, i.e.`test_prob(x)` in `generate_samples.py`
 
-- [ ] use the trained real NVP net to make MC proposal 
+- [x] use the trained real NVP net to make MC proposal 
       $$
       A(x\rightarrow x') = \min\left[ 1,  \frac{p(x)}{p(x')}\cdot \frac{\pi(x')}{\pi(x)}  \right],
       $$
@@ -19,6 +19,7 @@
       ```
 
 
+- [ ] make `metropolis.py` nicer: either use gaussian model or trained model for proposal 
 - [ ] report acceptance ratio, autocorrelation time etc of the improved approach 
 - [ ] bootstrap training, plot training results for each bootstrap iteration
 

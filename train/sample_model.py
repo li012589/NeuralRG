@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 
 from model.realnvp import RealNVP 
-from train.generate_samples import test_logprob 
+from train.objectives import ring2d as target_logp 
 
 def inference(model):
 
@@ -27,13 +27,18 @@ def inference(model):
     plt.legend() 
 
     ###########################
-    x = np.arange(-5, 5, 0.01)
-    y = np.arange(-5, 5, 0.01)
-    X, Y = np.meshgrid(x, y)
+    #plot contour of the target potential 
+    grid = np.arange(-5, 5, 0.01)
+    X, Y = np.meshgrid(grid, grid)
     Z = np.zeros_like(X)
+
+    x = np.array( [[X[i,j], Y[i, j]] for j in range(Z.shape[1]) for i in range(Z.shape[0])])
+    logp = target_logp(torch.from_numpy(x))
+    counter = 0
     for i in range(Z.shape[0]):
         for j in range(Z.shape[1]):
-            Z[i,j] = np.exp( test_logprob([X[i,j], Y[i,j]]) ) 
+            Z[i,j] = np.exp ( logp[counter] ) 
+            counter += 1
     plt.contour(X, Y, Z)
     ###########################
 
