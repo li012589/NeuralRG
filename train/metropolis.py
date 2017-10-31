@@ -63,14 +63,16 @@ class MCMC:
 
         accratio = accept.float().mean()
         accept = accept.view(self.batchsize, -1)
-        accept = torch.cat((accept, accept), 1) # well, this assumes nvars = 2 
-        reject = 1-accept 
+        #accept = torch.cat((accept, accept), 1) # well, this assumes nvars = 2 
+        #reject = 1-accept 
         
         #TODO: try to avoid this if 
         if self.model is None:
-            self.x = self.x * reject.float() + x* accept.float()
+            #masked_select select new configuration into contiguous memory
+            #which than got scattered into self.x 
+            self.x.masked_scatter_(accept, torch.masked_select(x, accept))
         else:
-            self.x = self.x * reject.float() + x.data* accept.float()
+            self.x.masked_scatter_(accept, torch.masked_select(x.data, accept))
 
         return accratio
 
