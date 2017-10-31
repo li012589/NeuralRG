@@ -62,13 +62,13 @@ if __name__ == "__main__":
     print(zp)
 
     saveDict = realNVP.saveModel({})
-    torch.save(saveDict, './saveNet.realNVP')
+    torch.save(saveDict, './saveNet.testSave')
     #realNVP.loadModel({})
     sListp = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
     tListp = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
 
     realNVPp = RealNVP(sListp,tListp,gaussian)
-    saveDictp = torch.load('./saveNet.realNVP')
+    saveDictp = torch.load('./saveNet.testSave')
     realNVPp.loadModel(saveDictp)
 
     zz,_ = realNVP.encode(x,mask)
