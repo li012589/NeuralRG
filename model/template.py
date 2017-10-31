@@ -18,9 +18,13 @@ class RealNVPtemplate():
         else:
             self.name = name
     def encode(self,x,mask):
-        y0 = x[mask]
+        shape = x.data.shape
+        batchSize = shape[0]
+        y0 = torch.masked_select(x,mask)
+        y0 = y0.view(batchSize,-1)
         mask_ = 1-mask
-        y1 = x[mask_]
+        y1 = torch.masked_select(x,mask_)
+        y1 = y1.view(batchSize,-1)
         self._logjac = Variable(torch.zeros(x.data.shape[0]))
         for i in range(self.sNumLayers):
             if i%2 == 0:
@@ -29,19 +33,30 @@ class RealNVPtemplate():
             else:
                 y0 = y0 * torch.exp(self.sList[i](y1))  + self.tList[i](y1)
                 self._logjac += self.sList[i](y1).sum(dim=1)
-        y = torch.cat((y0,y1),1)
+        y = torch.zeros(shape)
+        y.masked_scatter_(mask,y0.data)
+        y.masked_scatter_(mask_,y1.data)
+        y = Variable(y)
         return y,mask
     def decode(self,x,mask):
-        y0 = x[mask]
+        shape = x.data.shape
+        batchSize = shape[0]
+        #print(x)
+        #print(mask)
+        y0 = torch.masked_select(x,mask)
+        y0 = y0.view(batchSize,-1)
         mask_ = 1-mask
-        y1 = x[mask_]
-        for i in list(range(self.Nlayers))[::-1]:
+        y1 = torch.masked_select(x,mask_)
+        y1 = y1.view(batchSize,-1)
+        for i in list(range(self.sNumLayers))[::-1]:
             if (i%2==1):
                 y0 = (y0 - self.tList[i](y1)) * torch.exp(-self.sList[i](y1))
             else:
                 y1 = (y1 - self.tList[i](y0)) * torch.exp(-self.sList[i](y0))
-        return torch.cat((y0, y1), 1)
-        y = torch.cat((y0,y1),1)
+        y = torch.zeros(shape)
+        y.masked_scatter_(mask,y0.data)
+        y.masked_scatter_(mask_,y1.data)
+        y = Variable(y)
         return y,mask
     def logProbability(self,x):
         z = self.forward(x)
