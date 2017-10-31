@@ -1,131 +1,76 @@
+if __name__ == "__main__":
+    import os
+    import sys
+    sys.path.append(os.getcwd())
+
 import torch
 from torch.autograd import Variable
-import numpy as np
+import torch.nn as nn
+import torch.nn.functional as F
 
-__all__ = ['RealNVP']
+from model import RealNVPtemplate,PriorTemplate
 
-class RealNVP(torch.nn.Module):
-    """
+class Gaussian(PriorTemplate):
+    def __init__(self,numVars,name = "gaussian"):
+        super(Gaussian,self).__init__(name)
+        self.numVars = numVars
+    def __call__(self,batchSize):
+        return Variable(torch.randn(batchSize,self.numVars))
+    def logProbability(self,z):
+        return -0.5*(z**2)
 
-    Args: 
-        Nvars (int): number variables.
-        Nlayers (int): number of layers.
-        Hs (int): number of hidden neurons of the s neural network.
-        Ht (int): number of hidden neurons of the t neural network.
+class Mlp(nn.Module):
+    def __init__(self,inNum,outNum,hideNum,name="mlp"):
+        super(Mlp, self).__init__()
+        self.fc1 = nn.Linear(inNum,hideNum)
+        self.fc2 = nn.Linear(hideNum,outNum)
+        self.name = name
+    def forward(self,x):
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        return x
 
-    """
-    def __init__(self, Nvars, Nlayers=2,Hs=10, Ht=10):
-        super(RealNVP, self).__init__()
-        self.Nvars = Nvars
-        self.Nhalf = int(Nvars/2)
-        self.Nlayers = Nlayers
-        self.Hs = Hs
-        self.Ht = Ht 
+class RealNVP(RealNVPtemplate):
+    def __init__(self,sList,tList,prior):
+        super(RealNVP,self).__init__(sList,tList,prior)
 
-        self.name ='Nvars'+str(self.Nvars) \
-                   +'Nlayers'+str(self.Nlayers) \
-                   +'Hs'+str(self.Hs)  \
-                   +'Ht'+str(self.Ht) \
-                   +'.realnvp'
-        
-        self.s = torch.nn.ModuleList() 
-        self.t = torch.nn.ModuleList()
-        for i in range(self.Nlayers):
-            self.s.append ( 
-                 torch.nn.Sequential(
-                 torch.nn.Linear(self.Nhalf, Hs),
-                 torch.nn.ReLU(),
-                 #torch.nn.Linear(Hs, Hs),
-                 #torch.nn.ReLU(),
-                 torch.nn.Linear(Hs, self.Nhalf)
-                 ))
-                 
-            self.t.append(
-                 torch.nn.Sequential(
-                 torch.nn.Linear(self.Nhalf, Ht),
-                 torch.nn.ReLU(),
-                 #torch.nn.Linear(Ht, Ht),
-                 #torch.nn.ReLU(),
-                 torch.nn.Linear(Ht, self.Nhalf)
-                 ))
+if __name__ == "__main__":
 
-    def forward(self, x):
-        """
-        :math:`z = f(x)`
-        """
+    gaussian = Gaussian(2)
 
-        y0 = x[:,0:self.Nhalf]
-        y1 = x[:,self.Nhalf:self.Nvars] 
+    sList = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
+    tList = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
 
-        self.logjac = Variable(torch.zeros(x.data.shape[0]))
-        for i in range(self.Nlayers): 
-            if (i%2==0):
-                y1 = y1 * torch.exp(self.s[i](y0))  + self.t[i](y0)
-                self.logjac += self.s[i](y0).sum(dim=1) 
-            else:
-                y0 = y0 * torch.exp(self.s[i](y1)) +  self.t[i](y1)
-                self.logjac += self.s[i](y1).sum(dim=1)
+    realNVP = RealNVP(sList,tList,gaussian)
 
-        return torch.cat((y0, y1), 1)
+    mask = torch.ByteTensor([0,1])
+    x = gaussian(10)
+    print("original")
+    print(x)
 
-    def backward(self, z):
-        '''
-        :math:`x = f^{-1}(z) = g(z)`
-        '''
+    z,_ = realNVP.encode(x,mask)
 
-        y0 = z[:,0:self.Nhalf]
-        y1 = z[:,self.Nhalf:self.Nvars]
-        
-        for i in list(range(self.Nlayers))[::-1]:
-            if (i%2==1):
-                y0 = (y0 - self.t[i](y1)) * torch.exp(-self.s[i](y1))
-            else:
-                y1 = (y1 - self.t[i](y0)) * torch.exp(-self.s[i](y0))
+    print("Forward")
+    print(z)
+    print("logProbability")
+    print(realNVP.logProbability(x,mask))
 
-        return torch.cat((y0, y1), 1)
+    zp,_ = realNVP.decode(z,mask)
 
-    def logp(self, x):
-        """
-        :math:`\log p(x) = \log p(z) + \log\det`
-        """
+    print("Backward")
+    print(zp)
 
-        z = self.forward(x)
-        return -0.5*(z**2).sum(dim=1) + self.logjac
+    saveDict = realNVP.saveModel({})
+    torch.save(saveDict, './saveNet.testSave')
+    #realNVP.loadModel({})
+    sListp = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
+    tListp = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
 
+    realNVPp = RealNVP(sListp,tListp,gaussian)
+    saveDictp = torch.load('./saveNet.testSave')
+    realNVPp.loadModel(saveDictp)
 
-if __name__=="__main__":
-    import matplotlib.pyplot as plt 
-
-    Nsamples = 1000
-    Nvars = 2
-    Nlayers = 4
-
-    model = RealNVP(Nvars, Nlayers)
-    print(model.parameters())
-    
-    x = Variable(torch.randn(Nsamples, Nvars))
-    z = model.forward(x)
-
-    #print (x)
-    #print (z)
-    #print (model.backward(z))
-
-    print (x - model.backward(z)) # should be all zero 
-
-    logp = model.logp(x)
-    #print (logp)
-
-    x = x.data.numpy()
-    z = z.data.numpy()
-
-    plt.scatter(x[:,0], x[:,1], alpha=0.5, label='$x$')
-    plt.scatter(z[:,0], z[:,1], alpha=0.5, label='$z$')
-
-    plt.xlim([-5, 5])
-    plt.ylim([-5, 5])
-
-    plt.xlabel('$x_1$')
-    plt.ylabel('$x_2$')
-    plt.legend() 
-
-    plt.show()
+    zz,_ = realNVP.encode(x,mask)
+    print("Forward after restore")
+    print(zz)
