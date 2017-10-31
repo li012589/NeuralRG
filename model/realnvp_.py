@@ -53,9 +53,14 @@ if __name__ == "__main__":
 
     print("Forward")
     print(z)
+    print("logProbability")
+    print(realNVP.logProbability(x,mask))
 
     zp,_ = realNVP.decode(z,mask)
 
     print("Backward")
     print(zp)
 
+    saveDict = realNVP.saveModel({})
+
+    #realNVP.loadModel({})

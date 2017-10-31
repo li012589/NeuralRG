@@ -58,20 +58,20 @@ class RealNVPtemplate():
         y.masked_scatter_(mask_,y1.data)
         y = Variable(y)
         return y,mask
-    def logProbability(self,x):
-        z = self.forward(x)
-        return self.prior.logProbability(z).sum(dim=1) + self._logjac
+    def logProbability(self,x,mask):
+        z,_ = self.encode(x,mask)
+        return self.prior.logProbability(x).sum(dim=1) + self._logjac
     def saveModel(self,saveDic):
         # save is done some where else, adding s,t to the dict
         for i in range(self.sNumLayers):
-            saveDic[str(i)+'sLayer']=sList[i].state_dict()
-            saveDic[str(i)+'tLayer']=tList[i].state_dict()
+            saveDic[str(i)+'sLayer']=self.sList[i].state_dict()
+            saveDic[str(i)+'tLayer']=self.tList[i].state_dict()
         return saveDic
     def loadModel(self,saveDic):
         #load is done some where else, pass the dict here.
         for i in range(self.sNumLayers):
-            sList[i].load_state_dict(saveDic[str(i)+'sLayer'])
-            tList[i].load_state_dict(saveDic[str(i)+'tLayer'])
+            self.sList[i].load_state_dict(saveDic[str(i)+'sLayer'])
+            self.tList[i].load_state_dict(saveDic[str(i)+'tLayer'])
         return saveDic
 
 class PriorTemplate():
