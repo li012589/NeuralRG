@@ -1,3 +1,3 @@
-from templates import RealNVPtemplate,LayerTemplate
+from template import RealNVPtemplate,PriorTemplate
 
-__all__ = ['RealNVPtemplate','LayerTemplate']
+__all__ = ['RealNVPtemplate','PriorTemplate']
