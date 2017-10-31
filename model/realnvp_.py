@@ -62,5 +62,15 @@ if __name__ == "__main__":
     print(zp)
 
     saveDict = realNVP.saveModel({})
-
+    torch.save(saveDict, './saveNet.realNVP')
     #realNVP.loadModel({})
+    sListp = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
+    tListp = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
+
+    realNVPp = RealNVP(sListp,tListp,gaussian)
+    saveDictp = torch.load('./saveNet.realNVP')
+    realNVPp.loadModel(saveDictp)
+
+    zz,_ = realNVP.encode(x,mask)
+    print("Forward after restore")
+    print(zz)
