@@ -4,11 +4,13 @@
 
 - [x] a saver for RealNVP model.
 
-- [ ] In _model/realNVP.py_, `saveModel` method of `RealNVP` class add check when add to save Dic
+- [ ] In _model/realNVP.py_, `saveModel` method of `RealNVP` class add check when add to save Dic.
+
+- [ ] how to create mask with channel%2 != 0 
 
 - [x] In _model/template.py_, mask can be handled more beautifully to better fit GPU.
 
-- [ ] `Tensor.sum(dim=1)` is not right for Tensor shape more than 1D.
+- [x] `Tensor.sum(dim=1)` is not right for Tensor shape more than 1D.
 
 - [x] pytorch-lize `generate_sapmles.py`, in particule `test_prob(x)`
 
