@@ -14,6 +14,8 @@ from model import Gaussian,MLP,RealNVP,CNN
 
 def test_invertible():
 
+    print("test mlp")
+
     gaussian = Gaussian([2])
 
     sList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
