@@ -17,22 +17,6 @@ class RealNVPtemplate():
             self.name = "realNVP_" + str(self.sNumLayers)+"inner_"+"_layers_"+self.prior.name+"Prior"
         else:
             self.name = name
-    '''
-    def generate(self,x):
-        shape = x.data.shape
-        batchSize = shape[0]
-        y0 = torch.masked_select(x,mask)
-        y0 = y0.view(batchSize,-1)
-        mask_ = 1-mask
-        y1 = torch.masked_select(x,mask_)
-        y1 = y1.view(batchSize,-1)
-        y0,y1 = self._encode(y0,y1)
-        y = torch.zeros(shape)
-        y.masked_scatter_(mask,y0.data)
-        y.masked_scatter_(mask_,y1.data)
-        y = Variable(y)
-        return y
-    '''
     def _generate(self,y,mask):
         self._logjac = Variable(torch.zeros(y.data.shape[0]))
         mask_ = 1-mask
@@ -48,24 +32,6 @@ class RealNVPtemplate():
                 y = y_+mask*(y*torch.exp(tmp)+self.tList[i](y_))
                 self._logjac += tmp.sum(dim=1)
         return y,mask
-    '''
-    def inference(self,x,mask):
-        shape = x.data.shape
-        batchSize = shape[0]
-        #print(x)
-        #print(mask)
-        y0 = torch.masked_select(x,mask)
-        y0 = y0.view(batchSize,-1)
-        mask_ = 1-mask
-        y1 = torch.masked_select(x,mask_)
-        y1 = y1.view(batchSize,-1)
-        y0,y1 = self._decode(y0,y1)
-        y = torch.zeros(shape)
-        y.masked_scatter_(mask,y0.data)
-        y.masked_scatter_(mask_,y1.data)
-        y = Variable(y)
-        return y,mask
-    '''
     def _inference(self,y,mask):
         mask_ = 1-mask
         for i in list(range(self.sNumLayers))[::-1]:
@@ -78,7 +44,7 @@ class RealNVPtemplate():
                 tmp = self.sList[i](y_)
                 y = mask*(y-self.tList[i](y_))*torch.exp(-tmp)+y_
         return y,mask
-    def logProbability(self,x,mask):
+    def _logProbability(self,x,mask):
         z,_ = self._inference(x,mask)
         return self.prior.logProbability(z).sum(dim=1) + self._logjac
     def _saveModel(self,saveDic):

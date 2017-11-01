@@ -49,6 +49,8 @@ class RealNVP(RealNVPtemplate):
     def inference(self,x):
         y,_ = self._inference(x,self.mask)
         return y
+    def logProbability(self,x):
+        return self._logProbability(x,self.mask)
     def saveModel(self,saveDic):
         self._saveModel(saveDic)
         saveDic["mask"] = self.mask # Do check if exist !!
@@ -79,7 +81,7 @@ if __name__ == "__main__":
     print("Forward")
     print(z)
     print("logProbability")
-    print(realNVP.logProbability(x,realNVP.mask))
+    print(realNVP.logProbability(x))
 
     zp = realNVP.inference(z)
 
