@@ -14,6 +14,8 @@ class RealNVPtemplate():
         sList (torch.nn.Module list): list of nerual networks in s funtion.
         tList (torch.nn.Module list): list of nerual networks in s funtion.
         prior (PriorTemplate): the prior distribution used.
+        NumLayers (int): number of layers in sList and tList.
+        _logjac (torch.autograd.Variable): log of jacobian, only avaible after _generate method are called.
         name (string): name of this class.
 
     """
