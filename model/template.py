@@ -26,6 +26,13 @@ class RealNVPtemplate():
         y1 = torch.masked_select(x,mask_)
         y1 = y1.view(batchSize,-1)
         self._logjac = Variable(torch.zeros(x.data.shape[0]))
+        y0,y1 = self._encode(y0,y1)
+        y = torch.zeros(shape)
+        y.masked_scatter_(mask,y0.data)
+        y.masked_scatter_(mask_,y1.data)
+        y = Variable(y)
+        return y,mask
+    def _encode(self,y0,y1):
         for i in range(self.sNumLayers):
             if i%2 == 0:
                 y1 = y1 * torch.exp(self.sList[i](y0))  + self.tList[i](y0)
@@ -33,11 +40,7 @@ class RealNVPtemplate():
             else:
                 y0 = y0 * torch.exp(self.sList[i](y1))  + self.tList[i](y1)
                 self._logjac += self.sList[i](y1).sum(dim=1)
-        y = torch.zeros(shape)
-        y.masked_scatter_(mask,y0.data)
-        y.masked_scatter_(mask_,y1.data)
-        y = Variable(y)
-        return y,mask
+        return y0,y1
     def decode(self,x,mask):
         shape = x.data.shape
         batchSize = shape[0]
@@ -48,16 +51,19 @@ class RealNVPtemplate():
         mask_ = 1-mask
         y1 = torch.masked_select(x,mask_)
         y1 = y1.view(batchSize,-1)
-        for i in list(range(self.sNumLayers))[::-1]:
-            if (i%2==1):
-                y0 = (y0 - self.tList[i](y1)) * torch.exp(-self.sList[i](y1))
-            else:
-                y1 = (y1 - self.tList[i](y0)) * torch.exp(-self.sList[i](y0))
+        y0,y1 = self._decode(y0,y1)
         y = torch.zeros(shape)
         y.masked_scatter_(mask,y0.data)
         y.masked_scatter_(mask_,y1.data)
         y = Variable(y)
         return y,mask
+    def _decode(self,y0,y1):
+        for i in list(range(self.sNumLayers))[::-1]:
+            if (i%2==1):
+                y0 = (y0 - self.tList[i](y1)) * torch.exp(-self.sList[i](y1))
+            else:
+                y1 = (y1 - self.tList[i](y0)) * torch.exp(-self.sList[i](y0))
+        return y0,y1
     def logProbability(self,x,mask):
         z,_ = self.encode(x,mask)
         return self.prior.logProbability(x).sum(dim=1) + self._logjac
