@@ -12,12 +12,13 @@ from model import RealNVPtemplate, PriorTemplate
 
 
 class Gaussian(PriorTemplate):
-    def __init__(self, numVars, name="gaussian"):
+    def __init__(self, shapeList, name="gaussian"):
         super(Gaussian, self).__init__(name)
-        self.numVars = numVars
+        self.shapeList = shapeList
 
     def __call__(self, batchSize):
-        return Variable(torch.randn(batchSize, self.numVars))
+        size = [batchSize] + self.shapeList
+        return Variable(torch.randn(size))
 
     def logProbability(self, z):
         return -0.5 * (z**2)
@@ -35,9 +36,20 @@ class MLP(nn.Module):
         x = F.relu(x)
         x = self.fc2(x)
         return x
+
 class CNN(nn.Module):
-    def __init__(self,inShape):
-        pass
+    def __init__(self,inShape,netStructure,name = "cnn"):
+        super(CNN, self).__init__()
+        variableList = nn.ModuleList()
+        former = inShape[0]
+        self.name = name
+        for layer in netStructure:
+            variableList.append(nn.Sequential(nn.Conv2d(former,layer[0],layer[1]),nn.ReLU()))
+        assert layer[0] == inshape[0]
+    def forward(self,x):
+        for layer in variableList:
+            x = layer(x)
+        return x
 
 class RealNVP(RealNVPtemplate):
     def __init__(self, shape, sList, tList, prior):
@@ -79,7 +91,7 @@ class RealNVP(RealNVPtemplate):
 
 if __name__ == "__main__":
 
-    gaussian = Gaussian(2)
+    gaussian = Gaussian([2])
 
     sList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
     tList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
