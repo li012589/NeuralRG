@@ -1,6 +1,14 @@
 - [ ] add GPU support for realNVP(if needed).
+
 - [ ] add parallel between GPUs features to RealNVP.
+
 - [ ] a saver for RealNVP model.
+
+- [ ] In _model/realNVP.py_, `saveModel` method of `RealNVP` class add check when add to save Dic
+
+- [ ] In _model/template.py_, mask can be handled more beautifully to better fit GPU.
+
+- [ ] `Tensor.sum(dim=1)` is not right for Tensor shape more than 1D.
 
 - [x] pytorch-lize `generate_sapmles.py`, in particule `test_prob(x)`
 
