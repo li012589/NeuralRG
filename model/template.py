@@ -8,6 +8,7 @@ import numpy as np
 class RealNVPtemplate():
     """
 
+    This is a template class for realNVP.
     Args:
         shapeList (int list): shape of variable coverted.
         sList (torch.nn.Module list): list of nerual networks in s funtion.
@@ -19,7 +20,7 @@ class RealNVPtemplate():
 
     def __init__(self, shapeList, sList, tList, prior, name=None):
         """
-
+        This mehtod initialise this class.
         Args:
             shapeList (int list): shape of variable coverted.
             sList (torch.nn.Module list): list of nerual networks in s funtion.
@@ -46,6 +47,7 @@ class RealNVPtemplate():
     def _generate(self, y, mask):
         """
 
+        This method generate complex distribution using variables sampled from prior distribution.
         Args:
             y (torch.autograd.Variable): input Variable.
             mask (torch.Tensor): mask to divide y into y0 and y1.
@@ -75,7 +77,7 @@ class RealNVPtemplate():
 
     def _inference(self, y, mask):
         """
-
+        This method inference prior distribution using variable sampled from complex distribution.
         Args:
             y (torch.autograd.Variable): input Variable.
             mask (torch.Tensor): mask to divide y into y0 and y1.
@@ -98,7 +100,7 @@ class RealNVPtemplate():
 
     def _logProbability(self, x, mask):
         """
-
+        This method gives the log of probability of x sampled from complex distribution.
         Args:
             x (torch.autograd.Variable): input Variable.
             mask (torch.Tensor): mask to divide y into y0 and y1.
@@ -112,6 +114,7 @@ class RealNVPtemplate():
     def _saveModel(self, saveDic):
         """
 
+        This methods add contents to saveDic, which will be saved outside.
         Args:
             saveDic (dictionary): contents to save.
         Return:
@@ -127,6 +130,7 @@ class RealNVPtemplate():
     def _loadModel(self, saveDic):
         """
 
+        This method lookk for saved contents in saveDic and load them.
         Args:
             saveDic (dictionary): contents to load.
         Return:
@@ -143,6 +147,7 @@ class RealNVPtemplate():
 class PriorTemplate():
     """
 
+    This is the template class for prior, which will be used in realNVP class.
     Args:
         name (PriorTemplate): name of this prior.
 
@@ -151,6 +156,7 @@ class PriorTemplate():
     def __init__(self, name="prior"):
     """
 
+    This method initialise this class.
     Args:
         name (PriorTemplate): name of this prior.
 
