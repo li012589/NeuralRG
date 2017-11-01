@@ -52,7 +52,7 @@ class RealNVPtemplate():
 
     def _logProbability(self, x, mask):
         z, _ = self._inference(x, mask)
-        return self.prior.logProbability(z).sum(dim=1) + self._logjac
+        return self.prior.logProbability(z) + self._logjac
 
     def _saveModel(self, saveDic):
         # save is done some where else, adding s,t to the dict

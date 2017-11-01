@@ -21,7 +21,10 @@ class Gaussian(PriorTemplate):
         return Variable(torch.randn(size))
 
     def logProbability(self, z):
-        return -0.5 * (z**2)
+        tmp = -0.5 * (z**2)
+        for i in self.shapeList:
+            tmp = tmp.sum(dim=-1)
+        return tmp
 
 
 class MLP(nn.Module):
@@ -98,6 +101,13 @@ if __name__ == "__main__":
 
     realNVP = RealNVP(2, sList, tList, gaussian)
 
+    '''
+    gaussian3d = Gaussian([2,3,4])
+    z3d = gaussian3d(10)
+    prob = gaussian3d.logProbability(z3d)
+    print(prob)
+
+    '''
     x = realNVP.prior(10)
     mask = realNVP.createMask(10)
     print("original")
@@ -128,3 +138,4 @@ if __name__ == "__main__":
     zz = realNVP.generate(x)
     print("Forward after restore")
     print(zz)
+    #'''
