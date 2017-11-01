@@ -24,10 +24,10 @@ class Gaussian(PriorTemplate):
 
 
 class MLP(nn.Module):
-    def __init__(self, inNum, outNum, hideNum, name="mlp"):
+    def __init__(self, inNum, hideNum, name="mlp"):
         super(MLP, self).__init__()
         self.fc1 = nn.Linear(inNum, hideNum)
-        self.fc2 = nn.Linear(hideNum, outNum)
+        self.fc2 = nn.Linear(hideNum, inNum)
         self.name = name
 
     def forward(self, x):
@@ -35,7 +35,9 @@ class MLP(nn.Module):
         x = F.relu(x)
         x = self.fc2(x)
         return x
-
+class CNN(nn.Module):
+    def __init__(self,inShape):
+        pass
 
 class RealNVP(RealNVPtemplate):
     def __init__(self, shape, sList, tList, prior):
@@ -79,8 +81,8 @@ if __name__ == "__main__":
 
     gaussian = Gaussian(2)
 
-    sList = [MLP(2, 2, 10), MLP(2, 2, 10), MLP(2, 2, 10), MLP(2, 2, 10)]
-    tList = [MLP(2, 2, 10), MLP(2, 2, 10), MLP(2, 2, 10), MLP(2, 2, 10)]
+    sList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+    tList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
 
     realNVP = RealNVP(2, sList, tList, gaussian)
 
@@ -104,8 +106,8 @@ if __name__ == "__main__":
     saveDict = realNVP.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
     # realNVP.loadModel({})
-    sListp = [MLP(2, 2, 10), MLP(2, 2, 10), MLP(2, 2, 10), MLP(2, 2, 10)]
-    tListp = [MLP(2, 2, 10), MLP(2, 2, 10), MLP(2, 2, 10), MLP(2, 2, 10)]
+    sListp = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+    tListp = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
 
     realNVPp = RealNVP(2, sListp, tListp, gaussian)
     saveDictp = torch.load('./saveNet.testSave')
