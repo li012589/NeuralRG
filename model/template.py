@@ -6,7 +6,28 @@ import numpy as np
 
 
 class RealNVPtemplate():
+    """
+
+    Args:
+        shapeList (int list): shape of variable coverted.
+        sList (torch.nn.Module list): list of nerual networks in s funtion.
+        tList (torch.nn.Module list): list of nerual networks in s funtion.
+        prior (PriorTemplate): the prior distribution used.
+        name (string): name of this class.
+
+    """
+
     def __init__(self, shapeList, sList, tList, prior, name=None):
+        """
+
+        Args:
+            shapeList (int list): shape of variable coverted.
+            sList (torch.nn.Module list): list of nerual networks in s funtion.
+            tList (torch.nn.Module list): list of nerual networks in s funtion.
+            prior (PriorTemplate): the prior distribution used.
+            name (string): name of this class.
+
+        """
         self.tList = tList
         self.tNumLayers = len(self.tList)
         self.sList = sList
@@ -23,6 +44,16 @@ class RealNVPtemplate():
             self.name = name
 
     def _generate(self, y, mask):
+        """
+
+        Args:
+            y (torch.autograd.Variable): input Variable.
+            mask (torch.Tensor): mask to divide y into y0 and y1.
+        Return:
+            y (torch.autograd.Variable): output Variable.
+            mask (torch.Tensor): mask to divide y into y0 and y1.
+
+        """
         self._logjac = Variable(torch.zeros(y.data.shape[0]))
         mask_ = 1 - mask
         for i in range(self.sNumLayers):
@@ -43,6 +74,16 @@ class RealNVPtemplate():
         return y, mask
 
     def _inference(self, y, mask):
+        """
+
+        Args:
+            y (torch.autograd.Variable): input Variable.
+            mask (torch.Tensor): mask to divide y into y0 and y1.
+        Return:
+            y (torch.autograd.Variable): output Variable.
+            mask (torch.Tensor): mask to divide y into y0 and y1.
+
+        """
         mask_ = 1 - mask
         for i in list(range(self.sNumLayers))[::-1]:
             if (i % 2 == 0):
@@ -56,10 +97,27 @@ class RealNVPtemplate():
         return y, mask
 
     def _logProbability(self, x, mask):
+        """
+
+        Args:
+            x (torch.autograd.Variable): input Variable.
+            mask (torch.Tensor): mask to divide y into y0 and y1.
+        Return:
+            probability (torch.autograd.Variable): probability of x.
+
+        """
         z, _ = self._inference(x, mask)
         return self.prior.logProbability(z) + self._logjac
 
     def _saveModel(self, saveDic):
+        """
+
+        Args:
+            saveDic (dictionary): contents to save.
+        Return:
+            saveDic (dictionary): contents to save with nerual networks in this class.
+
+        """
         # save is done some where else, adding s,t to the dict
         for i in range(self.sNumLayers):
             saveDic["__" + str(i) + 'sLayer'] = self.sList[i].state_dict()
@@ -67,6 +125,14 @@ class RealNVPtemplate():
         return saveDic
 
     def _loadModel(self, saveDic):
+        """
+
+        Args:
+            saveDic (dictionary): contents to load.
+        Return:
+            saveDic (dictionary): contents to load.
+
+        """
         # load is done some where else, pass the dict here.
         for i in range(self.sNumLayers):
             self.sList[i].load_state_dict(saveDic["__" + str(i) + 'sLayer'])
@@ -75,51 +141,39 @@ class RealNVPtemplate():
 
 
 class PriorTemplate():
+    """
+
+    Args:
+        name (PriorTemplate): name of this prior.
+
+    """
+
     def __init__(self, name="prior"):
+    """
+
+    Args:
+        name (PriorTemplate): name of this prior.
+
+    """
         self.name = name
 
     def __call__(self):
+    """
+
+    This method should return sampled variables in prior distribution.
+
+    """
         raise NotImplementedError(str(type(self)))
 
     def logProbability(self, x):
+    """
+
+    This method should return the probability of input variable in prior distribution.
+
+    """
         raise NotImplementedError(str(type(self)))
 
 
 if __name__ == "__main__":
 
-    # Examples for tempalte
-
-    class Gaussian(PriorTemplate):
-        def __init__(self, numVars, name="gaussian"):
-            super(Gaussian, self).__init__(name)
-            self.numVars = numVars
-
-        def __call__(self, batchSize):
-            return torch.randn(batchSize, self.numVars)
-
-        def logProbability(self, z):
-            return -0.5 * (z**2)
-
-    class Mlp(nn.model):
-        def __init__(self, inNum, outNum, hideNum, name="mlp"):
-            super(Mlp, self).__init__()
-            self.fc1 = nn.Linear(inNum, hideNum)
-            self.fc2 = nn.Linear(hideNum, outNum)
-            self.name = name
-
-        def forward(self, x):
-            x = self.fc1(x)
-            x = F.relu(x)
-            x = self.fc2(x)
-            return x
-
-    class RealNVP(RealNVPtemplate):
-        def __init__(self, sList, tList, prior):
-            super(RealNVP, self).__init__(sList, tList, dataShape)
-
-    gaussian = Gaussian(2)
-
-    sList = [Mlp(1, 1, 10), Mlp(1, 1, 10), Mlp(1, 1, 10), Mlp(1, 1, 10)]
-    tList = [Mlp(1, 1, 10), Mlp(1, 1, 10), Mlp(1, 1, 10), Mlp(1, 1, 10)]
-
-    realNVP = RealNVP(sList, tList, gaussian)
+    pass
