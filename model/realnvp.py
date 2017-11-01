@@ -7,15 +7,49 @@ from model import RealNVPtemplate, PriorTemplate
 
 
 class Gaussian(PriorTemplate):
+    """
+
+    This is a class for Gaussian prior distribution.
+    Args:
+        name (PriorTemplate): name of this prior.
+        shapeList (int list): shape of sampled variables.
+
+    """
     def __init__(self, shapeList, name="gaussian"):
+        """
+
+        This method initialise this class.
+        Args:
+            shapeList (int list): shape of sampled variables.
+            name (PriorTemplate): name of this prior.
+
+        """
         super(Gaussian, self).__init__(name)
         self.shapeList = shapeList
 
     def __call__(self, batchSize):
+        """
+
+        This method gives variables sampled from prior distribution.
+        Args:
+            batchSize (int): size of batch of variables to sample.
+        Return:
+            Samples (torch.autograd.Variable): sampled variables.
+
+        """
         size = [batchSize] + self.shapeList
         return Variable(torch.randn(size))
 
     def logProbability(self, z):
+        """
+
+        This method gives the log probability of z in prior distribution.
+        Args:
+            z (torch.autograd.Variable): variables to get log probability of.
+        Return:
+            logProbability (torch.autograd.Variable): log probability of input variables.
+
+        """
         tmp = -0.5 * (z**2)
         for i in self.shapeList:
             tmp = tmp.sum(dim=-1)
@@ -23,20 +57,63 @@ class Gaussian(PriorTemplate):
 
 
 class MLP(nn.Module):
+    """
+
+    This is a class for multilayer perceptron.
+    Args:
+        fc* (nn.Linear): fully connected layers.
+        name (string): name for this class.
+
+    """
     def __init__(self, inNum, hideNum, name="mlp"):
+        """
+
+        This mehtod initialise this class.
+        Args:
+            inNum (int): number of elements in input variables.
+            hideNum (int): number of elements in hide layer.
+            name (string): name of this class.
+
+        """
         super(MLP, self).__init__()
         self.fc1 = nn.Linear(inNum, hideNum)
         self.fc2 = nn.Linear(hideNum, inNum)
         self.name = name
 
     def forward(self, x):
+        """
+
+        This mehtod calculate the nerual network output of input x.
+        Args:
+            x (torch.autograd.Variable): input variables.
+        Return:
+            x (torch.autograd.Variable): output variables.
+
+        """
         x = self.fc1(x)
         x = F.relu(x)
         x = self.fc2(x)
         return x
 
 class CNN(nn.Module):
+    """
+
+    This is a class for convolutional nerual network.
+    Args:
+        variableList (nn.ModuleList): list of series of convolutional nerual network layers.
+        name (string): name for this class.
+
+    """
     def __init__(self,inShape,netStructure,name = "cnn"):
+        """
+
+        This mehtod initialise this class.
+        Args:
+            inShape (list int): shape of input variables.
+            netStructure (list int): parameters of inner cnn layers, each items has 4 integer, which is channels of outputs, filter size, stride, padding in sequence.
+            name (string): name of this class.
+
+        """
         super(CNN, self).__init__()
         self.variableList = nn.ModuleList()
         former = inShape[0]
@@ -48,15 +125,59 @@ class CNN(nn.Module):
         self.variableList.append(nn.Sequential(nn.Conv2d(former,layer[0],layer[1],layer[2],layer[3])))
         #assert layer[0] == inshape[0]
     def forward(self,x):
+        """
+
+        This mehtod calculate the nerual network output of input x.
+        Args:
+            x (torch.autograd.Variable): input variables.
+        Return:
+            x (torch.autograd.Variable): output variables.
+
+        """
         for layer in self.variableList:
             x = layer(x)
         return x
 
 class RealNVP(RealNVPtemplate):
+    """
+
+    This is a  class for simple realNVP.
+    Args:
+        shapeList (int list): shape of variable coverted.
+        sList (torch.nn.Module list): list of nerual networks in s funtion.
+        tList (torch.nn.Module list): list of nerual networks in s funtion.
+        prior (PriorTemplate): the prior distribution used.
+        NumLayers (int): number of layers in sList and tList.
+        _logjac (torch.autograd.Variable): log of jacobian, only avaible after _generate method are called.
+        mask (torch.Tensor): mask to divide x into y0 and y1, only avaible when self.createMask is called.
+        name (string): name of this class.
+
+    """
     def __init__(self, shapeList, sList, tList, prior):
+        """
+
+        This mehtod initialise this class.
+        Args:
+            shapeList (int list): shape of variable coverted.
+            sList (torch.nn.Module list): list of nerual networks in s funtion.
+            tList (torch.nn.Module list): list of nerual networks in s funtion.
+            prior (PriorTemplate): the prior distribution used.
+            name (string): name of this class.
+
+        """
         super(RealNVP, self).__init__(shapeList, sList, tList, prior)
+        self.mask = None
 
     def createMask(self, batchSize):
+        """
+
+        This method create mask for x, and save it in self.mask for later use.
+        Args:
+            batchSize (int): the size of batch of variables to update self.mask
+        Return:
+            mask (torch.Tensor): mask to divide x into y0 and y1.
+
+        """
         size = [batchSize] + self.shapeList
         size[1] = size[1] // 2
         maskOne = torch.ones(size)
@@ -66,23 +187,68 @@ class RealNVP(RealNVPtemplate):
         return self.mask
 
     def generate(self, x):
+        """
+
+        This method generate complex distribution using variables sampled from prior distribution.
+        Args:
+            y (torch.autograd.Variable): input Variable.
+        Return:
+            y (torch.autograd.Variable): output Variable.
+
+        """
         y, _ = self._generate(x, self.mask)
         return y
 
     def inference(self, x):
+        """
+
+        This method inference prior distribution using variable sampled from complex distribution.
+        Args:
+            y (torch.autograd.Variable): input Variable.
+        Return:
+            y (torch.autograd.Variable): output Variable.
+
+        """
         y, _ = self._inference(x, self.mask)
         return y
 
     def logProbability(self, x):
+        """
+
+        This method gives the log of probability of x sampled from complex distribution.
+        Args:
+            x (torch.autograd.Variable): input Variable.
+        Return:
+            probability (torch.autograd.Variable): probability of x.
+
+        """
         return self._logProbability(x, self.mask)
 
     def saveModel(self, saveDic):
+        """
+
+        This methods add contents to saveDic, which will be saved outside.
+        Args:
+            saveDic (dictionary): contents to save.
+        Return:
+            saveDic (dictionary): contents to save with nerual networks in this class.
+
+        """
         self._saveModel(saveDic)
         saveDic["mask"] = self.mask  # Do check if exist !!
         saveDic["shapeList"] = self.shapeList
         return saveDic
 
     def loadModel(self, saveDic):
+        """
+
+        This method lookk for saved contents in saveDic and load them.
+        Args:
+            saveDic (dictionary): contents to load.
+        Return:
+            saveDic (dictionary): contents to load.
+
+        """
         self._loadModel(saveDic)
         self.mask = saveDic["mask"]
         self.shapeList = saveDic["shapeList"]

@@ -8,7 +8,7 @@ import numpy as np
 class RealNVPtemplate():
     """
 
-    This is a template class for realNVP.
+    This is a template class for realNVP. This base class doesn't handle mask creating, saving and changing.
     Args:
         shapeList (int list): shape of variable coverted.
         sList (torch.nn.Module list): list of nerual networks in s funtion.
@@ -46,6 +46,7 @@ class RealNVPtemplate():
                 "_layers_" + self.prior.name + "Prior"
         else:
             self.name = name
+        self._logjac = None
 
     def _generate(self, y, mask):
         """
@@ -159,29 +160,29 @@ class PriorTemplate():
     """
 
     def __init__(self, name="prior"):
-    """
+        """
 
-    This method initialise this class.
-    Args:
-        name (PriorTemplate): name of this prior.
+        This method initialise this class.
+        Args:
+            name (PriorTemplate): name of this prior.
 
-    """
+        """
         self.name = name
 
     def __call__(self):
-    """
+        """
 
-    This method should return sampled variables in prior distribution.
+        This method should return sampled variables in prior distribution.
 
-    """
+        """
         raise NotImplementedError(str(type(self)))
 
     def logProbability(self, x):
-    """
+        """
 
-    This method should return the probability of input variable in prior distribution.
+        This method should return the probability of input variable in prior distribution.
 
-    """
+        """
         raise NotImplementedError(str(type(self)))
 
 
