@@ -20,6 +20,7 @@ class RealNVPtemplate():
 
     def __init__(self, shapeList, sList, tList, prior, name=None):
         """
+
         This mehtod initialise this class.
         Args:
             shapeList (int list): shape of variable coverted.
@@ -77,6 +78,7 @@ class RealNVPtemplate():
 
     def _inference(self, y, mask):
         """
+
         This method inference prior distribution using variable sampled from complex distribution.
         Args:
             y (torch.autograd.Variable): input Variable.
@@ -100,6 +102,7 @@ class RealNVPtemplate():
 
     def _logProbability(self, x, mask):
         """
+
         This method gives the log of probability of x sampled from complex distribution.
         Args:
             x (torch.autograd.Variable): input Variable.
