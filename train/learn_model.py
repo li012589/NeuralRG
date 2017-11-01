@@ -1,10 +1,14 @@
+if __name__ =="__main__":
+    import os
+    import sys
+    sys.path.append(os.getcwd())
 import torch 
 torch.manual_seed(42)
 from torch.autograd import Variable 
 import numpy as np 
 import matplotlib.pyplot as plt 
 
-from model.realnvp import RealNVP 
+from model import Gaussian,MLP,RealNVP
 from train.objectives import ring2d as target_logp 
 
 def fit(Nlayers, Hs, Ht, Nepochs, supervised):
@@ -21,26 +25,34 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
     Nvars = x_data.data.shape[-1]
     print (Nvars)
 
-    model = RealNVP(Nvars, Nlayers=Nlayers, Hs=Hs, Ht=Ht)
+    #model = RealNVP(Nvars, Nlayers=Nlayers, Hs=Hs, Ht=Ht)
+    gaussian = Gaussian([Nvars])
+
+    sList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+    tList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+
+    model = RealNVP([Nvars], sList, tList, gaussian)
+    
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.001)
     if supervised:
         criterion = torch.nn.MSELoss(size_average=True)
 
     for epoch in range(Nepochs):
 
-        logp = model.logp(x_data)
+        logp = model.logProbability(x_data)
         if supervised:
             loss = criterion(logp, y_data)
         else:
-            loss = -logp.mean() # NLL 
+            loss = -logp.mean() # ?? not very clear why
 
         print (epoch, loss.data[0]) 
 
         optimizer.zero_grad()
         loss.backward() 
         optimizer.step()
-    
-    torch.save(model.state_dict(), './'+model.name)
+
+    saveDict = realNVP.saveModel({})
+    torch.save(saveDict, './'+model.name)
     return Nvars, x_data, model
 
 def visualize(Nvars, x_data, model):
@@ -48,14 +60,14 @@ def visualize(Nvars, x_data, model):
     #after training, generate some data from the network
     Nsamples = 1000 # test samples 
     z = Variable(torch.randn(Nsamples, Nvars), volatile=True)
-    x = model.backward(z)  
+    x = model.generate(z)  
 
     # on training data 
-    logp_model_train = model.logp(x_data)
+    logp_model_train = model.logProbability(x_data)
     logp_data_train = target_logp(x_data)
 
     # on test data
-    logp_model_test = model.logp(x)
+    logp_model_test = model.logProbability(x)
     logp_data_test = target_logp(x)
 
     plt.figure() 
@@ -105,6 +117,7 @@ def visualize(Nvars, x_data, model):
 if __name__=="__main__":
     import argparse
     parser = argparse.ArgumentParser(description='')
+    parser.add_argument("-Nvars", type=int, default=2, help="")
     parser.add_argument("-Nlayers", type=int, default=8, help="")
     parser.add_argument("-Hs", type=int, default=10, help="")
     parser.add_argument("-Ht", type=int, default=10, help="")

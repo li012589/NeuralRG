@@ -1,9 +1,14 @@
+if __name__ =="__main__":
+    import os
+    import sys
+    sys.path.append(os.getcwd())
 import torch 
 torch.manual_seed(42)
 from torch.autograd import Variable 
 import numpy as np 
 
-from model.realnvp import RealNVP 
+#from model.realnvp import RealNVP
+from model import Gaussian,MLP,RealNVP
 from train.objectives import ring2d
 
 __all__ = ["MCMC"]
@@ -55,11 +60,11 @@ class MCMC:
                              self.logp(self.x)+(self.x**2).sum(dim=1)/2)
         else: 
             #use a model 
-            z = Variable(torch.randn(self.batchsize, self.nvars), volatile=True) # prior 
-            x = self.model.backward(z)
+            z = model.prior(self.batchsize)#Variable(torch.randn(self.batchsize, self.nvars), volatile=True) # prior 
+            x = self.model.generate(z)
 
-            accept = _accept(self.logp(x.data)-self.model.logp(x).data, 
-                             self.logp(self.x)-self.model.logp(Variable(self.x, volatile=True)).data)
+            accept = _accept(self.logp(x.data)-self.model.logProbability(x).data, 
+                             self.logp(self.x)-self.model.logProbability(Variable(self.x, volatile=True)).data)
 
         accratio = accept.float().mean()
         accept = accept.view(self.batchsize, -1)
@@ -100,16 +105,18 @@ if __name__ == '__main__':
 
    
     if args.loadmodel:
-        #construct model 
-        model = RealNVP(Nvars = args.Nvars, 
-                        Nlayers = args.Nlayers, 
-                        Hs = args.Hs, 
-                        Ht = args.Ht)
-        try: 
-            model.load_state_dict(torch.load(model.name))
-        except FileNotFoundError:
-            print ('model file not found:', model.name)
-            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model 
+       gaussian = Gaussian([args.Nvars])
+
+       sList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+       tList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+
+       model = RealNVP([args.Nvars], sList, tList, gaussian)
+       try:
+          saveDict = torch.load('./'+model.name)
+          model.loadModel(saveDict)
+       except FileNotFoundError:
+          print ('model file not found:', model.name)
+          sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model 
     else:
         #start from a fresh model 
         model = None
