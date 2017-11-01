@@ -17,7 +17,8 @@ class RealNVPtemplate():
             self.name = "realNVP_" + str(self.sNumLayers)+"inner_"+"_layers_"+self.prior.name+"Prior"
         else:
             self.name = name
-    def encode(self,x,mask):
+    '''
+    def generate(self,x):
         shape = x.data.shape
         batchSize = shape[0]
         y0 = torch.masked_select(x,mask)
@@ -25,23 +26,30 @@ class RealNVPtemplate():
         mask_ = 1-mask
         y1 = torch.masked_select(x,mask_)
         y1 = y1.view(batchSize,-1)
-        self._logjac = Variable(torch.zeros(x.data.shape[0]))
         y0,y1 = self._encode(y0,y1)
         y = torch.zeros(shape)
         y.masked_scatter_(mask,y0.data)
         y.masked_scatter_(mask_,y1.data)
         y = Variable(y)
-        return y,mask
-    def _encode(self,y0,y1):
+        return y
+    '''
+    def _generate(self,y,mask):
+        self._logjac = Variable(torch.zeros(y.data.shape[0]))
+        mask_ = 1-mask
         for i in range(self.sNumLayers):
             if i%2 == 0:
-                y1 = y1 * torch.exp(self.sList[i](y0))  + self.tList[i](y0)
-                self._logjac += self.sList[i](y0).sum(dim=1)
+                y_ = mask*y
+                tmp = self.sList[i](y_)
+                y = y_+mask_*(y*torch.exp(tmp)+self.tList[i](y_))
+                self._logjac += tmp.sum(dim=1)
             else:
-                y0 = y0 * torch.exp(self.sList[i](y1))  + self.tList[i](y1)
-                self._logjac += self.sList[i](y1).sum(dim=1)
-        return y0,y1
-    def decode(self,x,mask):
+                y_ = mask_*y
+                tmp = self.sList[i](y_)
+                y = y_+mask*(y*torch.exp(tmp)+self.tList[i](y_))
+                self._logjac += tmp.sum(dim=1)
+        return y,mask
+    '''
+    def inference(self,x,mask):
         shape = x.data.shape
         batchSize = shape[0]
         #print(x)
@@ -57,27 +65,33 @@ class RealNVPtemplate():
         y.masked_scatter_(mask_,y1.data)
         y = Variable(y)
         return y,mask
-    def _decode(self,y0,y1):
+    '''
+    def _inference(self,y,mask):
+        mask_ = 1-mask
         for i in list(range(self.sNumLayers))[::-1]:
-            if (i%2==1):
-                y0 = (y0 - self.tList[i](y1)) * torch.exp(-self.sList[i](y1))
+            if (i%2==0):
+                y_ = mask*y
+                tmp = self.sList[i](y_)
+                y = mask_*(y-self.tList[i](y_))*torch.exp(-tmp)+y_
             else:
-                y1 = (y1 - self.tList[i](y0)) * torch.exp(-self.sList[i](y0))
-        return y0,y1
+                y_ = mask_*y
+                tmp = self.sList[i](y_)
+                y = mask*(y-self.tList[i](y_))*torch.exp(-tmp)+y_
+        return y,mask
     def logProbability(self,x,mask):
-        z,_ = self.encode(x,mask)
-        return self.prior.logProbability(x).sum(dim=1) + self._logjac
-    def saveModel(self,saveDic):
+        z,_ = self._inference(x,mask)
+        return self.prior.logProbability(z).sum(dim=1) + self._logjac
+    def _saveModel(self,saveDic):
         # save is done some where else, adding s,t to the dict
         for i in range(self.sNumLayers):
-            saveDic[str(i)+'sLayer']=self.sList[i].state_dict()
-            saveDic[str(i)+'tLayer']=self.tList[i].state_dict()
+            saveDic["__"+str(i)+'sLayer']=self.sList[i].state_dict()
+            saveDic["__"+str(i)+'tLayer']=self.tList[i].state_dict()
         return saveDic
-    def loadModel(self,saveDic):
+    def _loadModel(self,saveDic):
         #load is done some where else, pass the dict here.
         for i in range(self.sNumLayers):
-            self.sList[i].load_state_dict(saveDic[str(i)+'sLayer'])
-            self.tList[i].load_state_dict(saveDic[str(i)+'tLayer'])
+            self.sList[i].load_state_dict(saveDic["__"+str(i)+'sLayer'])
+            self.tList[i].load_state_dict(saveDic["__"+str(i)+'tLayer'])
         return saveDic
 
 class PriorTemplate():

@@ -19,9 +19,9 @@ class Gaussian(PriorTemplate):
     def logProbability(self,z):
         return -0.5*(z**2)
 
-class Mlp(nn.Module):
+class MLP(nn.Module):
     def __init__(self,inNum,outNum,hideNum,name="mlp"):
-        super(Mlp, self).__init__()
+        super(MLP, self).__init__()
         self.fc1 = nn.Linear(inNum,hideNum)
         self.fc2 = nn.Linear(hideNum,outNum)
         self.name = name
@@ -32,31 +32,56 @@ class Mlp(nn.Module):
         return x
 
 class RealNVP(RealNVPtemplate):
-    def __init__(self,sList,tList,prior):
+    def __init__(self,shape,sList,tList,prior):
         super(RealNVP,self).__init__(sList,tList,prior)
+        self.shape = shape
+    def createMask(self,batchSize):
+        maskOne = torch.ones(self.shape//2)
+        maskZero = torch.zeros(self.shape//2)
+        mask = torch.cat([maskOne,maskZero],0)
+        mask = mask.view(-1,self.shape)
+        mask = torch.cat([mask]*batchSize,0)
+        self.mask =  Variable(mask)
+        return self.mask
+    def generate(self,x):
+        y,_ = self._generate(x,self.mask)
+        return y
+    def inference(self,x):
+        y,_ = self._inference(x,self.mask)
+        return y
+    def saveModel(self,saveDic):
+        self._saveModel(saveDic)
+        saveDic["mask"] = self.mask # Do check if exist !!
+        saveDic["shape"] = self.shape
+        return saveDic
+    def loadModel(self,saveDic):
+        self._loadModel(saveDic)
+        self.mask = saveDic["mask"]
+        self.shape = saveDic["shape"]
+        return saveDic
 
 if __name__ == "__main__":
 
     gaussian = Gaussian(2)
 
-    sList = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
-    tList = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
+    sList = [MLP(2,2,10),MLP(2,2,10),MLP(2,2,10),MLP(2,2,10)]
+    tList = [MLP(2,2,10),MLP(2,2,10),MLP(2,2,10),MLP(2,2,10)]
 
-    realNVP = RealNVP(sList,tList,gaussian)
+    realNVP = RealNVP(2,sList,tList,gaussian)
 
-    mask = torch.ByteTensor([0,1])
-    x = gaussian(10)
+    x = realNVP.prior(10)
+    mask = realNVP.createMask(10)
     print("original")
     print(x)
 
-    z,_ = realNVP.encode(x,mask)
+    z = realNVP.generate(x)
 
     print("Forward")
     print(z)
     print("logProbability")
-    print(realNVP.logProbability(x,mask))
+    print(realNVP.logProbability(x,realNVP.mask))
 
-    zp,_ = realNVP.decode(z,mask)
+    zp = realNVP.inference(z)
 
     print("Backward")
     print(zp)
@@ -64,13 +89,13 @@ if __name__ == "__main__":
     saveDict = realNVP.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
     #realNVP.loadModel({})
-    sListp = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
-    tListp = [Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10),Mlp(1,1,10)]
+    sListp = [MLP(2,2,10),MLP(2,2,10),MLP(2,2,10),MLP(2,2,10)]
+    tListp = [MLP(2,2,10),MLP(2,2,10),MLP(2,2,10),MLP(2,2,10)]
 
-    realNVPp = RealNVP(sListp,tListp,gaussian)
+    realNVPp = RealNVP(2,sListp,tListp,gaussian)
     saveDictp = torch.load('./saveNet.testSave')
     realNVPp.loadModel(saveDictp)
 
-    zz,_ = realNVP.encode(x,mask)
+    zz = realNVP.generate(x)
     print("Forward after restore")
     print(zz)
