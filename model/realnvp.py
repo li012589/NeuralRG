@@ -55,16 +55,19 @@ class CNN(nn.Module):
         return x
 
 class RealNVP(RealNVPtemplate):
-    def __init__(self, shape, sList, tList, prior):
+    def __init__(self, shapeList, sList, tList, prior):
         super(RealNVP, self).__init__(sList, tList, prior)
-        self.shape = shape
+        self.shapeList = shapeList
 
     def createMask(self, batchSize):
-        maskOne = torch.ones(self.shape // 2)
-        maskZero = torch.zeros(self.shape // 2)
-        mask = torch.cat([maskOne, maskZero], 0)
-        mask = mask.view(-1, self.shape)
-        mask = torch.cat([mask] * batchSize, 0)
+        size = [batchSize] + self.shapeList
+        size[1] = size[1] // 2
+        maskOne = torch.ones(size)
+        maskZero = torch.zeros(size)
+        mask = torch.cat([maskOne,maskZero],1)
+        #mask = torch.cat([maskOne, maskZero], 0)
+        #mask = mask.view(-1, self.shape)
+        #mask = torch.cat([mask] * batchSize, 0)
         self.mask = Variable(mask)
         return self.mask
 
@@ -82,13 +85,13 @@ class RealNVP(RealNVPtemplate):
     def saveModel(self, saveDic):
         self._saveModel(saveDic)
         saveDic["mask"] = self.mask  # Do check if exist !!
-        saveDic["shape"] = self.shape
+        saveDic["shapeList"] = self.shapeList
         return saveDic
 
     def loadModel(self, saveDic):
         self._loadModel(saveDic)
         self.mask = saveDic["mask"]
-        self.shape = saveDic["shape"]
+        self.shapeList = saveDic["shapeList"]
         return saveDic
 
 
@@ -99,13 +102,18 @@ if __name__ == "__main__":
     sList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
     tList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
 
-    realNVP = RealNVP(2, sList, tList, gaussian)
+    realNVP = RealNVP([2], sList, tList, gaussian)
 
     '''
-    gaussian3d = Gaussian([2,3,4])
+    gaussian3d = Gaussian([2,4,4])
     z3d = gaussian3d(10)
-    prob = gaussian3d.logProbability(z3d)
-    print(prob)
+
+    netStructure = [[]]
+
+    sList3d = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+    sList3d = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+
+    realNVP3d = RealNVP([2,3,4], sList3d, tList3d, gaussian3d)
 
     '''
     x = realNVP.prior(10)
