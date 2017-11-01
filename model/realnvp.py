@@ -43,21 +43,23 @@ class MLP(nn.Module):
 class CNN(nn.Module):
     def __init__(self,inShape,netStructure,name = "cnn"):
         super(CNN, self).__init__()
-        variableList = nn.ModuleList()
+        self.variableList = nn.ModuleList()
         former = inShape[0]
         self.name = name
-        for layer in netStructure:
-            variableList.append(nn.Sequential(nn.Conv2d(former,layer[0],layer[1]),nn.ReLU()))
-        assert layer[0] == inshape[0]
+        for layer in netStructure[:-1]:
+            self.variableList.append(nn.Sequential(nn.Conv2d(former,layer[0],layer[1],layer[2],layer[3]),nn.ReLU()))
+            former = layer[0]
+        layer = netStructure[-1]
+        self.variableList.append(nn.Sequential(nn.Conv2d(former,layer[0],layer[1],layer[2],layer[3])))
+        #assert layer[0] == inshape[0]
     def forward(self,x):
-        for layer in variableList:
+        for layer in self.variableList:
             x = layer(x)
         return x
 
 class RealNVP(RealNVPtemplate):
     def __init__(self, shapeList, sList, tList, prior):
-        super(RealNVP, self).__init__(sList, tList, prior)
-        self.shapeList = shapeList
+        super(RealNVP, self).__init__(shapeList, sList, tList, prior)
 
     def createMask(self, batchSize):
         size = [batchSize] + self.shapeList
@@ -65,9 +67,6 @@ class RealNVP(RealNVPtemplate):
         maskOne = torch.ones(size)
         maskZero = torch.zeros(size)
         mask = torch.cat([maskOne,maskZero],1)
-        #mask = torch.cat([maskOne, maskZero], 0)
-        #mask = mask.view(-1, self.shape)
-        #mask = torch.cat([mask] * batchSize, 0)
         self.mask = Variable(mask)
         return self.mask
 
@@ -97,6 +96,7 @@ class RealNVP(RealNVPtemplate):
 
 if __name__ == "__main__":
 
+    from numpy.testing import assert_array_almost_equal,assert_array_equal
     gaussian = Gaussian([2])
 
     sList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
@@ -104,34 +104,40 @@ if __name__ == "__main__":
 
     realNVP = RealNVP([2], sList, tList, gaussian)
 
-    '''
     gaussian3d = Gaussian([2,4,4])
-    z3d = gaussian3d(10)
+    x3d = gaussian3d(3)
+    #z3dp = z3d[:,0,:,:].view(10,-1,4,4)
+    #print(z3dp)
 
-    netStructure = [[]]
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[2,2,1,0]] # [channel, filter_size, stride, padding]
 
-    sList3d = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
-    sList3d = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+    sList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
+    tList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
 
-    realNVP3d = RealNVP([2,3,4], sList3d, tList3d, gaussian3d)
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
+    mask3d = realNVP3d.createMask(3)
+    #print(mask3d)
 
-    '''
+    #testCNN = CNN([1,4,4],netStructure)
+    #print(testCNN.forward(x3d))
+
+
     x = realNVP.prior(10)
     mask = realNVP.createMask(10)
     print("original")
-    print(x)
+    #print(x)
 
     z = realNVP.generate(x)
 
     print("Forward")
-    print(z)
+    #print(z)
     print("logProbability")
-    print(realNVP.logProbability(x))
+    print(realNVP.logProbability(z))
 
     zp = realNVP.inference(z)
 
     print("Backward")
-    print(zp)
+    #print(zp)
 
     saveDict = realNVP.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
@@ -145,5 +151,39 @@ if __name__ == "__main__":
 
     zz = realNVP.generate(x)
     print("Forward after restore")
-    print(zz)
-    #'''
+    #print(zz)
+
+    assert_array_almost_equal(x.data.numpy(),zp.data.numpy())
+    assert_array_almost_equal(zz.data.numpy(),z.data.numpy())
+
+    print("Testing 3d")
+    print("3d original:")
+    #print(x3d)
+
+    z3d = realNVP3d.generate(x3d)
+    print("3d forward:")
+    #print(z3d)
+
+    print("3d logProbability")
+    print(realNVP3d.logProbability(z3d))
+
+    zp3d = realNVP3d.inference(z3d)
+    print("Backward")
+    #print(zp3d)
+
+    saveDict3d = realNVP3d.saveModel({})
+    torch.save(saveDict3d, './saveNet3d.testSave')
+    # realNVP.loadModel({})
+    sListp3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
+    tListp3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
+
+    realNVPp3d = RealNVP([2,4,4], sListp3d, tListp3d, gaussian3d)
+    saveDictp3d = torch.load('./saveNet3d.testSave')
+    realNVPp3d.loadModel(saveDictp3d)
+
+    zz3d = realNVPp3d.generate(x3d)
+    print("3d Forward after restore")
+    #print(zz3d)
+
+    assert_array_almost_equal(x3d.data.numpy(),zp3d.data.numpy())
+    assert_array_almost_equal(zz3d.data.numpy(),z3d.data.numpy())

@@ -6,7 +6,7 @@ import numpy as np
 
 
 class RealNVPtemplate():
-    def __init__(self, sList, tList, prior, name=None):
+    def __init__(self, shapeList, sList, tList, prior, name=None):
         self.tList = tList
         self.tNumLayers = len(self.tList)
         self.sList = sList
@@ -14,6 +14,7 @@ class RealNVPtemplate():
         assert self.sNumLayers == self.tNumLayers
         self.NumLayers = self.sNumLayers
         self.prior = prior
+        self.shapeList = shapeList
         if name is None:
             self.name = "realNVP_" + \
                 str(self.sNumLayers) + "inner_" + \
@@ -29,12 +30,16 @@ class RealNVPtemplate():
                 y_ = mask * y
                 tmp = self.sList[i](y_)
                 y = y_ + mask_ * (y * torch.exp(tmp) + self.tList[i](y_))
-                self._logjac += tmp.sum(dim=1)
+                for i in self.shapeList:
+                    tmp = tmp.sum(dim=-1)
+                self._logjac += tmp
             else:
                 y_ = mask_ * y
                 tmp = self.sList[i](y_)
                 y = y_ + mask * (y * torch.exp(tmp) + self.tList[i](y_))
-                self._logjac += tmp.sum(dim=1)
+                for i in self.shapeList:
+                    tmp = tmp.sum(dim=-1)
+                self._logjac += tmp
         return y, mask
 
     def _inference(self, y, mask):
