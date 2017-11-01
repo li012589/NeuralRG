@@ -1,4 +1,4 @@
-from template import RealNVPtemplate,PriorTemplate
-from realnvp import Gaussian,MLP,RealNVP
+from model.template import RealNVPtemplate,PriorTemplate
+from model.realnvp import Gaussian,MLP,RealNVP,CNN
 
-__all__ = ['RealNVPtemplate','PriorTemplate','Gaussian','MLP','RealNVP']
+__all__ = ['RealNVPtemplate','PriorTemplate','Gaussian','MLP','RealNVP','CNN']
