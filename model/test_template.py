@@ -10,11 +10,12 @@ torch.manual_seed(42)
 
 import numpy as np 
 from numpy.testing import assert_array_almost_equal,assert_array_equal
-from model import Gaussian,MLP,RealNVP,CNN
+from model import RealNVPtemplate,MLP,CNN,RealNVP,Gaussian
 
-def test_invertible():
+def test_tempalte_invertible():
 
-    print("test realNVP")
+    print("test mlp")
+
     gaussian = Gaussian([2])
 
     sList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
@@ -34,59 +35,47 @@ def test_invertible():
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     mask3d = realNVP3d.createMask(3)
-    assert mask3d.data.shape[0] == 3
-    assert mask3d.data.shape[1] == 2
-    assert mask3d.data.shape[2] == 4
-    assert mask3d.data.shape[3] == 4
+    #print(mask3d)
+
+    #testCNN = CNN([1,4,4],netStructure)
+    #print(testCNN.forward(x3d))
+
 
     x = realNVP.prior(10)
     mask = realNVP.createMask(10)
-    assert mask.data.shape[0] == 10
-    assert mask.data.shape[1] == 2
-
     print("original")
     #print(x)
 
-    z = realNVP.generate(x)
+    z,_ = realNVP._generate(x,realNVP.mask,True)
 
     print("Forward")
     #print(z)
 
-    zp = realNVP.inference(z)
+    zp,_ = realNVP._inference(z,realNVP.mask,True)
 
     print("Backward")
     #print(zp)
 
+    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),realNVP._inferenceLogjac.data.numpy())
+
+    print("logProbability")
+    print(realNVP.logProbability(z))
+
     assert_array_almost_equal(x.data.numpy(),zp.data.numpy())
-
-    saveDict = realNVP.saveModel({})
-    torch.save(saveDict, './saveNet.testSave')
-    # realNVP.loadModel({})
-    sListp = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
-    tListp = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
-
-    realNVPp = RealNVP(2, sListp, tListp, gaussian)
-    saveDictp = torch.load('./saveNet.testSave')
-    realNVPp.loadModel(saveDictp)
-
-    zz = realNVP.generate(x)
-    print("Forward after restore")
-
-    assert_array_almost_equal(zz.data.numpy(),z.data.numpy())
-
-    print("test high dims")
 
     print("Testing 3d")
     print("3d original:")
     #print(x3d)
 
-    z3d = realNVP3d.generate(x3d)
+    z3d,_ = realNVP3d._generate(x3d,realNVP3d.mask,True)
     print("3d forward:")
     #print(z3d)
 
-    zp3d = realNVP3d.inference(z3d)
+    zp3d,_ = realNVP3d._inference(z3d,realNVP3d.mask,True)
     print("Backward")
     #print(zp3d)
+
+    assert_array_almost_equal(realNVP3d._generateLogjac.data.numpy(),realNVP3d._inferenceLogjac.data.numpy())
 
     print("3d logProbability")
     print(realNVP3d.logProbability(z3d))
@@ -108,8 +97,6 @@ def test_invertible():
     assert_array_almost_equal(x3d.data.numpy(),zp3d.data.numpy())
     assert_array_almost_equal(zz3d.data.numpy(),z3d.data.numpy())
 
-
-
 if __name__ == "__main__":
-    test_invertible()
+    test_tempalte_invertible()
 
