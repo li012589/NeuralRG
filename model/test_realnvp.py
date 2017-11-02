@@ -106,3 +106,6 @@ def test_invertible():
 
     assert_array_almost_equal(x3d.data.numpy(),zp3d.data.numpy())
     assert_array_almost_equal(zz3d.data.numpy(),z3d.data.numpy())
+
+if __name__=='__main__':
+    test_invertible()

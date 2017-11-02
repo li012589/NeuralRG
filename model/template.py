@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 
 
-class RealNVPtemplate():
+class RealNVPtemplate(torch.nn.Module):
     """
 
     This is a template class for realNVP. This base class doesn't handle mask creating, saving and changing.
@@ -32,11 +32,15 @@ class RealNVPtemplate():
             name (string): name of this class.
 
         """
-        self.tList = tList
+        super(RealNVPtemplate, self).__init__()
+
+        self.tList = torch.nn.ModuleList(tList)
         self.tNumLayers = len(self.tList)
-        self.sList = sList
+
+        self.sList = torch.nn.ModuleList(sList)
         self.sNumLayers = len(self.sList)
         assert self.sNumLayers == self.tNumLayers
+
         self.NumLayers = self.sNumLayers
         self.prior = prior
         self.shapeList = shapeList
