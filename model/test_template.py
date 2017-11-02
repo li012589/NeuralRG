@@ -56,7 +56,7 @@ def test_tempalte_invertible():
     print("Backward")
     #print(zp)
 
-    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),realNVP._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
 
     print("logProbability")
     print(realNVP.logProbability(z))
@@ -75,7 +75,7 @@ def test_tempalte_invertible():
     print("Backward")
     #print(zp3d)
 
-    assert_array_almost_equal(realNVP3d._generateLogjac.data.numpy(),realNVP3d._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP3d._generateLogjac.data.numpy(),-realNVP3d._inferenceLogjac.data.numpy())
 
     print("3d logProbability")
     print(realNVP3d.logProbability(z3d))

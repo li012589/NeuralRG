@@ -113,7 +113,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for i in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._inferenceLogjac += s
+                    self._inferenceLogjac -= s
             else:
                 y_ = mask_ * y
                 s = self.sList[i](y_)*mask
@@ -122,7 +122,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for i in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._inferenceLogjac += s
+                    self._inferenceLogjac -= s
         return y, mask
 
     def _logProbability(self, x, mask):
