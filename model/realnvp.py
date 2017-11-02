@@ -184,6 +184,7 @@ class RealNVP(RealNVPtemplate):
         maskZero = torch.zeros(size)
         mask = torch.cat([maskOne,maskZero],1)
         self.mask = Variable(mask)
+        self.mask_ = Variable(1-mask)
         return self.mask
 
     def generate(self, x):
@@ -196,7 +197,7 @@ class RealNVP(RealNVPtemplate):
             y (torch.autograd.Variable): output Variable.
 
         """
-        y, _ = self._generate(x, self.mask)
+        y, _,_ = self._generate(x, self.mask,self.mask_)
         return y
 
     def inference(self, x):
@@ -209,7 +210,7 @@ class RealNVP(RealNVPtemplate):
             y (torch.autograd.Variable): output Variable.
 
         """
-        y, _ = self._inference(x, self.mask)
+        y, _,_ = self._inference(x, self.mask,self.mask_)
         return y
 
     def logProbability(self, x):
@@ -222,7 +223,7 @@ class RealNVP(RealNVPtemplate):
             probability (torch.autograd.Variable): probability of x.
 
         """
-        return self._logProbability(x, self.mask)
+        return self._logProbability(x, self.mask,self.mask_)
 
     def saveModel(self, saveDic):
         """
@@ -236,6 +237,7 @@ class RealNVP(RealNVPtemplate):
         """
         self._saveModel(saveDic)
         saveDic["mask"] = self.mask  # Do check if exist !!
+        saveDic["mask_"] = self.mask_
         saveDic["shapeList"] = self.shapeList
         return saveDic
 
@@ -251,6 +253,7 @@ class RealNVP(RealNVPtemplate):
         """
         self._loadModel(saveDic)
         self.mask = saveDic["mask"]
+        self.mask_ = saveDic["mask_"]
         self.shapeList = saveDic["shapeList"]
         return saveDic
 

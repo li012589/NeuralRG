@@ -53,7 +53,7 @@ class RealNVPtemplate(torch.nn.Module):
             self.name = name
         self._logjac = None
 
-    def _generate(self, y, mask,ifLogjac=False):
+    def _generate(self, y, mask, mask_, ifLogjac=False):
         """
 
         This method generate complex distribution using variables sampled from prior distribution.
@@ -67,7 +67,6 @@ class RealNVPtemplate(torch.nn.Module):
         """
         if ifLogjac:
             self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
-        mask_ = 1 - mask
         for i in range(self.sNumLayers):
             if i % 2 == 0:
                 y_ = mask * y
@@ -87,9 +86,9 @@ class RealNVPtemplate(torch.nn.Module):
                     for i in self.shapeList:
                         s = s.sum(dim=-1)
                     self._generateLogjac += s
-        return y, mask
+        return y, mask,mask_
 
-    def _inference(self, y, mask,ifLogjac=False):
+    def _inference(self, y, mask,mask_,ifLogjac=False):
         """
 
         This method inference prior distribution using variable sampled from complex distribution.
@@ -103,7 +102,6 @@ class RealNVPtemplate(torch.nn.Module):
         """
         if ifLogjac:
             self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
-        mask_ = 1 - mask
         for i in list(range(self.sNumLayers))[::-1]:
             if (i % 2 == 0):
                 y_ = mask * y
@@ -123,9 +121,9 @@ class RealNVPtemplate(torch.nn.Module):
                     for i in self.shapeList:
                         s = s.sum(dim=-1)
                     self._inferenceLogjac -= s
-        return y, mask
+        return y, mask,mask_
 
-    def _logProbability(self, x, mask):
+    def _logProbability(self, x, mask,mask_):
         """
 
         This method gives the log of probability of x sampled from complex distribution.
@@ -136,7 +134,7 @@ class RealNVPtemplate(torch.nn.Module):
             probability (torch.autograd.Variable): probability of x.
 
         """
-        z, _ = self._generate(x, mask,True)
+        z, _,_ = self._generate(x, mask,mask_,True)
         return self.prior.logProbability(z) + self._generateLogjac
 
     def _saveModel(self, saveDic):
