@@ -88,6 +88,33 @@ class RealNVPtemplate(torch.nn.Module):
                     self._generateLogjac += s
         return y, mask,mask_
 
+    def _generateWithSlice(self,y,sliceDim,ifLogjac=False):
+        if ifLogjac:
+            self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
+        y0 = y.narrow(sliceDim+1,0,self.shapeList[sliceDim]//2)
+        y1 = y.narrow(sliceDim+1,self.shapeList[sliceDim]//2,self.shapeList[sliceDim])
+        for i in range(self.sNumLayers):
+            if i % 2 == 0:
+                s = self.sList[i](y0)
+                #print(s)
+                t = self.tList[i](y0)
+                y1 = y1 * torch.exp(s)  + t
+                if ifLogjac:
+                    for i in self.shapeList:
+                        s = s.sum(dim=-1)
+                    self._generateLogjac += s
+            else:
+                s = self.sList[i](y1)
+                #print(s)
+                t = self.tList[i](y1)
+                y0 = y0 * torch.exp(s)+t
+                if ifLogjac:
+                    for i in self.shapeList:
+                        s = s.sum(dim=-1)
+                    self._generateLogjac += s
+        y=torch.cat((y0,y1),sliceDim+1)
+        return y
+
     def _inference(self, y, mask,mask_,ifLogjac=False):
         """
 
@@ -122,6 +149,35 @@ class RealNVPtemplate(torch.nn.Module):
                         s = s.sum(dim=-1)
                     self._inferenceLogjac -= s
         return y, mask,mask_
+
+    def _inferenceWithSlice(self,y,sliceDim,ifLogjac=False):
+        if ifLogjac:
+            self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
+        y0 = y.narrow(sliceDim+1,0,self.shapeList[sliceDim]//2)
+        y1 = y.narrow(sliceDim+1,self.shapeList[sliceDim]//2,self.shapeList[sliceDim])
+        for i in list(range(self.sNumLayers))[::-1]:
+            if i % 2 == 0:
+                s = self.sList[i](y0)
+                #print(s)
+                t = self.tList[i](y0)
+                y1 = (y1 - t)*torch.exp(-s)
+                if ifLogjac:
+                    for i in self.shapeList:
+                        s = s.sum(dim=-1)
+                    self._inferenceLogjac -= s
+                    #print(s)
+            else:
+                s = self.sList[i](y1)
+                #print(s)
+                t = self.tList[i](y1)
+                y0 = (y0 - t)*torch.exp(-s)
+                if ifLogjac:
+                    for i in self.shapeList:
+                        s = s.sum(dim=-1)
+                    self._inferenceLogjac -= s
+                    #print(s)
+        y=torch.cat((y0,y1),sliceDim+1)
+        return y
 
     def _logProbability(self, x, mask,mask_):
         """
