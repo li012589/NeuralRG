@@ -51,22 +51,25 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
         loss.backward() 
         optimizer.step()
 
-    saveDict = realNVP.saveModel({})
+    saveDict = model.saveModel({})
     torch.save(saveDict, './'+model.name)
     return Nvars, x_data, model
 
 def visualize(Nvars, x_data, model):
 
     #after training, generate some data from the network
-    Nsamples = 1000 # test samples 
+    Nsamples = 1000 # test samples
+    model.createMask(Nsamples)
     z = Variable(torch.randn(Nsamples, Nvars), volatile=True)
     x = model.generate(z)  
 
-    # on training data 
+    # on training data
+    model.createMask(10000)
     logp_model_train = model.logProbability(x_data)
     logp_data_train = target_logp(x_data)
 
     # on test data
+    model.createMask(1000)
     logp_model_test = model.logProbability(x)
     logp_data_test = target_logp(x)
 
