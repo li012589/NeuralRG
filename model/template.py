@@ -15,7 +15,8 @@ class RealNVPtemplate(torch.nn.Module):
         tList (torch.nn.Module list): list of nerual networks in s funtion.
         prior (PriorTemplate): the prior distribution used.
         NumLayers (int): number of layers in sList and tList.
-        _logjac (torch.autograd.Variable): log of jacobian, only avaible after _generate method are called.
+        _generateLogjac (torch.autograd.Variable): log of jacobian of generate function, only avaible after _generate method are called.
+        _inferenceLogjac (torch.autograd.Variable): log of jacobian of inference function, only avaible after _inference method are called.
         name (string): name of this class.
 
     """
@@ -52,7 +53,7 @@ class RealNVPtemplate(torch.nn.Module):
             self.name = name
         self._logjac = None
 
-    def _generate(self, y, mask):
+    def _generate(self, y, mask,ifLogjac=False):
         """
 
         This method generate complex distribution using variables sampled from prior distribution.
@@ -64,26 +65,29 @@ class RealNVPtemplate(torch.nn.Module):
             mask (torch.Tensor): mask to divide y into y0 and y1.
 
         """
-        self._logjac = Variable(torch.zeros(y.data.shape[0]))
+        if ifLogjac:
+            self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         mask_ = 1 - mask
         for i in range(self.sNumLayers):
             if i % 2 == 0:
                 y_ = mask * y
                 tmp = self.sList[i](y_)
                 y = y_ + mask_ * (y * torch.exp(tmp) + self.tList[i](y_))
-                for i in self.shapeList:
-                    tmp = tmp.sum(dim=-1)
-                self._logjac += tmp
+                if ifLogjac:
+                    for i in self.shapeList:
+                        tmp = tmp.sum(dim=-1)
+                    self._generateLogjac += tmp
             else:
                 y_ = mask_ * y
                 tmp = self.sList[i](y_)
                 y = y_ + mask * (y * torch.exp(tmp) + self.tList[i](y_))
-                for i in self.shapeList:
-                    tmp = tmp.sum(dim=-1)
-                self._logjac += tmp
+                if ifLogjac:
+                    for i in self.shapeList:
+                        tmp = tmp.sum(dim=-1)
+                    self._generateLogjac += tmp
         return y, mask
 
-    def _inference(self, y, mask):
+    def _inference(self, y, mask,ifLogjac=False):
         """
 
         This method inference prior distribution using variable sampled from complex distribution.
@@ -95,16 +99,26 @@ class RealNVPtemplate(torch.nn.Module):
             mask (torch.Tensor): mask to divide y into y0 and y1.
 
         """
+        if ifLogjac:
+            self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         mask_ = 1 - mask
         for i in list(range(self.sNumLayers))[::-1]:
             if (i % 2 == 0):
                 y_ = mask * y
                 tmp = self.sList[i](y_)
                 y = mask_ * (y - self.tList[i](y_)) * torch.exp(-tmp) + y_
+                if ifLogjac:
+                    for i in self.shapeList:
+                        tmp = tmp.sum(dim=-1)
+                    self._inferenceLogjac += tmp
             else:
                 y_ = mask_ * y
                 tmp = self.sList[i](y_)
                 y = mask * (y - self.tList[i](y_)) * torch.exp(-tmp) + y_
+                if ifLogjac:
+                    for i in self.shapeList:
+                        tmp = tmp.sum(dim=-1)
+                    self._inferenceLogjac += tmp
         return y, mask
 
     def _logProbability(self, x, mask):
@@ -118,8 +132,8 @@ class RealNVPtemplate(torch.nn.Module):
             probability (torch.autograd.Variable): probability of x.
 
         """
-        z, _ = self._inference(x, mask)
-        return self.prior.logProbability(z) + self._logjac
+        z, _ = self._inference(x, mask,True)
+        return self.prior.logProbability(z) + self._inferenceLogjac
 
     def _saveModel(self, saveDic):
         """

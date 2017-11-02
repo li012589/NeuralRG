@@ -46,17 +46,20 @@ def test_invertible():
     print("original")
     #print(x)
 
-    z = realNVP.generate(x)
+    z,_ = realNVP._generate(x,realNVP.mask,True)
 
     print("Forward")
     #print(z)
-    print("logProbability")
-    print(realNVP.logProbability(z))
 
-    zp = realNVP.inference(z)
+    zp,_ = realNVP._inference(z,realNVP.mask,True)
 
     print("Backward")
     #print(zp)
+
+    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),realNVP._inferenceLogjac.data.numpy())
+
+    print("logProbability")
+    print(realNVP.logProbability(z))
 
     saveDict = realNVP.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
@@ -79,16 +82,18 @@ def test_invertible():
     print("3d original:")
     #print(x3d)
 
-    z3d = realNVP3d.generate(x3d)
+    z3d,_ = realNVP3d._generate(x3d,realNVP3d.mask,True)
     print("3d forward:")
     #print(z3d)
 
-    print("3d logProbability")
-    print(realNVP3d.logProbability(z3d))
-
-    zp3d = realNVP3d.inference(z3d)
+    zp3d,_ = realNVP3d._inference(z3d,realNVP3d.mask,True)
     print("Backward")
     #print(zp3d)
+
+    assert_array_almost_equal(realNVP3d._generateLogjac.data.numpy(),realNVP3d._inferenceLogjac.data.numpy())
+
+    print("3d logProbability")
+    print(realNVP3d.logProbability(z3d))
 
     saveDict3d = realNVP3d.saveModel({})
     torch.save(saveDict3d, './saveNet3d.testSave')
@@ -107,5 +112,25 @@ def test_invertible():
     assert_array_almost_equal(x3d.data.numpy(),zp3d.data.numpy())
     assert_array_almost_equal(zz3d.data.numpy(),z3d.data.numpy())
 
-if __name__=='__main__':
+    print("test realNVP")
+
+    x = realNVP.prior(10)
+    mask = realNVP.createMask(10)
+    print("original")
+    #print(x)
+
+    z = realNVP.generate(x)
+
+    print("Forward")
+    #print(z)
+
+    zp = realNVP.inference(z)
+
+    print("Backward")
+    #print(zp)
+
+    assert_array_almost_equal(x.data.numpy(),zp.data.numpy())
+
+if __name__ == "__main__":
     test_invertible()
+
