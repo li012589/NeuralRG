@@ -32,7 +32,7 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
     tList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
 
     model = RealNVP([Nvars], sList, tList, gaussian)
-    
+    model.createMask(10000)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.001)
     if supervised:
         criterion = torch.nn.MSELoss(size_average=True)
