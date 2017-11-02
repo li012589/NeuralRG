@@ -22,23 +22,6 @@ def test_invertible():
 
     realNVP = RealNVP([2], sList, tList, gaussian)
 
-    gaussian3d = Gaussian([2,4,4])
-    x3d = gaussian3d(3)
-    #z3dp = z3d[:,0,:,:].view(10,-1,4,4)
-    #print(z3dp)
-
-    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[2,2,1,0]] # [channel, filter_size, stride, padding]
-
-    sList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
-    tList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
-
-    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask(3)
-    assert mask3d.data.shape[0] == 3
-    assert mask3d.data.shape[1] == 2
-    assert mask3d.data.shape[2] == 4
-    assert mask3d.data.shape[3] == 4
-
     x = realNVP.prior(10)
     mask = realNVP.createMask(10)
     assert mask.data.shape[0] == 10
@@ -74,6 +57,25 @@ def test_invertible():
 
     assert_array_almost_equal(zz.data.numpy(),z.data.numpy())
 
+def test_3d():
+
+    gaussian3d = Gaussian([2,4,4])
+    x3d = gaussian3d(3)
+    #z3dp = z3d[:,0,:,:].view(10,-1,4,4)
+    #print(z3dp)
+
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[2,2,1,0]] # [channel, filter_size, stride, padding]
+
+    sList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
+    tList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
+
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
+    mask3d = realNVP3d.createMask(3)
+    assert mask3d.data.shape[0] == 3
+    assert mask3d.data.shape[1] == 2
+    assert mask3d.data.shape[2] == 4
+    assert mask3d.data.shape[3] == 4
+
     print("test high dims")
 
     print("Testing 3d")
@@ -107,6 +109,7 @@ def test_invertible():
 
     assert_array_almost_equal(x3d.data.numpy(),zp3d.data.numpy())
     assert_array_almost_equal(zz3d.data.numpy(),z3d.data.numpy())
+
 
 
 
