@@ -93,11 +93,11 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='')
-    group = parser.add_argument_group('group')
-    group.add_argument("-Nvars", type=int, default=2, help="")
-    group.add_argument("-Batchsize", type=int, default=100, help="")
-    group.add_argument("-loadmodel", action='store_true', help="load model")
+    parser.add_argument("-Nvars", type=int, default=2, help="")
+    parser.add_argument("-Batchsize", type=int, default=100, help="")
+    parser.add_argument("-loadmodel", action='store_true', help="load model")
 
+    group = parser.add_argument_group('network parameters')
     group.add_argument("-Nlayers", type=int, default=4, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -107,8 +107,8 @@ if __name__ == '__main__':
     if args.loadmodel:
        gaussian = Gaussian([args.Nvars])
 
-       sList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
-       tList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+       sList = [MLP(arsg.Nvars, args.Hs)] * args.Nlayers
+       tList = [MLP(arsg.Nvars, args.Ht)] * args.Nlayers
 
        model = RealNVP([args.Nvars], sList, tList, gaussian)
        try:
