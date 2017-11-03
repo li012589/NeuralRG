@@ -147,11 +147,14 @@ def test_tempalte_contraction_mlp():
     x_data = realNVP.prior(10)
     y_data = realNVP.prior.logProbability(x_data)
     print("logProbability")
-    logp = realNVP._logProbabilityWithContraction(x_data,realNVP.mask,realNVP.mask_,0)
+    '''
+    for i in range(10):
+        logp = realNVP._logProbabilityWithContraction(x_data,realNVP.mask,realNVP.mask_,0)
 
-    criterion = torch.nn.MSELoss(size_average=True)
-    loss = criterion(logp, y_data)
-    print(loss)
+        criterion = torch.nn.MSELoss(size_average=True)
+        loss = criterion(logp, y_data)
+        print(loss)
+    '''
 
 def test_template_contraction_function_with_checkerboard():
     gaussian3d = Gaussian([2,4,4])
