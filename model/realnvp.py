@@ -168,7 +168,7 @@ class RealNVP(RealNVPtemplate):
         super(RealNVP, self).__init__(shapeList, sList, tList, prior)
         self.mask = None
 
-    def createMask(self, batchSize, maskType = "channel", ifByte=0):
+    def createMask(self, batchSize, maskType = "channel", ifByte=1):
         """
 
         This method create mask for x, and save it in self.mask for later use.
@@ -201,7 +201,7 @@ class RealNVP(RealNVPtemplate):
             self.mask_ = self.mask_.byte()
         return self.mask
 
-    def generate(self, x):
+    def generate(self, x,sliceDim = 0):
         """
 
         This method generate complex distribution using variables sampled from prior distribution.
@@ -211,10 +211,10 @@ class RealNVP(RealNVPtemplate):
             y (torch.autograd.Variable): output Variable.
 
         """
-        y = self._generate(x, self.mask,self.mask_)
+        y = self._generateWithContraction(x, self.mask,self.mask_,sliceDim)
         return y
 
-    def inference(self, x):
+    def inference(self, x,sliceDim = 0):
         """
 
         This method inference prior distribution using variable sampled from complex distribution.
@@ -224,10 +224,10 @@ class RealNVP(RealNVPtemplate):
             y (torch.autograd.Variable): output Variable.
 
         """
-        y = self._inference(x, self.mask,self.mask_)
+        y = self._inferenceWithContraction(x, self.mask,self.mask_,sliceDim)
         return y
 
-    def logProbability(self, x):
+    def logProbability(self, x,sliceDim = 0):
         """
 
         This method gives the log of probability of x sampled from complex distribution.
@@ -237,7 +237,7 @@ class RealNVP(RealNVPtemplate):
             probability (torch.autograd.Variable): probability of x.
 
         """
-        return self._logProbability(x, self.mask,self.mask_)
+        return self._logProbabilityWithContraction(x, self.mask,self.mask_,sliceDim)
 
     def saveModel(self, saveDic):
         """

@@ -219,7 +219,32 @@ class RealNVPtemplate(torch.nn.Module):
         """
         z = self._generate(x, mask,mask_,True)
         return self.prior.logProbability(z) + self._generateLogjac
+    def _logProbabilityWithSlice(self, x, mask,mask_,sliceDim):
+        """
 
+        This method gives the log of probability of x sampled from complex distribution.
+        Args:
+            x (torch.autograd.Variable): input Variable.
+            mask (torch.Tensor): mask to divide y into y0 and y1.
+        Return:
+            probability (torch.autograd.Variable): probability of x.
+
+        """
+        z = self._generateWithSlice(x, mask,mask_,sliceDim,True)
+        return self.prior.logProbability(z) + self._generateLogjac
+    def _logProbabilityWithContraction(self, x, mask,mask_,sliceDim):
+        """
+
+        This method gives the log of probability of x sampled from complex distribution.
+        Args:
+            x (torch.autograd.Variable): input Variable.
+            mask (torch.Tensor): mask to divide y into y0 and y1.
+        Return:
+            probability (torch.autograd.Variable): probability of x.
+
+        """
+        z = self._generateWithContraction(x, mask,mask_,sliceDim,True)
+        return self.prior.logProbability(z) + self._generateLogjac
     def _saveModel(self, saveDic):
         """
 

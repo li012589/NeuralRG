@@ -24,7 +24,7 @@ def test_tempalte_invertibleMLP():
     realNVP = RealNVP([2], sList, tList, gaussian)
 
     x = realNVP.prior(10)
-    mask = realNVP.createMask(10)
+    mask = realNVP.createMask(10,ifByte=0)
     print("original")
     #print(x)
 
@@ -41,7 +41,7 @@ def test_tempalte_invertibleMLP():
     assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
 
     print("logProbability")
-    print(realNVP.logProbability(z))
+    print(realNVP._logProbability(z,realNVP.mask,realNVP.mask_))
 
     assert_array_almost_equal(x.data.numpy(),zp.data.numpy())
 
@@ -59,7 +59,7 @@ def test_tempalte_invertibleCNN():
     tList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask(3)
+    mask3d = realNVP3d.createMask(3,ifByte=0)
 
     print("Testing 3d")
     print("3d original:")
@@ -76,7 +76,7 @@ def test_tempalte_invertibleCNN():
     assert_array_almost_equal(realNVP3d._generateLogjac.data.numpy(),-realNVP3d._inferenceLogjac.data.numpy())
 
     print("3d logProbability")
-    print(realNVP3d.logProbability(z3d))
+    print(realNVP3d._logProbability(z3d,realNVP3d.mask,realNVP3d.mask_))
 
     saveDict3d = realNVP3d.saveModel({})
     torch.save(saveDict3d, './saveNet3d.testSave')
@@ -88,7 +88,7 @@ def test_tempalte_invertibleCNN():
     saveDictp3d = torch.load('./saveNet3d.testSave')
     realNVPp3d.loadModel(saveDictp3d)
 
-    zz3d = realNVPp3d.generate(x3d)
+    zz3d = realNVPp3d._generate(x3d,realNVPp3d.mask,realNVPp3d.mask_)
     print("3d Forward after restore")
     #print(zz3d)
 
@@ -108,7 +108,6 @@ def test_template_slice_function():
     tList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
 
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask = realNVP.createMask(3)
 
     z = realNVP._generateWithSlice(x,0,True)
     #print(z)
@@ -170,7 +169,8 @@ def test_template_contraction_function_with_channel():
     assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
 
 if __name__ == "__main__":
+    test_tempalte_invertibleMLP()
     #test_tempalte_invertible()
     #test_template_slice_function()
-    test_template_contraction_function()
+    #test_template_contraction_function()
 
