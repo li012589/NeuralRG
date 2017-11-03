@@ -221,7 +221,7 @@ class RealNVPtemplate(torch.nn.Module):
         """
         z = self._generate(x, mask,mask_,True)
         return self.prior.logProbability(z) + self._generateLogjac
-    def _logProbabilityWithSlice(self, x, mask,mask_,sliceDim):
+    def _logProbabilityWithSlice(self, x,sliceDim):
         """
 
         This method gives the log of probability of x sampled from complex distribution.
