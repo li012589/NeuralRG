@@ -136,13 +136,14 @@ def test_template_contraction_function():
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     mask = realNVP.createMask(3,"checkerboard",1)
 
-    z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2)
+    z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2,True)
     #print(z)
 
-    zz = realNVP._inferenceWithContraction(z,realNVP.mask,realNVP.mask_,2)
+    zz = realNVP._inferenceWithContraction(z,realNVP.mask,realNVP.mask_,2,True)
     #print(zz)
 
     assert_array_almost_equal(x.data.numpy(),zz.data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
 
 if __name__ == "__main__":
     #test_tempalte_invertible()
