@@ -28,8 +28,8 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
     #model = RealNVP(Nvars, Nlayers=Nlayers, Hs=Hs, Ht=Ht)
     gaussian = Gaussian([Nvars])
 
-    sList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
-    tList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+    sList = [MLP(2, Hs)] * Nlayers
+    tList = [MLP(2, Ht)] * Nlayers 
 
     model = RealNVP([Nvars], sList, tList, gaussian)
     model.createMask(10000)
@@ -120,7 +120,6 @@ def visualize(Nvars, x_data, model):
 if __name__=="__main__":
     import argparse
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument("-Nvars", type=int, default=2, help="")
     parser.add_argument("-Nlayers", type=int, default=8, help="")
     parser.add_argument("-Hs", type=int, default=10, help="")
     parser.add_argument("-Ht", type=int, default=10, help="")
