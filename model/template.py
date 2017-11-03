@@ -117,9 +117,10 @@ class RealNVPtemplate(torch.nn.Module):
         y0 = torch.masked_select(y,mask).view(size)
         y1 = torch.masked_select(y,mask_).view(size)
         y0,y1 = self._generateMeta(y0,y1,ifLogjac)
-        y.masked_scatter_(mask,y0)
-        y.masked_scatter_(mask_,y1)
-        return y
+        output = Variable(torch.zeros(y.data.shape))
+        output.masked_scatter_(mask,y0)
+        output.masked_scatter_(mask_,y1)
+        return output
 
     def _generateWithSlice(self,y,sliceDim,ifLogjac=False):
         if ifLogjac:
@@ -193,9 +194,10 @@ class RealNVPtemplate(torch.nn.Module):
         y0 = torch.masked_select(y,mask).view(size)
         y1 = torch.masked_select(y,mask_).view(size)
         y0,y1 = self._inferenceMeta(y0,y1,ifLogjac)
-        y.masked_scatter_(mask,y0)
-        y.masked_scatter_(mask_,y1)
-        return y
+        output = Variable(torch.zeros(y.data.shape))
+        output.masked_scatter_(mask,y0)
+        output.masked_scatter_(mask_,y1)
+        return output
 
     def _inferenceWithSlice(self,y,sliceDim,ifLogjac=False):
         if ifLogjac:
