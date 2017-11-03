@@ -168,7 +168,7 @@ class RealNVP(RealNVPtemplate):
         super(RealNVP, self).__init__(shapeList, sList, tList, prior)
         self.mask = None
 
-    def createMask(self, batchSize, maskType = "channel"):
+    def createMask(self, batchSize, maskType = "channel", ifByte=0):
         """
 
         This method create mask for x, and save it in self.mask for later use.
@@ -196,6 +196,9 @@ class RealNVP(RealNVPtemplate):
             self.mask_ = (1-self.mask)
         else:
             raise ValueError("maskType not known.")
+        if ifByte:
+            self.mask = self.mask.byte()
+            self.mask_ = self.mask_.byte()
         return self.mask
 
     def generate(self, x):
