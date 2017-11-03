@@ -230,7 +230,7 @@ class RealNVPtemplate(torch.nn.Module):
             probability (torch.autograd.Variable): probability of x.
 
         """
-        z = self._generateWithSlice(x, mask,mask_,sliceDim,True)
+        z = self._generateWithSlice(x,sliceDim,True)
         return self.prior.logProbability(z) + self._generateLogjac
     def _logProbabilityWithContraction(self, x, mask,mask_,sliceDim):
         """
