@@ -211,7 +211,7 @@ class RealNVP(RealNVPtemplate):
             y (torch.autograd.Variable): output Variable.
 
         """
-        y, _,_ = self._generate(x, self.mask,self.mask_)
+        y = self._generate(x, self.mask,self.mask_)
         return y
 
     def inference(self, x):
@@ -224,7 +224,7 @@ class RealNVP(RealNVPtemplate):
             y (torch.autograd.Variable): output Variable.
 
         """
-        y, _,_ = self._inference(x, self.mask,self.mask_)
+        y = self._inference(x, self.mask,self.mask_)
         return y
 
     def logProbability(self, x):

@@ -28,12 +28,12 @@ def test_tempalte_invertibleMLP():
     print("original")
     #print(x)
 
-    z,_,_ = realNVP._generate(x,realNVP.mask,realNVP.mask_,True)
+    z = realNVP._generate(x,realNVP.mask,realNVP.mask_,True)
 
     print("Forward")
     #print(z)
 
-    zp,_,_ = realNVP._inference(z,realNVP.mask,realNVP.mask_,True)
+    zp = realNVP._inference(z,realNVP.mask,realNVP.mask_,True)
 
     print("Backward")
     #print(zp)
@@ -65,11 +65,11 @@ def test_tempalte_invertibleCNN():
     print("3d original:")
     #print(x3d)
 
-    z3d,_,_ = realNVP3d._generate(x3d,realNVP3d.mask,realNVP3d.mask_,True)
+    z3d = realNVP3d._generate(x3d,realNVP3d.mask,realNVP3d.mask_,True)
     print("3d forward:")
     #print(z3d)
 
-    zp3d,_,_ = realNVP3d._inference(z3d,realNVP3d.mask,realNVP3d.mask_,True)
+    zp3d = realNVP3d._inference(z3d,realNVP3d.mask,realNVP3d.mask_,True)
     print("Backward")
     #print(zp3d)
 

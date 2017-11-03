@@ -86,7 +86,7 @@ class RealNVPtemplate(torch.nn.Module):
                     for i in self.shapeList:
                         s = s.sum(dim=-1)
                     self._generateLogjac += s
-        return y, mask,mask_
+        return y
 
     def _generateWithContraction(self,y,mask,mask_,sliceDim,ifLogjac = False):
         if ifLogjac:
@@ -179,7 +179,7 @@ class RealNVPtemplate(torch.nn.Module):
                     for i in self.shapeList:
                         s = s.sum(dim=-1)
                     self._inferenceLogjac -= s
-        return y, mask,mask_
+        return y
 
     def _inferenceWithContraction(self,y,mask,mask_,sliceDim,ifLogjac = False):
         if ifLogjac:
@@ -253,7 +253,7 @@ class RealNVPtemplate(torch.nn.Module):
             probability (torch.autograd.Variable): probability of x.
 
         """
-        z, _,_ = self._generate(x, mask,mask_,True)
+        z = self._generate(x, mask,mask_,True)
         return self.prior.logProbability(z) + self._generateLogjac
 
     def _saveModel(self, saveDic):
