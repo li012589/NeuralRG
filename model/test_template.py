@@ -120,6 +120,39 @@ def test_template_slice_function():
     #print(realNVP._inferenceLogjac.data.numpy())
     assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
 
+def test_tempalte_contraction_mlp():
+    gaussian = Gaussian([2])
+
+    sList = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+    tList = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+
+    realNVP = RealNVP([2], sList, tList, gaussian)
+
+    x = realNVP.prior(10)
+    mask = realNVP.createMask(10,ifByte=1)
+    print("original")
+    #print(x)
+
+    z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,0,True)
+
+    print("Forward")
+    #print(z)
+
+    zp = realNVP._inferenceWithContraction(z,realNVP.mask,realNVP.mask_,0,True)
+
+    print("Backward")
+    #print(zp)
+    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
+
+    x_data = realNVP.prior(10)
+    y_data = realNVP.prior.logProbability(x_data)
+    print("logProbability")
+    logp = realNVP._logProbabilityWithContraction(x_data,realNVP.mask,realNVP.mask_,0)
+
+    criterion = torch.nn.MSELoss(size_average=True)
+    loss = criterion(logp, y_data)
+    print(loss)
+
 def test_template_contraction_function_with_checkerboard():
     gaussian3d = Gaussian([2,4,4])
     x = gaussian3d(3)
@@ -169,7 +202,8 @@ def test_template_contraction_function_with_channel():
     assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
 
 if __name__ == "__main__":
-    test_tempalte_invertibleMLP()
+    test_tempalte_contraction_mlp()
+    #test_tempalte_invertibleMLP()
     #test_tempalte_invertible()
     #test_template_slice_function()
     #test_template_contraction_function()
