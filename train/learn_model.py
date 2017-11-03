@@ -28,8 +28,8 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
     #model = RealNVP(Nvars, Nlayers=Nlayers, Hs=Hs, Ht=Ht)
     gaussian = Gaussian([Nvars])
 
-    sList = [MLP(2, Hs)] * Nlayers
-    tList = [MLP(2, Ht)] * Nlayers 
+    sList = [MLP(1, Hs)] * Nlayers
+    tList = [MLP(1, Ht)] * Nlayers 
 
     model = RealNVP([Nvars], sList, tList, gaussian)
     model.createMask(10000)
@@ -45,7 +45,7 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
         else:
             loss = -logp.mean() # ?? not very clear why
 
-        print (epoch, loss.data[0]) 
+        print (epoch, loss.data[0])
 
         optimizer.zero_grad()
         loss.backward() 
