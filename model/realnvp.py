@@ -168,31 +168,29 @@ class RealNVP(RealNVPtemplate):
         super(RealNVP, self).__init__(shapeList, sList, tList, prior)
         self.mask = None
 
-    def createMask(self, batchSize, maskType = "channel", ifByte=1):
+    def createMask(self, maskType = "channel", ifByte=1):
         """
 
         This method create mask for x, and save it in self.mask for later use.
         Args:
-            batchSize (int): the size of batch of variables to update self.mask
+
         Return:
             mask (torch.Tensor): mask to divide x into y0 and y1.
 
         """
-        size = [batchSize] + self.shapeList
+        size = self.shapeList.copy() 
         if maskType == "channel":
-            size[1] = size[1] // 2
+            size[0] = size[0] // 2
             maskOne = torch.ones(size)
             maskZero = torch.zeros(size)
-            mask = torch.cat([maskOne,maskZero],1)
+            mask = torch.cat([maskOne,maskZero],0)
             self.mask = Variable(mask)
             self.mask_ = Variable(1-mask)
         elif maskType == "checkerboard":
-            assert size[2]%2 == 0
-            x = size[2]//2
-            assert size[3]%2 == 0
-            y = size[3]//2
+            assert (size[1]%2 == 0)
+            assert (size[2]%2 == 0)
             unit = torch.Tensor([[1,0],[0,1]])
-            self.mask = Variable(unit.repeat(batchSize,size[1],x,y))
+            self.mask = Variable(unit.repeat(size[0],size[1]//2,size[2]//2))
             self.mask_ = (1-self.mask)
         else:
             raise ValueError("maskType not known.")
