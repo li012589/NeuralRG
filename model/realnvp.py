@@ -15,6 +15,7 @@ class Gaussian(PriorTemplate):
         shapeList (int list): shape of sampled variables.
 
     """
+
     def __init__(self, shapeList, name="gaussian"):
         """
 
@@ -65,6 +66,7 @@ class MLP(nn.Module):
         name (string): name for this class.
 
     """
+
     def __init__(self, inNum, hideNum, name="mlp"):
         """
 
@@ -95,6 +97,7 @@ class MLP(nn.Module):
         x = self.fc2(x)
         return x
 
+
 class CNN(nn.Module):
     """
 
@@ -104,7 +107,8 @@ class CNN(nn.Module):
         name (string): name for this class.
 
     """
-    def __init__(self,inShape,netStructure,name = "cnn"):
+
+    def __init__(self, inShape, netStructure, name="cnn"):
         """
 
         This mehtod initialise this class.
@@ -119,12 +123,15 @@ class CNN(nn.Module):
         former = inShape[0]
         self.name = name
         for layer in netStructure[:-1]:
-            self.variableList.append(nn.Sequential(nn.Conv2d(former,layer[0],layer[1],layer[2],layer[3]),nn.ReLU()))
+            self.variableList.append(nn.Sequential(
+                nn.Conv2d(former, layer[0], layer[1], layer[2], layer[3]), nn.ReLU()))
             former = layer[0]
         layer = netStructure[-1]
-        self.variableList.append(nn.Sequential(nn.Conv2d(former,layer[0],layer[1],layer[2],layer[3])))
+        self.variableList.append(nn.Sequential(
+            nn.Conv2d(former, layer[0], layer[1], layer[2], layer[3])))
         #assert layer[0] == inshape[0]
-    def forward(self,x):
+
+    def forward(self, x):
         """
 
         This mehtod calculate the nerual network output of input x.
@@ -137,6 +144,7 @@ class CNN(nn.Module):
         for layer in self.variableList:
             x = layer(x)
         return x
+
 
 class RealNVP(RealNVPtemplate):
     """
@@ -153,6 +161,7 @@ class RealNVP(RealNVPtemplate):
         name (string): name of this class.
 
     """
+
     def __init__(self, shapeList, sList, tList, prior):
         """
 
@@ -168,7 +177,7 @@ class RealNVP(RealNVPtemplate):
         super(RealNVP, self).__init__(shapeList, sList, tList, prior)
         self.mask = None
 
-    def createMask(self, maskType = "channel", ifByte=1):
+    def createMask(self, maskType="channel", ifByte=1):
         """
 
         This method create mask for x, and save it in self.mask for later use.
@@ -178,20 +187,21 @@ class RealNVP(RealNVPtemplate):
             mask (torch.Tensor): mask to divide x into y0 and y1.
 
         """
-        size = self.shapeList.copy() 
+        size = self.shapeList.copy()
         if maskType == "channel":
             size[0] = size[0] // 2
             maskOne = torch.ones(size)
             maskZero = torch.zeros(size)
-            mask = torch.cat([maskOne,maskZero],0)
+            mask = torch.cat([maskOne, maskZero], 0)
             self.mask = Variable(mask)
-            self.mask_ = Variable(1-mask)
+            self.mask_ = Variable(1 - mask)
         elif maskType == "checkerboard":
-            assert (size[1]%2 == 0)
-            assert (size[2]%2 == 0)
-            unit = torch.Tensor([[1,0],[0,1]])
-            self.mask = Variable(unit.repeat(size[0],size[1]//2,size[2]//2))
-            self.mask_ = (1-self.mask)
+            assert (size[1] % 2 == 0)
+            assert (size[2] % 2 == 0)
+            unit = torch.Tensor([[1, 0], [0, 1]])
+            self.mask = Variable(unit.repeat(
+                size[0], size[1] // 2, size[2] // 2))
+            self.mask_ = (1 - self.mask)
         else:
             raise ValueError("maskType not known.")
         if ifByte:
@@ -199,36 +209,39 @@ class RealNVP(RealNVPtemplate):
             self.mask_ = self.mask_.byte()
         return self.mask
 
-    def generate(self, z, sliceDim = 0):
+    def generate(self, z, sliceDim=0):
         """
 
         This method generate complex distribution using variables sampled from prior distribution.
         Args:
             z (torch.autograd.Variable): input Variable.
+            sliceDim (int): in which dimension should mask be used on y.
         Return:
             x (torch.autograd.Variable): output Variable.
 
         """
         return self._generateWithContraction(z, self.mask, self.mask_, sliceDim)
 
-    def inference(self, x, sliceDim = 0):
+    def inference(self, x, sliceDim=0):
         """
 
         This method inference prior distribution using variable sampled from complex distribution.
         Args:
             x (torch.autograd.Variable): input Variable.
+            sliceDim (int): in which dimension should mask be used on y.
         Return:
             z (torch.autograd.Variable): output Variable.
 
         """
         return self._inferenceWithContraction(x, self.mask, self.mask_, sliceDim)
 
-    def logProbability(self, x, sliceDim = 0):
+    def logProbability(self, x, sliceDim=0):
         """
 
         This method gives the log of probability of x sampled from complex distribution.
         Args:
             x (torch.autograd.Variable): input Variable.
+            sliceDim (int): in which dimension should mask be used on y.
         Return:
             log-probability (torch.autograd.Variable): log-probability of x.
 
