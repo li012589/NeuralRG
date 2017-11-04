@@ -68,13 +68,13 @@ class RealNVPtemplate(torch.nn.Module):
         if ifLogjac:
             self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         for i in range(self.sNumLayers):
-            if i % 2 == 0:
+            if (i % 2 == 0):
                 y_ = mask * y
                 s = self.sList[i](y_)*mask_
                 t = self.tList[i](y_)*mask_
                 y = y_ + mask_ * (y * torch.exp(s) + t)
                 if ifLogjac:
-                    for i in self.shapeList:
+                    for j in self.shapeList:
                         s = s.sum(dim=-1)
                     self._generateLogjac += s
             else:
@@ -83,19 +83,19 @@ class RealNVPtemplate(torch.nn.Module):
                 t = self.tList[i](y_)*mask
                 y = y_ + mask * (y * torch.exp(s) + t)
                 if ifLogjac:
-                    for i in self.shapeList:
+                    for j in self.shapeList:
                         s = s.sum(dim=-1)
                     self._generateLogjac += s
         return y
 
     def _generateMeta(self,y0,y1,ifLogjac):
         for i in range(self.NumLayers):
-            if i % 2 == 0:
+            if (i % 2 == 0):
                 s = self.sList[i](y0)
                 t = self.tList[i](y0)
                 y1 = y1 * torch.exp(s)  + t
                 if ifLogjac:
-                    for i in self.shapeList:
+                    for j in self.shapeList:
                         s = s.sum(dim=-1)
                     self._generateLogjac += s
             else:
@@ -103,7 +103,7 @@ class RealNVPtemplate(torch.nn.Module):
                 t = self.tList[i](y1)
                 y0 = y0 * torch.exp(s)+t
                 if ifLogjac:
-                    for i in self.shapeList:
+                    for j in self.shapeList:
                         s = s.sum(dim=-1)
                     self._generateLogjac += s
         return y0,y1
@@ -128,8 +128,7 @@ class RealNVPtemplate(torch.nn.Module):
         y0 = y.narrow(sliceDim+1,0,self.shapeList[sliceDim]//2)
         y1 = y.narrow(sliceDim+1,self.shapeList[sliceDim]//2,self.shapeList[sliceDim])
         y0,y1 = self._generateMeta(y0,y1,ifLogjac)
-        y=torch.cat((y0,y1),sliceDim+1)
-        return y
+        return torch.cat((y0,y1),sliceDim+1)
 
     def _inference(self, y, mask,mask_,ifLogjac=False):
         """
@@ -152,7 +151,7 @@ class RealNVPtemplate(torch.nn.Module):
                 t = self.tList[i](y_)*mask_
                 y = mask_ * (y - t) * torch.exp(-s) + y_
                 if ifLogjac:
-                    for i in self.shapeList:
+                    for j in self.shapeList:
                         s = s.sum(dim=-1)
                     self._inferenceLogjac -= s
             else:
@@ -161,19 +160,19 @@ class RealNVPtemplate(torch.nn.Module):
                 t = self.tList[i](y_)*mask
                 y = mask * (y - t) * torch.exp(-s) + y_
                 if ifLogjac:
-                    for i in self.shapeList:
+                    for j in self.shapeList:
                         s = s.sum(dim=-1)
                     self._inferenceLogjac -= s
         return y
 
     def _inferenceMeta(self,y0,y1,ifLogjac):
         for i in list(range(self.sNumLayers))[::-1]:
-            if i % 2 == 0:
+            if (i % 2 == 0):
                 s = self.sList[i](y0)
                 t = self.tList[i](y0)
                 y1 = (y1 - t)*torch.exp(-s)
                 if ifLogjac:
-                    for i in self.shapeList:
+                    for j in self.shapeList:
                         s = s.sum(dim=-1)
                     self._inferenceLogjac -= s
             else:
@@ -181,7 +180,7 @@ class RealNVPtemplate(torch.nn.Module):
                 t = self.tList[i](y1)
                 y0 = (y0 - t)*torch.exp(-s)
                 if ifLogjac:
-                    for i in self.shapeList:
+                    for j in self.shapeList:
                         s = s.sum(dim=-1)
                     self._inferenceLogjac -= s
         return y0,y1
@@ -205,8 +204,7 @@ class RealNVPtemplate(torch.nn.Module):
         y0 = y.narrow(sliceDim+1,0,self.shapeList[sliceDim]//2)
         y1 = y.narrow(sliceDim+1,self.shapeList[sliceDim]//2,self.shapeList[sliceDim])
         y0,y1 = self._inferenceMeta(y0,y1,ifLogjac)
-        y=torch.cat((y0,y1),sliceDim+1)
-        return y
+        return torch.cat((y0,y1),sliceDim+1)
 
     def _logProbability(self, x, mask,mask_):
         """
@@ -221,6 +219,7 @@ class RealNVPtemplate(torch.nn.Module):
         """
         z = self._generate(x, mask,mask_,True)
         return self.prior.logProbability(z) + self._generateLogjac
+
     def _logProbabilityWithSlice(self, x,sliceDim):
         """
 
@@ -234,6 +233,7 @@ class RealNVPtemplate(torch.nn.Module):
         """
         z = self._generateWithSlice(x,sliceDim,True)
         return self.prior.logProbability(z) + self._generateLogjac
+
     def _logProbabilityWithContraction(self, x, mask,mask_,sliceDim):
         """
 
@@ -247,6 +247,7 @@ class RealNVPtemplate(torch.nn.Module):
         """
         z = self._generateWithContraction(x, mask,mask_,sliceDim,True)
         return self.prior.logProbability(z) + self._generateLogjac
+
     def _saveModel(self, saveDic):
         """
 
