@@ -107,8 +107,8 @@ if __name__ == '__main__':
     if args.loadmodel:
        gaussian = Gaussian([args.Nvars])
 
-       sList = [MLP(arsg.Nvars, args.Hs)] * args.Nlayers
-       tList = [MLP(arsg.Nvars, args.Ht)] * args.Nlayers
+       sList = [MLP(arsg.Nvars, args.Hs) for i in range(args.Nlayers)]
+       tList = [MLP(arsg.Nvars, args.Ht) for i in range(args.Nlayers)] 
 
        model = RealNVP([args.Nvars], sList, tList, gaussian)
        try:
