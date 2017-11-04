@@ -61,7 +61,7 @@ def visualize(Nvars, x_data, model):
     Nsamples = 1000 # test samples
     model.createMask(Nsamples)
     z = Variable(torch.randn(Nsamples, Nvars), volatile=True)
-    x = model.inference(z)  
+    x = model.generate(z)  
 
     # on training data
     model.createMask(10000)
