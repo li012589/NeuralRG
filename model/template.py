@@ -159,8 +159,7 @@ class RealNVPtemplate(torch.nn.Module):
         if ifLogjac:
             self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
-        y1 = y.narrow(
-            sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim])
+        y1 = y.narrow(sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim]-1)
         y0, y1 = self._generateMeta(y0, y1, ifLogjac)
         return torch.cat((y0, y1), sliceDim + 1)
 
@@ -277,8 +276,7 @@ class RealNVPtemplate(torch.nn.Module):
         if ifLogjac:
             self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
-        y1 = y.narrow(
-            sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim])
+        y1 = y.narrow(sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim]-1)
         y0, y1 = self._inferenceMeta(y0, y1, ifLogjac)
         return torch.cat((y0, y1), sliceDim + 1)
 
