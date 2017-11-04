@@ -182,7 +182,8 @@ class RealNVP(RealNVPtemplate):
 
         This method create mask for x, and save it in self.mask for later use.
         Args:
-
+            maskType (string): specify waht type of mask to create. "channel" or "checkerboard".
+            ifByte (int): flag variable, tell if output variable should be ByteTensor or FloatTensor.
         Return:
             mask (torch.Tensor): mask to divide x into y0 and y1.
 
