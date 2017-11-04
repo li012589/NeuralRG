@@ -23,9 +23,8 @@ def test_invertible():
     realNVP = RealNVP([2], sList, tList, gaussian)
 
     x = realNVP.prior(10)
-    mask = realNVP.createMask(10)
-    assert mask.data.shape[0] == 10
-    assert mask.data.shape[1] == 2
+    mask = realNVP.createMask()
+    assert mask.data.shape[0] == 2
 
     print("original")
     #print(x)
@@ -71,12 +70,12 @@ def test_3d():
     tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask(3)
+    mask3d = realNVP3d.createMask()
 
-    assert mask3d.data.shape[0] == 3
-    assert mask3d.data.shape[1] == 2
+    assert mask3d.data.shape[0] == 2
+    assert mask3d.data.shape[1] == 4
     assert mask3d.data.shape[2] == 4
-    assert mask3d.data.shape[3] == 4
+    print (mask3d.data)
 
     print("test high dims")
 
@@ -124,7 +123,7 @@ def test_checkerboardMask():
     tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask(3,"checkerboard")
+    mask3d = realNVP3d.createMask("checkerboard")
 
     z3d = realNVP3d.generate(x3d,2)
     print("3d forward:")

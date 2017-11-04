@@ -24,7 +24,7 @@ def test_tempalte_invertibleMLP():
     realNVP = RealNVP([2], sList, tList, gaussian)
 
     x = realNVP.prior(10)
-    mask = realNVP.createMask(10,ifByte=0)
+    mask = realNVP.createMask(ifByte=0)
     print("original")
     #print(x)
 
@@ -59,7 +59,7 @@ def test_tempalte_invertibleCNN():
     tList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask(3,ifByte=0)
+    mask3d = realNVP3d.createMask(ifByte=0)
 
     print("Testing 3d")
     print("3d original:")
@@ -129,7 +129,7 @@ def test_tempalte_contraction_mlp():
     realNVP = RealNVP([2], sList, tList, gaussian)
 
     x = realNVP.prior(10)
-    mask = realNVP.createMask(10,ifByte=1)
+    mask = realNVP.createMask(ifByte=1)
     print("original")
     #print(x)
 
@@ -169,7 +169,7 @@ def test_template_contraction_function_with_checkerboard():
     tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
 
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask = realNVP.createMask(3,"checkerboard",1)
+    mask = realNVP.createMask("checkerboard",1)
 
     z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2,True)
     #print(z)
@@ -193,7 +193,7 @@ def test_template_contraction_function_with_channel():
     tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
 
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask = realNVP.createMask(3,"channel",1)
+    mask = realNVP.createMask("channel",1)
 
     z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2,True)
     #print(z)

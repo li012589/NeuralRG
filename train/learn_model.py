@@ -32,7 +32,7 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
     tList = [MLP(Nvars//2, Ht) for i in range(Nlayers)] 
 
     model = RealNVP([Nvars], sList, tList, gaussian)
-    model.createMask(10000)
+    model.createMask()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.001)
     if supervised:
         criterion = torch.nn.MSELoss(size_average=True)
@@ -58,18 +58,17 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
 def visualize(Nvars, x_data, model):
 
     #after training, generate some data from the network
-    Nsamples = 1000 # test samples
-    model.createMask(Nsamples)
-    z = Variable(torch.randn(Nsamples, Nvars), volatile=True)
+    Ntest = 1000 # test samples
+    model.createMask()
+    z = model.prior(Ntest)#Variable(torch.randn(self.batchsize, self.nvars), volatile=True) # prior 
     x = model.generate(z)  
 
     # on training data
-    model.createMask(10000)
+    model.createMask()
     logp_model_train = model.logProbability(x_data)
     logp_data_train = target_logp(x_data)
 
     # on test data
-    model.createMask(1000)
     logp_model_test = model.logProbability(x)
     logp_data_test = target_logp(x)
 
