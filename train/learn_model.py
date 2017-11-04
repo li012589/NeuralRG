@@ -28,8 +28,8 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
     #model = RealNVP(Nvars, Nlayers=Nlayers, Hs=Hs, Ht=Ht)
     gaussian = Gaussian([Nvars])
 
-    sList = [MLP(1, Hs)] * Nlayers
-    tList = [MLP(1, Ht)] * Nlayers 
+    sList = [MLP(Nvars//2, Hs) for i in range(Nlayers)] 
+    tList = [MLP(Nvars//2, Ht) for i in range(Nlayers)] 
 
     model = RealNVP([Nvars], sList, tList, gaussian)
     model.createMask(10000)
@@ -61,7 +61,7 @@ def visualize(Nvars, x_data, model):
     Nsamples = 1000 # test samples
     model.createMask(Nsamples)
     z = Variable(torch.randn(Nsamples, Nvars), volatile=True)
-    x = model.inference(z)  
+    x = model.generate(z)  
 
     # on training data
     model.createMask(10000)

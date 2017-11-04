@@ -201,43 +201,41 @@ class RealNVP(RealNVPtemplate):
             self.mask_ = self.mask_.byte()
         return self.mask
 
-    def generate(self, x,sliceDim = 0):
+    def generate(self, z, sliceDim = 0):
         """
 
         This method generate complex distribution using variables sampled from prior distribution.
         Args:
-            y (torch.autograd.Variable): input Variable.
+            z (torch.autograd.Variable): input Variable.
         Return:
-            y (torch.autograd.Variable): output Variable.
+            x (torch.autograd.Variable): output Variable.
 
         """
-        y = self._generateWithContraction(x, self.mask,self.mask_,sliceDim)
-        return y
+        return self._generateWithContraction(z, self.mask, self.mask_, sliceDim)
 
-    def inference(self, x,sliceDim = 0):
+    def inference(self, x, sliceDim = 0):
         """
 
         This method inference prior distribution using variable sampled from complex distribution.
         Args:
-            y (torch.autograd.Variable): input Variable.
+            x (torch.autograd.Variable): input Variable.
         Return:
-            y (torch.autograd.Variable): output Variable.
+            z (torch.autograd.Variable): output Variable.
 
         """
-        y = self._inferenceWithContraction(x, self.mask,self.mask_,sliceDim)
-        return y
+        return self._inferenceWithContraction(x, self.mask, self.mask_, sliceDim)
 
-    def logProbability(self, x,sliceDim = 0):
+    def logProbability(self, x, sliceDim = 0):
         """
 
         This method gives the log of probability of x sampled from complex distribution.
         Args:
             x (torch.autograd.Variable): input Variable.
         Return:
-            probability (torch.autograd.Variable): probability of x.
+            log-probability (torch.autograd.Variable): log-probability of x.
 
         """
-        return self._logProbabilityWithContraction(x, self.mask,self.mask_,sliceDim)
+        return self._logProbabilityWithContraction(x, self.mask, self.mask_, sliceDim)
 
     def saveModel(self, saveDic):
         """
