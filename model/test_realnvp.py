@@ -22,24 +22,24 @@ def test_invertible():
 
     realNVP = RealNVP([2], sList, tList, gaussian)
 
-    x = realNVP.prior(10)
+    z = realNVP.prior(10)
     mask = realNVP.createMask()
     assert mask.data.shape[0] == 2
 
     print("original")
     #print(x)
 
-    z = realNVP.generate(x)
+    x = realNVP.generate(z)
 
     print("Forward")
     #print(z)
 
-    zp = realNVP.inference(z)
+    zp = realNVP.inference(x)
 
     print("Backward")
     #print(zp)
 
-    assert_array_almost_equal(x.data.numpy(),zp.data.numpy())
+    assert_array_almost_equal(z.data.numpy(),zp.data.numpy())
 
     saveDict = realNVP.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
@@ -47,14 +47,14 @@ def test_invertible():
     sListp = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
     tListp = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
 
-    realNVPp = RealNVP(2, sListp, tListp, gaussian)
+    realNVPp = RealNVP([2], sListp, tListp, gaussian)
     saveDictp = torch.load('./saveNet.testSave')
     realNVPp.loadModel(saveDictp)
 
-    zz = realNVP.generate(x)
+    xx = realNVP.generate(z)
     print("Forward after restore")
 
-    assert_array_almost_equal(zz.data.numpy(),z.data.numpy())
+    assert_array_almost_equal(xx.data.numpy(),x.data.numpy())
 
 def test_3d():
 

@@ -4,15 +4,15 @@ from torch.autograd import Variable
 import numpy as np 
 import matplotlib.pyplot as plt 
 
-from model.realnvp import RealNVP 
+from model import Gaussian,MLP,RealNVP
 from train.objectives import ring2d as target_logp 
 
 def inference(model):
 
     #after training, generate some data from the network
-    Nsamples = 1000 # test samples 
-    z = Variable(torch.randn(Nsamples, model.Nvars), volatile=True)
-    x = model.backward(z)
+    Ntest = 1000 # test samples 
+    z = model.prior(Ntest)#Variable(torch.randn(self.batchsize, self.nvars), volatile=True) # prior 
+    x = model.generate(z)
 
     x = x.data.numpy()
 
@@ -45,20 +45,24 @@ def inference(model):
     plt.show()
 
 if __name__=="__main__":
+
     import argparse
     parser = argparse.ArgumentParser(description='')
 
-    parser.add_argument("-Nvars", type=int,  help="")
-    parser.add_argument("-Nlayers", type=int,  help="")
-    parser.add_argument("-Hs", type=int,  help="")
-    parser.add_argument("-Ht", type=int,  help="")
+    parser.add_argument("-Nvars", type=int, default=2, help="")
+    parser.add_argument("-Nlayers", type=int, default=8, help="")
+    parser.add_argument("-Hs", type=int, default=10, help="")
+    parser.add_argument("-Ht", type=int, default=10, help="")
+ 
     args = parser.parse_args()
 
-    model = RealNVP(Nvars = args.Nvars, 
-                    Nlayers = args.Nlayers, 
-                    Hs = args.Hs, 
-                    Ht = args.Ht)
+    sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)] 
+    tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)] 
 
-    model.load_state_dict(torch.load(model.name))
+    gaussian = Gaussian([args.Nvars])
+
+    model = RealNVP([args.Nvars], sList, tList, Gaussian([args.Nvars]))
+    model.loadModel(torch.load(model.name))
+ 
 
     inference(model) 
