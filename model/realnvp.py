@@ -28,7 +28,7 @@ class Gaussian(PriorTemplate):
         super(Gaussian, self).__init__(name)
         self.shapeList = shapeList
 
-    def __call__(self, batchSize):
+    def __call__(self, batchSize, volatile=False):
         """
 
         This method gives variables sampled from prior distribution.
@@ -39,7 +39,7 @@ class Gaussian(PriorTemplate):
 
         """
         size = [batchSize] + self.shapeList
-        return Variable(torch.randn(size))
+        return Variable(torch.randn(size), volatile)
 
     def logProbability(self, z):
         """

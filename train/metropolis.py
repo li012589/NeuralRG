@@ -28,12 +28,13 @@ class MCMC:
         model (): model used for update proposal.
     """
 
-    def __init__(self, nvars, batchsize, logp, model=None):
+    def __init__(self, nvars, batchsize, logp, model, usemodel):
         
         self.batchsize = batchsize
         self.nvars = nvars
         self.logp = logp 
         self.model = model
+        self.usemodel = usemodel
 
         self.x = torch.randn(self.batchsize, self.nvars)
         
@@ -52,32 +53,26 @@ class MCMC:
         print ('#accratio:', accratio/float(nmeasure*nskip)) 
 
     def step(self):
-        #TODO: change this if to something more elegant  
-        if self.model is None:
-            #no model 
-            x = torch.randn(self.batchsize, self.nvars)
-            accept = _accept(self.logp(x)+(x**2).sum(dim=1)/2., 
-                             self.logp(self.x)+(self.x**2).sum(dim=1)/2)
-        else: 
-            #use a model 
-            z = model.prior(self.batchsize)#Variable(torch.randn(self.batchsize, self.nvars), volatile=True) # prior 
-            x = self.model.generate(z)
+            
+        #sample prior 
+        z = model.prior(self.batchsize, volatile=True)
+
+        if self.usemodel: 
+            x = self.model.generate(z) # use the model to generate sample
 
             accept = _accept(self.logp(x.data)-self.model.logProbability(x).data, 
                              self.logp(self.x)-self.model.logProbability(Variable(self.x, volatile=True)).data)
 
+        else:
+            x = z                      # pass prior directly to the output
+            accept = _accept(self.logp(x.data)-self.model.prior.logProbability(x).data, 
+                             self.logp(self.x)-self.model.prior.logProbability(Variable(self.x, volatile=True)).data)
+
+
         accratio = accept.float().mean()
         accept = accept.view(self.batchsize, -1)
-        #accept = torch.cat((accept, accept), 1) # well, this assumes nvars = 2 
-        #reject = 1-accept 
         
-        #TODO: try to avoid this if 
-        if self.model is None:
-            #masked_select select new configuration into contiguous memory
-            #which than got scattered into self.x 
-            self.x.masked_scatter_(accept, torch.masked_select(x, accept))
-        else:
-            self.x.masked_scatter_(accept, torch.masked_select(x.data, accept))
+        self.x.masked_scatter_(accept, torch.masked_select(x.data, accept))
 
         return accratio
 
@@ -103,23 +98,22 @@ if __name__ == '__main__':
     group.add_argument("-Ht", type=int, default=10, help="")
     args = parser.parse_args()
 
+    gaussian = Gaussian([args.Nvars])
+
+    sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)]
+    tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)] 
+
+    #start from a fresh model 
+    #if args.loadmodel = False, we actually only use its prior 
+    model = RealNVP([args.Nvars], sList, tList, gaussian)
    
     if args.loadmodel:
-       gaussian = Gaussian([args.Nvars])
-
-       sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)]
-       tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)] 
-
-       model = RealNVP([args.Nvars], sList, tList, gaussian)
-       try:
-          saveDict = torch.load('./'+model.name)
-          model.loadModel(saveDict)
-       except FileNotFoundError:
-          print ('model file not found:', model.name)
-          sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model 
-    else:
-        #start from a fresh model 
-        model = None
+        try:
+            saveDict = torch.load('./'+model.name)
+            model.loadModel(saveDict)
+        except FileNotFoundError:
+            print ('model file not found:', model.name)
+            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model 
     
-    mcmc = MCMC(args.Nvars, args.Batchsize, ring2d, model=model)
+    mcmc = MCMC(args.Nvars, args.Batchsize, ring2d, model, usemodel=args.loadmodel)
     mcmc.run(0, 100, 10)
