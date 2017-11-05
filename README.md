@@ -22,8 +22,8 @@ It will write three column data like this, where the last column is the log-prob
 Then, you can learn the probability either in the supervised  or unsupervised way. The supervised approach fits `model.logp(x)` to data. While the unsupervised way performs maximum log-likelihood estimation on the sample data.
 
 ```python
-python train/learn_model.py -supervised -Nvars 2 -Nlayers 4 -Hs 10 -Ht 10
-python train/learn_model.py -unsupervised -Nvars 2 -Nlayers 4 -Hs 10 -Ht 10
+python train/learn_model.py -supervised -Nlayers 4 -Hs 10 -Ht 10
+python train/learn_model.py -unsupervised -Nlayers 4 -Hs 10 -Ht 10
 ```
 
 After learning, it will write the model to disk, e.g. the file`Nvars2Nlayers4Hs10Ht10.realnvp`
@@ -37,6 +37,6 @@ python train/sample_model.py -Nvars 2 -Nlayers 4 -Hs 10 -Ht 10
 Or, use the model to make MC update proposal
 
 ```python
-python train/metropolis.py -Nvars 2 -Nlayers 4 -Hs 10 -Ht 10
+python train/metropolis.py -Nvars 2 -Nlayers 4 -Hs 10 -Ht 10 -loadmodel > test.dat
 ```
 
