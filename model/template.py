@@ -144,7 +144,10 @@ class RealNVPtemplate(torch.nn.Module):
         y0 = torch.masked_select(y, mask).view(size)
         y1 = torch.masked_select(y, mask_).view(size)
         y0, y1 = self._generateMeta(y0, y1, ifLogjac)
-        output = Variable(torch.zeros(y.data.shape))
+        if self.ifCuda:
+            output = Variable(torch.zeros(y.data.shape)).cuda()
+        else:
+            output = Variable(torch.zeros(y.data.shape))
         output.masked_scatter_(mask, y0)
         output.masked_scatter_(mask_, y1)
         return output
@@ -270,7 +273,10 @@ class RealNVPtemplate(torch.nn.Module):
         y0 = torch.masked_select(y, mask).view(size)
         y1 = torch.masked_select(y, mask_).view(size)
         y0, y1 = self._inferenceMeta(y0, y1, ifLogjac)
-        output = Variable(torch.zeros(y.data.shape))
+        if self.ifCuda:
+            output = Variable(torch.zeros(y.data.shape)).cuda()
+        else:
+            output = Variable(torch.zeros(y.data.shape))
         output.masked_scatter_(mask, y0)
         output.masked_scatter_(mask_, y1)
         return output
