@@ -209,6 +209,9 @@ class RealNVP(RealNVPtemplate):
         if ifByte:
             self.mask = self.mask.byte()
             self.mask_ = self.mask_.byte()
+        if self.ifCuda:
+            self.mask = self.mask.cuda()
+            self.mask_ = self.mask_.cuda()
         return self.mask
 
     def cuda(self):
