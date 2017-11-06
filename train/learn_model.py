@@ -144,13 +144,13 @@ if __name__=="__main__":
         print ('what target ?', args.target)
         sys.exit(1)
 
-    ifCuda = True
+    ifCuda = False
 
     Nvars, x_data, model = fit(args.Nlayers, 
                                args.Hs, 
                                args.Ht, 
                                args.Nepochs, 
-                               args.supervised
+                               args.supervised,
                                ifCuda)
 
     visualize(Nvars, x_data, model, target) 
