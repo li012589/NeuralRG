@@ -212,9 +212,10 @@ class RealNVP(RealNVPtemplate):
         return self.mask
 
     def cuda(self):
-        super(RealNVP,self).cuda()
-        self.mask = self.mask.cuda()
-        self.mask_ = self.mask_.cuda()
+        cudaModel = super(RealNVP,self).cuda()
+        cudaModel.mask = self.mask.cuda()
+        cudaModel.mask_ = self.mask_.cuda()
+        return cudaModel
 
     def generate(self, z, sliceDim=0):
         """
