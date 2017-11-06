@@ -163,7 +163,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior,ifCuda = False,name=None):
+    def __init__(self, shapeList, sList, tList, prior,name=None):
         """
 
         This mehtod initialise this class.
@@ -175,7 +175,7 @@ class RealNVP(RealNVPtemplate):
             name (string): name of this class.
 
         """
-        super(RealNVP, self).__init__(shapeList, sList, tList, prior,ifCuda = False,name=None)
+        super(RealNVP, self).__init__(shapeList, sList, tList, prior,name=None)
         self.mask = None
 
     def createMask(self, maskType="channel", ifByte=1):
@@ -209,10 +209,12 @@ class RealNVP(RealNVPtemplate):
         if ifByte:
             self.mask = self.mask.byte()
             self.mask_ = self.mask_.byte()
-        if self.ifCuda:
-            self.mask = self.mask.cuda()
-            self.mask_ = self.mask_.cuda()
         return self.mask
+
+    def cuda(self):
+        super(RealNVP,self).cuda()
+        self.mask = self.mask.cuda()
+        self.mask_ = self.mask_.cuda()
 
     def generate(self, z, sliceDim=0):
         """

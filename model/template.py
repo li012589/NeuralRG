@@ -21,7 +21,7 @@ class RealNVPtemplate(torch.nn.Module):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, ifCuda = False,name=None):
+    def __init__(self, shapeList, sList, tList, prior, name=None):
         """
 
         This mehtod initialise this class.
@@ -41,7 +41,6 @@ class RealNVPtemplate(torch.nn.Module):
         self.NumLayers = len(self.tList)
         self.prior = prior
         self.shapeList = shapeList
-        self.ifCuda = ifCuda
         if name is None:
             self.name = "realNVP_" + \
                 str(self.NumLayers) + "inner_" + \
