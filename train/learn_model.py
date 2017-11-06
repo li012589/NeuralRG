@@ -130,6 +130,7 @@ if __name__=="__main__":
     parser.add_argument("-Ht", type=int, default=10, help="")
     parser.add_argument("-Nepochs", type=int, default=500, help="")
     parser.add_argument("-target", default='ring2d', help="target distribution")
+    parser.add_argument("-cuda", action='store_true', help="use GPU")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-supervised", action='store_true', help="supervised")
@@ -144,14 +145,12 @@ if __name__=="__main__":
         print ('what target ?', args.target)
         sys.exit(1)
 
-    ifCuda = False
-
     Nvars, x_data, model = fit(args.Nlayers, 
                                args.Hs, 
                                args.Ht, 
                                args.Nepochs, 
                                args.supervised,
-                               ifCuda)
+                               args.cuda)
 
     visualize(Nvars, x_data, model, target) 
 
