@@ -215,6 +215,7 @@ class RealNVP(RealNVPtemplate):
         cudaModel = super(RealNVP,self).cuda()
         cudaModel.mask = self.mask.cuda()
         cudaModel.mask_ = self.mask_.cuda()
+        cudaModel.ifCuda = True
         return cudaModel
 
     def generate(self, z, sliceDim=0):

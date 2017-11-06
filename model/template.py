@@ -41,6 +41,7 @@ class RealNVPtemplate(torch.nn.Module):
         self.NumLayers = len(self.tList)
         self.prior = prior
         self.shapeList = shapeList
+        self.ifCuda = False
         if name is None:
             self.name = "realNVP_" + \
                 str(self.NumLayers) + "inner_" + \
@@ -62,7 +63,10 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         if ifLogjac:
-            self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
+            if self.ifCuda:
+                self._generateLogjac = Variable(torch.zeros(y.data.shape[0])).cuda()
+            else:
+                self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         for i in range(self.NumLayers):
             if (i % 2 == 0):
                 y_ = mask * y
@@ -131,7 +135,10 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         if ifLogjac:
-            self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
+            if self.ifCuda:
+                self._generateLogjac = Variable(torch.zeros(y.data.shape[0])).cuda()
+            else:
+                self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         size = [-1] + self.shapeList
         size[sliceDim + 1] = size[sliceDim + 1] // 2
         y0 = torch.masked_select(y, mask).view(size)
@@ -157,7 +164,10 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         if ifLogjac:
-            self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
+            if self.ifCuda:
+                self._generateLogjac = Variable(torch.zeros(y.data.shape[0])).cuda()
+            else:
+                self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
         y1 = y.narrow(sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim]-1)
         y0, y1 = self._generateMeta(y0, y1, ifLogjac)
@@ -178,7 +188,10 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         if ifLogjac:
-            self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
+            if self.ifCuda:
+                self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0])).cuda()
+            else:
+                self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         for i in list(range(self.NumLayers))[::-1]:
             if (i % 2 == 0):
                 y_ = mask * y
@@ -247,7 +260,10 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         if ifLogjac:
-            self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
+            if self.ifCuda:
+                self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0])).cuda()
+            else:
+                self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         size = [-1] + self.shapeList
         size[sliceDim + 1] = size[sliceDim + 1] // 2
 
@@ -274,7 +290,10 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         if ifLogjac:
-            self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
+            if self.ifCuda:
+                self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0])).cuda()
+            else:
+                self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
         y1 = y.narrow(sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim]-1)
         y0, y1 = self._inferenceMeta(y0, y1, ifLogjac)
