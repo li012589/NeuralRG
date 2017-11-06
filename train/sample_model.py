@@ -5,9 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt 
 
 from model import Gaussian,MLP,RealNVP
-from train.objectives import ring2d as target_logp 
+from train.objectives import Ring2D, Ring5 
 
-def inference(model):
+def inference(model, target):
 
     #after training, generate some data from the network
     Ntest = 1000 # test samples 
@@ -33,7 +33,7 @@ def inference(model):
     Z = np.zeros_like(X)
 
     x = np.array( [[X[i,j], Y[i, j]] for j in range(Z.shape[1]) for i in range(Z.shape[0])])
-    logp = target_logp(torch.from_numpy(x))
+    logp = target(torch.from_numpy(x))
     counter = 0
     for i in range(Z.shape[0]):
         for j in range(Z.shape[1]):
@@ -53,7 +53,7 @@ if __name__=="__main__":
     parser.add_argument("-Nlayers", type=int, default=8, help="")
     parser.add_argument("-Hs", type=int, default=10, help="")
     parser.add_argument("-Ht", type=int, default=10, help="")
- 
+    parser.add_argument("-target", default='ring2d', help="target distribution")
     args = parser.parse_args()
 
     sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)] 
@@ -63,6 +63,13 @@ if __name__=="__main__":
 
     model = RealNVP([args.Nvars], sList, tList, Gaussian([args.Nvars]))
     model.loadModel(torch.load(model.name))
- 
 
-    inference(model) 
+    if args.target == 'ring2d':
+        target = Ring2D()
+    elif args.target == 'ring5':
+        target = Ring5()
+    else:
+        print ('what target ?', args.target)
+        sys.exit(1) 
+ 
+    inference(model, target) 
