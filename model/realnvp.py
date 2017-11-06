@@ -34,6 +34,7 @@ class Gaussian(PriorTemplate):
         This method gives variables sampled from prior distribution.
         Args:
             batchSize (int): size of batch of variables to sample.
+            volatile (bool): if only want forward, flag volatile to false to disable computation graph.
         Return:
             Samples (torch.autograd.Variable): sampled variables.
 
