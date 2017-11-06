@@ -7,9 +7,8 @@ torch.manual_seed(42)
 from torch.autograd import Variable 
 import numpy as np 
 
-#from model.realnvp import RealNVP
 from model import Gaussian,MLP,RealNVP
-from train.objectives import ring2d
+from train.objectives import Ring2D, Ring5 
 
 __all__ = ["MCMC"]
 
@@ -91,6 +90,7 @@ if __name__ == '__main__':
     parser.add_argument("-Nvars", type=int, default=2, help="")
     parser.add_argument("-Batchsize", type=int, default=100, help="")
     parser.add_argument("-loadmodel", action='store_true', help="load model")
+    parser.add_argument("-target", default='ring2d', help="target distribution")
 
     group = parser.add_argument_group('network parameters')
     group.add_argument("-Nlayers", type=int, default=4, help="")
@@ -115,5 +115,13 @@ if __name__ == '__main__':
             print ('model file not found:', model.name)
             sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model 
     
-    mcmc = MCMC(args.Nvars, args.Batchsize, ring2d, model, usemodel=args.loadmodel)
+    if args.target == 'ring2d':
+        target = Ring2D()
+    elif args.target == 'ring5':
+        target = Ring5()
+    else:
+        print ('what target ?', args.target)
+        sys.exit(1) 
+  
+    mcmc = MCMC(args.Nvars, args.Batchsize, target, model, usemodel=args.loadmodel)
     mcmc.run(0, 100, 10)
