@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 
 from model import Gaussian,MLP,RealNVP
-from train.objectives import ring2d as target_logp 
+from train.objectives import Ring2D, Ring5 
 
 def fit(Nlayers, Hs, Ht, Nepochs, supervised):
     xy = np.loadtxt('train.dat', dtype=np.float32)
@@ -55,7 +55,7 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
     torch.save(saveDict, './'+model.name)
     return Nvars, x_data, model
 
-def visualize(Nvars, x_data, model):
+def visualize(Nvars, x_data, model, target):
 
     #after training, generate some data from the network
     Ntest = 1000 # test samples
@@ -66,11 +66,11 @@ def visualize(Nvars, x_data, model):
     # on training data
     model.createMask()
     logp_model_train = model.logProbability(x_data)
-    logp_data_train = target_logp(x_data)
+    logp_data_train = target(x_data)
 
     # on test data
     logp_model_test = model.logProbability(x)
-    logp_data_test = target_logp(x)
+    logp_data_test = target(x)
 
     plt.figure() 
     plt.scatter(logp_model_train.data.numpy(), logp_data_train.data.numpy(), alpha=0.5, label='train')
@@ -123,17 +123,26 @@ if __name__=="__main__":
     parser.add_argument("-Hs", type=int, default=10, help="")
     parser.add_argument("-Ht", type=int, default=10, help="")
     parser.add_argument("-Nepochs", type=int, default=500, help="")
+    parser.add_argument("-target", default='ring2d', help="target distribution")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-supervised", action='store_true', help="supervised")
     group.add_argument("-unsupervised", action='store_true', help="unsupervised")
     args = parser.parse_args()
-    
+
+    if args.target == 'ring2d':
+        target = Ring2D()
+    elif args.target == 'ring5':
+        target = Ring5()
+    else:
+        print ('what target ?', args.target)
+        sys.exit(1) 
+
     Nvars, x_data, model = fit(args.Nlayers, 
                                args.Hs, 
                                args.Ht, 
                                args.Nepochs, 
                                args.supervised)
 
-    visualize(Nvars, x_data, model) 
+    visualize(Nvars, x_data, model, target) 
 
