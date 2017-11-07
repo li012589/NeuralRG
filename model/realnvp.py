@@ -216,9 +216,17 @@ class RealNVP(RealNVPtemplate):
 
     def cuda(self):
         cudaModel = super(RealNVP,self).cuda()
-        cudaModel.mask = self.mask.cuda()
-        cudaModel.mask_ = self.mask_.cuda()
+        if cudaModel.mask is not None:
+            cudaModel.mask = self.mask.cuda()
+            cudaModel.mask_ = self.mask_.cuda()
         return cudaModel
+
+    def cpu(self):
+        cpuModel = super(RealNVP,self).cpu()
+        if cpuModel.mask is not None:
+            cpuModel.mask = self.mask.cpu()
+            cpuModel_.mask = self.mask_.cpu()
+        return cpuModel
 
     def generate(self, z, sliceDim=0):
         """
