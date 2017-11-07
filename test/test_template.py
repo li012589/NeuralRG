@@ -12,6 +12,17 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 from model import RealNVPtemplate,MLP,CNN,RealNVP,Gaussian
 
+from subprocess import Popen, PIPE
+import pytest
+
+noCuda = 0
+try:
+    p  = Popen(["nvidia-smi","--query-gpu=index,utilization.gpu,memory.total,memory.used,memory.free,driver_version,name,gpu_serial,display_active,display_mode", "--format=csv,noheader,nounits"], stdout=PIPE)
+except OSError:
+    noCuda = 1
+
+skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "NO cuda insatllation, found through nvidia-smi")
+
 def test_tempalte_invertibleMLP():
 
     print("test mlp")
@@ -203,6 +214,26 @@ def test_template_contraction_function_with_channel():
 
     assert_array_almost_equal(x.data.numpy(),zz.data.numpy())
     assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
+
+@skipIfNoCuda
+def test_convert_cuda():
+    gaussian3d = Gaussian([2,4,4])
+    x = gaussian3d(3).cuda()
+    #z3dp = z3d[:,0,:,:].view(10,-1,4,4)
+    #print(z3dp)
+
+    #print(x)
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]] # [channel, filter_size, stride, padding]
+
+    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+
+    realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
+    realNVP = realNVP.cuda()
+    mask = realNVP.createMask("checkerboard",1)
+
+    z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2,True)
+
 
 if __name__ == "__main__":
     test_tempalte_contraction_mlp()
