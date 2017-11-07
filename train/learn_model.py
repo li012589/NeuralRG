@@ -11,13 +11,17 @@ import matplotlib.pyplot as plt
 from model import Gaussian,MLP,RealNVP
 from train.objectives import Ring2D, Ring5 
 
-def fit(Nlayers, Hs, Ht, Nepochs, supervised):
+def fit(Nlayers, Hs, Ht, Nepochs, supervised,ifCuda = False):
     xy = np.loadtxt('train.dat', dtype=np.float32)
     x_data = Variable(torch.from_numpy(xy[:, 0:-1]))
+    if ifCuda:
+        x_data = x_data.cuda()
     print (x_data.data.shape)
 
     if supervised:
         y_data = Variable(torch.from_numpy(xy[:, -1]))
+        if ifCuda:
+            y_data = y_data.cuda()
         print (y_data.data.shape)
 
     print (x_data.data.shape)
@@ -33,6 +37,8 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised):
 
     model = RealNVP([Nvars], sList, tList, gaussian)
     model.createMask()
+    if ifCuda:
+        model = model.cuda()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.001)
     if supervised:
         criterion = torch.nn.MSELoss(size_average=True)
@@ -124,6 +130,7 @@ if __name__=="__main__":
     parser.add_argument("-Ht", type=int, default=10, help="")
     parser.add_argument("-Nepochs", type=int, default=500, help="")
     parser.add_argument("-target", default='ring2d', help="target distribution")
+    parser.add_argument("-cuda", action='store_true', help="use GPU")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-supervised", action='store_true', help="supervised")
@@ -136,13 +143,14 @@ if __name__=="__main__":
         target = Ring5()
     else:
         print ('what target ?', args.target)
-        sys.exit(1) 
+        sys.exit(1)
 
     Nvars, x_data, model = fit(args.Nlayers, 
                                args.Hs, 
                                args.Ht, 
                                args.Nepochs, 
-                               args.supervised)
+                               args.supervised,
+                               args.cuda)
 
     visualize(Nvars, x_data, model, target) 
 
