@@ -29,7 +29,6 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised,ifCuda = False):
     Nvars = x_data.data.shape[-1]
     print (Nvars)
 
-    #model = RealNVP(Nvars, Nlayers=Nlayers, Hs=Hs, Ht=Ht)
     gaussian = Gaussian([Nvars])
 
     sList = [MLP(Nvars//2, Hs) for i in range(Nlayers)] 
@@ -49,7 +48,7 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised,ifCuda = False):
         if supervised:
             loss = criterion(logp, y_data)
         else:
-            loss = -logp.mean() # ?? not very clear why
+            loss = -logp.mean() 
 
         print (epoch, loss.data[0])
 
@@ -65,12 +64,10 @@ def visualize(Nvars, x_data, model, target):
 
     #after training, generate some data from the network
     Ntest = 1000 # test samples
-    model.createMask()
-    z = model.prior(Ntest)#Variable(torch.randn(self.batchsize, self.nvars), volatile=True) # prior 
+    z = model.prior(Ntest, volatile=True) # prior 
     x = model.generate(z)  
 
     # on training data
-    model.createMask()
     logp_model_train = model.logProbability(x_data)
     logp_data_train = target(x_data)
 
@@ -84,19 +81,10 @@ def visualize(Nvars, x_data, model, target):
 
     plt.xlabel('model')
     plt.ylabel('baseline')
-
     plt.legend() 
-    #plt.show() 
-    #import sys
-    #sys.exit(0)
-    
+   
     x_data = x_data.data.numpy()
     x = x.data.numpy()
-    #overwites training data 
-    #f = open('train.dat','w')
-    #for i in range(x.shape[0]):
-    #    f.write("%g %g %g\n"%(x[i, 0], x[i, 1], test_logprob(x[i, :])))  
-    #f.close() 
 
     plt.figure()
     plt.scatter(x_data[:,0], x_data[:,1], alpha=0.5, label='original')
@@ -108,17 +96,6 @@ def visualize(Nvars, x_data, model, target):
     plt.xlabel('$x_1$')
     plt.ylabel('$x_2$')
     plt.legend() 
-
-    ###########################
-    #x = np.arange(-5, 5, 0.01)
-    #y = np.arange(-5, 5, 0.01)
-    #X, Y = np.meshgrid(x, y)
-    #Z = np.zeros_like(X)
-    #for i in range(Z.shape[0]):
-    #    for j in range(Z.shape[1]):
-    #        Z[i,j] = np.exp(test_logprob([X[i,j], Y[i,j]]) ) 
-    #plt.contour(X, Y, Z)
-    ###########################
 
     plt.show()
 

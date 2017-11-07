@@ -19,14 +19,14 @@ It will write three column data like this, where the last column is the log-prob
 #accratio: 0.26450299999999755
 ```
 
-Then, you can learn the probability either in the supervised  or unsupervised way. The supervised approach fits `model.logp(x)` to data. While the unsupervised way performs maximum log-likelihood estimation on the sample data.
+Then, you can learn the probability either in the supervised  or unsupervised way. The supervised approach fits `model.logProbability(x)` to data. While the unsupervised way performs maximum log-likelihood estimation on the sample data.
 
 ```python
 python train/learn_model.py -supervised -Nlayers 4 -Hs 10 -Ht 10
 python train/learn_model.py -unsupervised -Nlayers 4 -Hs 10 -Ht 10
 ```
 
-After learning, it will write the model to disk, e.g. the file`Nvars2Nlayers4Hs10Ht10.realnvp`
+After learning, it will write the model to disk, e.g. the file `Nvars2Nlayers4Hs10Ht10.realnvp`
 
 Next, one can use the real NVP net to generate new samples
 
