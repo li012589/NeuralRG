@@ -233,7 +233,7 @@ def test_contraction_cuda():
     mask = realNVP.createMask("checkerboard",1)
 
     z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2,True)
-
+    print(realNVP._logProbabilityWithContraction(z,realNVP.mask,realNVP.mask_,2))
     zz = realNVP._inferenceWithContraction(z,realNVP.mask,realNVP.mask_,2,True)
 
     assert_array_almost_equal(x.cpu().data.numpy(),zz.cpu().data.numpy())
@@ -249,6 +249,7 @@ def test_slice_cuda():
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     realNVP = realNVP.cuda()
     z = realNVP._generateWithSlice(x,0,True)
+    print(realNVP._logProbabilityWithSlice(z,0))
     zz = realNVP._inferenceWithSlice(z,0,True)
     assert_array_almost_equal(x.cpu().data.numpy(),zz.cpu().data.numpy())
     assert_array_almost_equal(realNVP._generateLogjac.cpu().data.numpy(),-realNVP._inferenceLogjac.cpu().data.numpy())
@@ -265,6 +266,7 @@ def test_tempalte_contractionCNN_cuda():
     realNVP3d = realNVP3d.cuda()
     z3d = realNVP3d._generate(x3d,realNVP3d.mask,realNVP3d.mask_,True)
     zp3d = realNVP3d._inference(z3d,realNVP3d.mask,realNVP3d.mask_,True)
+    print(realNVP3d._logProbability(z3d,realNVP3d.mask,realNVP3d.mask_))
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
     assert_array_almost_equal(realNVP3d._generateLogjac.cpu().data.numpy(),-realNVP3d._inferenceLogjac.cpu().data.numpy())
 

@@ -178,6 +178,8 @@ def test_checkerboard_cuda():
     z3d = realNVP3d.generate(x3d,2)
     zp3d = realNVP3d.inference(z3d,2)
 
+    print(realNVP3d.logProbability(z3d,2))
+
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
 
