@@ -12,6 +12,17 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 from model import Gaussian,MLP,RealNVP,CNN
 
+from subprocess import Popen, PIPE
+import pytest
+
+noCuda = 0
+try:
+    p  = Popen(["nvidia-smi","--query-gpu=index,utilization.gpu,memory.total,memory.used,memory.free,driver_version,name,gpu_serial,display_active,display_mode", "--format=csv,noheader,nounits"], stdout=PIPE)
+except OSError:
+    noCuda = 1
+
+skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "NO cuda insatllation, found through nvidia-smi")
+
 def test_invertible():
 
     print("test realNVP")
@@ -152,6 +163,22 @@ def test_checkerboardMask():
 
     assert_array_almost_equal(x3d.data.numpy(),zp3d.data.numpy())
     assert_array_almost_equal(zz3d.data.numpy(),z3d.data.numpy())
+
+@skipIfNoCuda
+def test_checkerboard_cuda():
+    gaussian3d = Gaussian([2,4,4])
+    x3d = gaussian3d(3).cuda()
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda()
+    mask3d = realNVP3d.createMask("checkerboard")
+
+    z3d = realNVP3d.generate(x3d,2)
+    zp3d = realNVP3d.inference(z3d,2)
+
+    assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
 
 if __name__ == "__main__":
