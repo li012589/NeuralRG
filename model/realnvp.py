@@ -163,7 +163,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior,name=None):
+    def __init__(self, shapeList, sList, tList, prior, name=None):
         """
 
         This mehtod initialise this class.
@@ -175,7 +175,8 @@ class RealNVP(RealNVPtemplate):
             name (string): name of this class.
 
         """
-        super(RealNVP, self).__init__(shapeList, sList, tList, prior,name=None)
+        super(RealNVP, self).__init__(
+            shapeList, sList, tList, prior, name=None)
         self.mask = None
 
     def createMask(self, maskType="channel", ifByte=1):
@@ -215,14 +216,28 @@ class RealNVP(RealNVPtemplate):
         return self.mask
 
     def cuda(self):
-        cudaModel = super(RealNVP,self).cuda()
+        """
+
+        This method move everything in RealNVP to GPU.
+        Return:
+            cudaModel (nn.Module.cuda): the instance in GPU.
+
+        """
+        cudaModel = super(RealNVP, self).cuda()
         if cudaModel.mask is not None:
             cudaModel.mask = self.mask.cuda()
             cudaModel.mask_ = self.mask_.cuda()
         return cudaModel
 
     def cpu(self):
-        cpuModel = super(RealNVP,self).cpu()
+        """
+
+        This method move everything in RealNVP to CPU.
+        Return:
+            cudaModel (nn.Module): the instance in CPU.
+
+        """
+        cpuModel = super(RealNVP, self).cpu()
         if cpuModel.mask is not None:
             cpuModel.mask = self.mask.cpu()
             cpuModel_.mask = self.mask_.cpu()
