@@ -49,6 +49,11 @@ class RealNVPtemplate(torch.nn.Module):
         else:
             self.name = name
 
+    def cuda(self):
+        cudaModel = super(RealNVPtemplate,self).cuda()
+        cudaModel.ifCuda = True
+        return cudaModel
+
     def _generate(self, y, mask, mask_, ifLogjac=False):
         """
 
