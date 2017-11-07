@@ -216,7 +216,7 @@ def test_template_contraction_function_with_channel():
     assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
 
 @skipIfNoCuda
-def test_convert_cuda():
+def test_contraction_cuda():
     gaussian3d = Gaussian([2,4,4])
     x = gaussian3d(3).cuda()
     #z3dp = z3d[:,0,:,:].view(10,-1,4,4)
@@ -234,6 +234,14 @@ def test_convert_cuda():
 
     z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2,True)
 
+    zz = realNVP._inferenceWithContraction(z,realNVP.mask,realNVP.mask_,2,True)
+
+    assert_array_almost_equal(x.cpu().data.numpy(),zz.cpu().data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.cpu().data.numpy(),-realNVP._inferenceLogjac.cpu().data.numpy())
+
+@skipIfNoCuda
+def test_slice_cuda():
+    
 
 if __name__ == "__main__":
     test_tempalte_contraction_mlp()
