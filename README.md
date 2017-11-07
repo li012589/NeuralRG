@@ -26,6 +26,22 @@ python train/learn_model.py -supervised -Nlayers 4 -Hs 10 -Ht 10
 python train/learn_model.py -unsupervised -Nlayers 4 -Hs 10 -Ht 10
 ```
 
+After learning, it will write results to disk, e.g. `data/ring2d_Nl8_Hs10_Ht10_sl.h5`
+
+To inspect the hdf5 data, do 
+
+```python
+h5ls -r data/ring2d_Nl8_Hs10_Ht10_sl.h5
+```
+
+ To make plots, do 
+
+```python
+python plot/load_data.py -f data/ring2d_Nl8Hs10Ht10_sl.h5 -s
+```
+
+
+
 After learning, it will write the model to disk, e.g. the file `Nvars2Nlayers4Hs10Ht10.realnvp`
 
 Next, one can use the real NVP net to generate new samples
