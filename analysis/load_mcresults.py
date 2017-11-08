@@ -1,8 +1,6 @@
 import h5py 
 import numpy as np 
 
-import numpy as np
-
 def binning_analysis(samples,bins=7):
     #Perform a binning analysis over samples and return an array of the error estimate at each binning level.
     minbins = 2**bins # minimum number of bins (128 still seems to be a reasonable sample size in most cases)
@@ -27,8 +25,15 @@ if __name__=='__main__':
     h5 = h5py.File(args.filename,'r')
     obs = np.array(h5['results']['obs'])
     h5.close()
-
-    for ibatch in range(obs.shape[-1]):
+    
+    nbatch = obs.shape[-1]
+    mean = np.zeros(nbatch)
+    error = np.zeros(nbatch)
+    tau = np.zeros(nbatch)
+    for ibatch in range(nbatch):
         data = obs[:, ibatch]
-        error, tau = binning_analysis(data) 
-        print (data.mean(), error, tau)
+        error[ibatch], tau[ibatch] = binning_analysis(data) 
+        mean[ibatch] = data.mean()
+    
+    #average over batch 
+    print (mean.mean(), error.mean(), tau.mean()) 
