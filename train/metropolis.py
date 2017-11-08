@@ -138,16 +138,22 @@ if __name__ == '__main__':
     mcmc.run(0, 1000, 1)
 
     # store results
-    # TODO: use replace later 
     cmd = ['mkdir', '-p', args.folder]
     subprocess.check_call(cmd)
-    key = args.target \
-         +'_Nl' + str(args.Nlayers) \
-         +'_Hs' + str(args.Hs) \
-         +'_Ht' + str(args.Ht) 
-    key += '_mc'
+    
+    #TODO: better model name in template, so we can avoid this branch 
+    if args.modelname is None:
+        key = args.folder \
+            + args.target \
+            +'_Nl' + str(args.Nlayers) \
+            +'_Hs' + str(args.Hs) \
+            +'_Ht' + str(args.Ht) 
+    else:
+        key = args.modelname
 
-    h5 = h5py.File(args.folder +'/'+key+'.h5','w')
+    h5filename = key+'_mc.h5'
+
+    h5 = h5py.File(h5filename,'w')
     params = h5.create_group('params')
     params.create_dataset("Nvars", data=args.Nvars)
     params.create_dataset("Nlayers", data=args.Nlayers)
