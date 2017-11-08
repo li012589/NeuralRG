@@ -9,6 +9,9 @@ class Ring2D(object):
     def __call__(self, x):
         return -(torch.sqrt((x**2).sum(dim=1))-2.0)**2/0.32
 
+    def measure(self, x):
+        return (x**2).sum(dim=1).numpy()
+
 class Ring5(object):
 
     def __init__(self):

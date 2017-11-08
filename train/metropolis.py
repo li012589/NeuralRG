@@ -23,19 +23,20 @@ class MCMC:
     Args:
         nvars (int): number of variables.
         batchsize (int): batch size.
-        logp (function): target log-probability.
+        target (): target log-probability.
         model (): model used for update proposal.
     """
 
-    def __init__(self, nvars, batchsize, logp, model, usemodel):
+    def __init__(self, nvars, batchsize, target, model, usemodel):
         
         self.batchsize = batchsize
         self.nvars = nvars
-        self.logp = logp 
+        self.target = target 
         self.model = model
         self.usemodel = usemodel
 
         self.x = torch.randn(self.batchsize, self.nvars)
+        self.measurements = []
         
     def run(self,ntherm,nmeasure,nskip):
         self.nmeasure= nmeasure 
@@ -44,12 +45,12 @@ class MCMC:
         for n in range(ntherm): 
             self.step()
         
-        accratio = 0.0 
+        self.accratio = 0.0 
         for n in range(nmeasure):
             for i in range(nskip):
-                accratio += self.step()
+                self.accratio += self.step()
             self.measure()
-        print ('#accratio:', accratio/float(nmeasure*nskip)) 
+        self.accratio /= float(nmeasure*nskip) 
 
     def step(self):
             
@@ -59,13 +60,13 @@ class MCMC:
         if self.usemodel: 
             x = self.model.generate(z) # use the model to generate sample
 
-            accept = _accept(self.logp(x.data)-self.model.logProbability(x).data, 
-                             self.logp(self.x)-self.model.logProbability(Variable(self.x, volatile=True)).data)
+            accept = _accept(self.target(x.data)-self.model.logProbability(x).data, 
+                             self.target(self.x)-self.model.logProbability(Variable(self.x, volatile=True)).data)
 
         else:
             x = z                      # pass prior directly to the output
-            accept = _accept(self.logp(x.data)-self.model.prior.logProbability(x).data, 
-                             self.logp(self.x)-self.model.prior.logProbability(Variable(self.x, volatile=True)).data)
+            accept = _accept(self.target(x.data)-self.model.prior.logProbability(x).data, 
+                             self.target(self.x)-self.model.prior.logProbability(Variable(self.x, volatile=True)).data)
 
 
         accratio = accept.float().mean()
@@ -76,21 +77,25 @@ class MCMC:
         return accratio
 
     def measure(self):
+
         x = self.x.numpy()
-        logp = self.logp(self.x)
+        logp = self.target(self.x)
         for i in range(x.shape[0]):
             print (x[i, 0], x[i, 1], logp[i])
+        self.measurements.append( self.target.measure(self.x) )
 
 if __name__ == '__main__': 
-    from numpy.random.mtrand import RandomState 
     import os, sys 
+    import h5py 
     import argparse
+    import subprocess 
 
     parser = argparse.ArgumentParser(description='')
     parser.add_argument("-Nvars", type=int, default=2, help="")
     parser.add_argument("-Batchsize", type=int, default=100, help="")
     parser.add_argument("-loadmodel", action='store_true', help="load model")
     parser.add_argument("-target", default='ring2d', help="target distribution")
+    parser.add_argument("-folder", default='data/', help="where to store results")
 
     group = parser.add_argument_group('network parameters')
     group.add_argument("-Nlayers", type=int, default=8, help="")
@@ -127,4 +132,29 @@ if __name__ == '__main__':
         sys.exit(1) 
   
     mcmc = MCMC(args.Nvars, args.Batchsize, target, model, usemodel=args.loadmodel)
-    mcmc.run(0, 100, 10)
+    mcmc.run(0, 1000, 1)
+
+    # store results
+    cmd = ['mkdir', '-p', args.folder]
+    subprocess.check_call(cmd)
+    key = args.target \
+         +'_Nl' + str(args.Nlayers) \
+         +'_Hs' + str(args.Hs) \
+         +'_Ht' + str(args.Ht) 
+
+    key += '_mc'
+
+    h5 = h5py.File(args.folder +'/'+key+'.h5','w')
+    params = h5.create_group('params')
+    params.create_dataset("Nvars", data=args.Nvars)
+    params.create_dataset("Nlayers", data=args.Nlayers)
+    params.create_dataset("Hs", data=args.Hs)
+    params.create_dataset("Ht", data=args.Nlayers)
+    params.create_dataset("target", data=args.target)
+    params.create_dataset("loadmodel", data=args.loadmodel)
+    params.create_dataset("model", data=model.name)
+
+    results = h5.create_group('results')
+    results.create_dataset("obs",data=np.array(mcmc.measurements))
+    results.create_dataset("accratio",data=mcmc.accratio)
+    h5.close()
