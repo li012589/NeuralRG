@@ -6,7 +6,6 @@ import torch
 torch.manual_seed(42)
 from torch.autograd import Variable 
 import numpy as np 
-import matplotlib.pyplot as plt 
 
 from model import Gaussian,MLP,RealNVP
 from train.objectives import Ring2D, Ring5 
@@ -57,65 +56,9 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised,ifCuda = False):
     torch.save(saveDict, './'+model.name)
     return Nvars, x_data, model, LOSS
 
-def visualize(Nvars, x_data, model, target,Loss,supervised):
-
-    #after training, generate some data from the network
-    Ntest = 1000 # test samples
-    z = model.prior(Ntest, volatile=True) # prior 
-    x = model.generate(z)  
-
-    # on training data
-    logp_model_train = model.logProbability(x_data)
-    logp_data_train = target(x_data)
-
-    # on test data
-    logp_model_test = model.logProbability(x)
-    logp_data_test = target(x)
-
-    plt.figure()
-    plt.scatter(logp_model_train.data.numpy(), logp_data_train.data.numpy(), alpha=0.5, label='training samples')
-    plt.scatter(logp_model_test.data.numpy(), logp_data_test.data.numpy(), alpha=0.5, label='generated samples')
-    plt.xlabel('$\log{P(model)}$')
-    plt.ylabel('$\log{P(baseline)}$')
-    plt.legend()
-    plt.title("$\log{P(x)}$")
-
-    x_data = x_data.data.numpy()
-    x = x.data.numpy()
-
-    plt.figure()
-    plt.scatter(x_data[:,0], x_data[:,1], alpha=0.5)
-    plt.xlim([-5, 5])
-    plt.ylim([-5, 5])
-    plt.xlabel('$x_1$')
-    plt.ylabel('$x_2$')
-    plt.title("Training samples")
-
-    plt.figure()
-    plt.scatter(x_data[:,0], x_data[:,1], alpha=0.5, label='training samples')
-    plt.scatter(x[:,0], x[:,1], alpha=0.5, label='generated samples')
-    plt.xlim([-5, 5])
-    plt.ylim([-5, 5])
-    plt.xlabel('$x_1$')
-    plt.ylabel('$x_2$')
-    if supervised:
-        plt.title("Supervised")
-    else:
-        plt.title("Unsupervised")
-    plt.legend()
-
-    plt.figure()
-    plt.plot(LOSS)
-    plt.xlabel('iterations')
-    plt.ylabel('loss')
-    if supervised:
-        plt.title("MSE loss")
-    else:
-        plt.title("NLL loss")
-
-    plt.show()
-
 if __name__=="__main__":
+    import h5py 
+    import subprocess 
     import argparse
     parser = argparse.ArgumentParser(description='')
     parser.add_argument("-Nlayers", type=int, default=8, help="")
@@ -124,6 +67,7 @@ if __name__=="__main__":
     parser.add_argument("-Nepochs", type=int, default=500, help="")
     parser.add_argument("-target", default='ring2d', help="target distribution")
     parser.add_argument("-cuda", action='store_true', help="use GPU")
+    parser.add_argument("-folder", default='data/', help="where to store results")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-supervised", action='store_true', help="supervised")
@@ -139,11 +83,55 @@ if __name__=="__main__":
         sys.exit(1)
 
     Nvars, x_data, model, LOSS= fit(args.Nlayers, 
-                               args.Hs, 
-                               args.Ht, 
-                               args.Nepochs, 
-                               args.supervised,
-                               args.cuda)
+                                    args.Hs, 
+                                    args.Ht, 
+                                    args.Nepochs, 
+                                    args.supervised,
+                                    args.cuda)
 
-    visualize(Nvars, x_data, model, target,LOSS,args.supervised) 
+    #after training, generate some data from the network
+    Ntest = 1000
+    z = model.prior(Ntest, volatile=True) # prior 
+    x = model.generate(z)  
 
+    # on training data
+    logp_model_train = model.logProbability(x_data)
+    logp_data_train = target(x_data)
+
+    # on test data
+    logp_model_test = model.logProbability(x)
+    logp_data_test = target(x)
+    
+    # store results
+    cmd = ['mkdir', '-p', args.folder]
+    subprocess.check_call(cmd)
+    key = args.target \
+         +'_Nl' + str(args.Nlayers) \
+         +'_Hs' + str(args.Hs) \
+         +'_Ht' + str(args.Ht) 
+
+    if args.supervised:
+        key += '_sl'
+    else:
+        key += '_ul'
+
+    h5 = h5py.File(args.folder +'/'+key+'.h5','w')
+    params = h5.create_group('params')
+    params.create_dataset("Nvars", data=Nvars)
+    params.create_dataset("Nlayers", data=args.Nlayers)
+    params.create_dataset("Hs", data=args.Hs)
+    params.create_dataset("Ht", data=args.Nlayers)
+    params.create_dataset("target", data=args.target)
+    params.create_dataset("supervised", data=args.supervised)
+    params.create_dataset("unsupervised", data=args.unsupervised)
+
+    results = h5.create_group('results')
+    results.create_dataset("train_data",data=x_data.data.numpy())
+    results.create_dataset("generated_data",data=x.data.numpy())
+    results.create_dataset("logp_model_train",data=logp_model_train.data.numpy())
+    results.create_dataset("logp_model_test",data=logp_model_test.data.numpy())
+    results.create_dataset("logp_data_train",data=logp_data_train.data.numpy())
+    results.create_dataset("logp_data_test",data=logp_data_test.data.numpy())
+    results.create_dataset("loss",data=LOSS)
+
+    h5.close()
