@@ -23,7 +23,7 @@ class MCMC:
     Args:
         nvars (int): number of variables.
         batchsize (int): batch size.
-        target (): target log-probability.
+        target (Target): target log-probability.
         model (): model used for update proposal.
     """
 
