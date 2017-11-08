@@ -52,6 +52,8 @@ class MCMC:
             self.measure()
         self.accratio /= float(nmeasure*nskip) 
 
+        print ('#accratio:', self.accratio)
+
     def step(self):
             
         #sample prior 
@@ -94,6 +96,7 @@ if __name__ == '__main__':
     parser.add_argument("-Nvars", type=int, default=2, help="")
     parser.add_argument("-Batchsize", type=int, default=100, help="")
     parser.add_argument("-loadmodel", action='store_true', help="load model")
+    parser.add_argument("-modelname", default=None, help="model name")
     parser.add_argument("-target", default='ring2d', help="target distribution")
     parser.add_argument("-folder", default='data/', help="where to store results")
 
@@ -110,7 +113,7 @@ if __name__ == '__main__':
 
     #start from a fresh model 
     #if args.loadmodel = False, we actually only use its prior 
-    model = RealNVP([args.Nvars], sList, tList, gaussian)
+    model = RealNVP([args.Nvars], sList, tList, gaussian, name=args.modelname)
    
     if args.loadmodel:
         try:
@@ -135,13 +138,13 @@ if __name__ == '__main__':
     mcmc.run(0, 1000, 1)
 
     # store results
+    # TODO: use replace later 
     cmd = ['mkdir', '-p', args.folder]
     subprocess.check_call(cmd)
     key = args.target \
          +'_Nl' + str(args.Nlayers) \
          +'_Hs' + str(args.Hs) \
          +'_Ht' + str(args.Ht) 
-
     key += '_mc'
 
     h5 = h5py.File(args.folder +'/'+key+'.h5','w')

@@ -10,7 +10,7 @@ import numpy as np
 from model import Gaussian,MLP,RealNVP
 from train.objectives import Ring2D, Ring5, Wave 
 
-def fit(Nlayers, Hs, Ht, Nepochs, supervised,ifCuda = False):
+def fit(Nlayers, Hs, Ht, Nepochs, supervised, modelname, ifCuda = False):
     LOSS=[]
     xy = np.loadtxt('train.dat', dtype=np.float32)
     x_data = Variable(torch.from_numpy(xy[:, 0:-1]))
@@ -29,7 +29,7 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised,ifCuda = False):
     sList = [MLP(Nvars//2, Hs) for i in range(Nlayers)] 
     tList = [MLP(Nvars//2, Ht) for i in range(Nlayers)] 
 
-    model = RealNVP([Nvars], sList, tList, gaussian)
+    model = RealNVP([Nvars], sList, tList, gaussian, name=modelname)
     model.createMask()
     if ifCuda:
         model = model.cuda()
@@ -51,9 +51,11 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised,ifCuda = False):
         optimizer.zero_grad()
         loss.backward() 
         optimizer.step()
+            
+        if epoch%10==0:
+            saveDict = model.saveModel({})
+            torch.save(saveDict, model.name+'/epoch'+str(epoch))
 
-    saveDict = model.saveModel({})
-    torch.save(saveDict, './'+model.name)
     return Nvars, x_data, model, LOSS
 
 if __name__=="__main__":
@@ -83,12 +85,25 @@ if __name__=="__main__":
     else:
         print ('what target ?', args.target)
         sys.exit(1)
+    
+    key = args.target \
+         +'_Nl' + str(args.Nlayers) \
+         +'_Hs' + str(args.Hs) \
+         +'_Ht' + str(args.Ht) 
+    key += '_sl' if args.supervised else '_ul'
+
+    modelfolder = args.folder +'/'+key +'/' 
+    h5filename = args.folder +'/'+key+'.h5'
+
+    cmd = ['mkdir', '-p', modelfolder]
+    subprocess.check_call(cmd)
 
     Nvars, x_data, model, LOSS= fit(args.Nlayers, 
                                     args.Hs, 
                                     args.Ht, 
                                     args.Nepochs, 
                                     args.supervised,
+                                    modelfolder, 
                                     args.cuda)
 
     #after training, generate some data from the network
@@ -102,22 +117,9 @@ if __name__=="__main__":
 
     # on test data
     logp_model_test = model.logProbability(x)
-    logp_data_test = target(x)
-    
-    # store results
-    cmd = ['mkdir', '-p', args.folder]
-    subprocess.check_call(cmd)
-    key = args.target \
-         +'_Nl' + str(args.Nlayers) \
-         +'_Hs' + str(args.Hs) \
-         +'_Ht' + str(args.Ht) 
+    logp_data_test = target(x) 
 
-    if args.supervised:
-        key += '_sl'
-    else:
-        key += '_ul'
-
-    h5 = h5py.File(args.folder +'/'+key+'.h5','w')
+    h5 = h5py.File(h5filename,'w')
     params = h5.create_group('params')
     params.create_dataset("Nvars", data=Nvars)
     params.create_dataset("Nlayers", data=args.Nlayers)
