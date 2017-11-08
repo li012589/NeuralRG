@@ -8,7 +8,7 @@ from torch.autograd import Variable
 import numpy as np 
 
 from model import Gaussian,MLP,RealNVP
-from train.objectives import Ring2D, Ring5 
+from train.objectives import Ring2D, Ring5, Wave 
 
 def fit(Nlayers, Hs, Ht, Nepochs, supervised,ifCuda = False):
     LOSS=[]
@@ -78,6 +78,8 @@ if __name__=="__main__":
         target = Ring2D()
     elif args.target == 'ring5':
         target = Ring5()
+    elif args.target == 'wave':
+        target = Wave()
     else:
         print ('what target ?', args.target)
         sys.exit(1)

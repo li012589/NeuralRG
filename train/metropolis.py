@@ -8,7 +8,7 @@ from torch.autograd import Variable
 import numpy as np 
 
 from model import Gaussian,MLP,RealNVP
-from train.objectives import Ring2D, Ring5 
+from train.objectives import Ring2D, Ring5, Wave 
 
 __all__ = ["MCMC"]
 
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     parser.add_argument("-target", default='ring2d', help="target distribution")
 
     group = parser.add_argument_group('network parameters')
-    group.add_argument("-Nlayers", type=int, default=4, help="")
+    group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
     args = parser.parse_args()
@@ -111,6 +111,7 @@ if __name__ == '__main__':
         try:
             saveDict = torch.load('./'+model.name)
             model.loadModel(saveDict)
+            print ('load model', model.name)
         except FileNotFoundError:
             print ('model file not found:', model.name)
             sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model 
@@ -119,6 +120,8 @@ if __name__ == '__main__':
         target = Ring2D()
     elif args.target == 'ring5':
         target = Ring5()
+    elif args.target == 'wave':
+        target = Wave()
     else:
         print ('what target ?', args.target)
         sys.exit(1) 

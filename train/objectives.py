@@ -1,4 +1,5 @@
 import torch 
+import numpy as np 
 
 class Ring2D(object):
 
@@ -29,4 +30,14 @@ class Ring5(object):
 
         u = torch.cat((u1, u2, u3, u4, u5), dim=1)
         return -torch.min(u, dim=1)[0]
+
+
+class Wave(object):
+
+    def __init__(self):
+        self.name = "Wave"
+
+    def __call__(self, x):
+        w = torch.sin(np.pi*x[:, 0]/2.)
+        return -0.5*((x[:, 1] -w)/0.4)**2
 
