@@ -45,7 +45,7 @@ def inference(model, target):
     plt.show()
 
 if __name__=="__main__":
-
+    import sys 
     import argparse
     parser = argparse.ArgumentParser(description='')
 

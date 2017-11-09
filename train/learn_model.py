@@ -93,14 +93,11 @@ if __name__=="__main__":
         print ('what target ?', args.target)
         sys.exit(1)
     
-    key = args.target \
-         +'_Nl' + str(args.Nlayers) \
-         +'_Hs' + str(args.Hs) \
-         +'_Ht' + str(args.Ht) 
-    key += '_sl' if args.supervised else '_ul'
+    modelfolder = args.traindata.replace('_mc.h5', '/')
+    h5filename = args.traindata.replace('_mc', '_sl' if args.supervised else '_ul')
 
-    modelfolder = args.folder +'/'+key +'/' 
-    h5filename = args.folder +'/'+key+'.h5'
+    print (modelfolder)
+    print (h5filename)
 
     cmd = ['mkdir', '-p', modelfolder]
     subprocess.check_call(cmd)
