@@ -138,7 +138,7 @@ if __name__ == '__main__':
     if usemodel:
         try:
             model.loadModel(torch.load(model.name))
-            print ('load model', model.name)
+            print ('#load model', model.name)
         except FileNotFoundError:
             print ('model file not found:', model.name)
             sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model  

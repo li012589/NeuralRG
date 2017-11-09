@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 
 from model import Gaussian,MLP,RealNVP
-from train.objectives import Ring2D, Ring5 
+from train.objectives import Ring2D, Ring5, Wave
 
 def inference(model, target):
 
@@ -37,7 +37,7 @@ def inference(model, target):
     counter = 0
     for i in range(Z.shape[0]):
         for j in range(Z.shape[1]):
-            Z[i,j] = np.exp ( logp[counter] ) 
+            Z[j, i] = np.exp ( logp[counter] ) 
             counter += 1
     plt.contour(X, Y, Z)
     ###########################
