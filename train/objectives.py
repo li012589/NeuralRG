@@ -41,7 +41,7 @@ class Wave(object):
         w = torch.sin(np.pi*x[:, 0]/2.)
         return -0.5*((x[:, 1] -w)/0.4)**2
 
-class phi(object):
+class phi4(object):
     def __init__(self,l,dims,kappa,lamb,hoppingTable,name=None):
         self.dims = dims
         self.n = l**dims
