@@ -42,22 +42,25 @@ class Wave(object):
         return -0.5*((x[:, 1] -w)/0.4)**2
 
 class phi4(object):
-    def __init__(self,l,dims,kappa,lamb,hoppingTable,name=None):
+    def __init__(self,l,dims,kappa,lamb,hoppingTable=None,name=None):
         self.dims = dims
+        self.l = l
         self.n = l**dims
-        self.hoppingTable = hoppingTable
         self.kappa = kappa
         self.lamb = lamb
         if name is None:
             self.name = "phi_"+str(self.n)+"n_"+str(self.l)+"l_"+str(self.dims)+"dim_"+str(self.kappa)+"kappa_"+str(self.lamb)+"lambda"
         else:
             self.name = name
-        self.l = l
+        if hoppingTable is None:
+            self.hoppingTable = self.createTable()
+        else:
+            self.hoppingTable = hoppingTable
     def __call__(self,z):
-        S = Variable(torch.zeros(z[:,0].shape))
+        S = (torch.zeros(z[:,0].shape))
         for i in range(self.n):
-            tmp = Variable(torch.zeros(z[:,0].shape))
-            for j in range(self.d):
+            tmp = (torch.zeros(z[:,0].shape))
+            for j in range(self.dims):
                 #print(z[:,self.hoppingTable[i][j*2]])
                 tmp += z[:,self.hoppingTable[i][j*2]]
             #print("tmp: ",tmp)
@@ -65,11 +68,12 @@ class phi4(object):
         S+=torch.sum(z**2,1)+self.lamb*torch.sum((z**2-1)**2,1)
         return S
     def createTable(self):
+        hoppingTable = []
         for i in range(self.n):
             LK = self.n
             y = i
             hoppingTable.append([])
-            for j in reversed(range(self.d)):
+            for j in reversed(range(self.dims)):
                 LK = int(LK/self.l)
                 xk = int(y/LK)
                 y = y-xk*LK

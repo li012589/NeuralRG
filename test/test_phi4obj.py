@@ -17,7 +17,12 @@ from train.objectives import phi4
 #import pytest
 
 def test_phi4():
-    pass
+    z = torch.Tensor([[1,2,3,4,5,6,7,8,9],[2,3,4,5,6,7,8,9,10]])
+    obj = phi4(3,2,1,1)
+    e = obj(z).numpy()
+    #print(e)
+    results = np.array([14097.0,23601.0])
+    assert_array_almost_equal(results,e)
 
 if __name__ == "__main__":
-    pass
+    test_phi4()
