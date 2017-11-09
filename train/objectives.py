@@ -1,17 +1,32 @@
 import torch 
 import numpy as np 
 
-class Ring2D(object):
+class Target(object):
+    '''
+    base class for target 
+    '''
+    def __init__(self):
+        self.name = None
+
+    def __call__(self, x):
+        raise NotImplementedError(str(type(self)))
+
+    def measure(self, x):
+        return (x**2).sum(dim=1).numpy()
+
+class Ring2D(Target):
 
     def __init__(self):
+        super(Ring2D, self).__init__()
         self.name = 'Ring2d'
 
     def __call__(self, x):
         return -(torch.sqrt((x**2).sum(dim=1))-2.0)**2/0.32
 
-class Ring5(object):
+class Ring5(Target):
 
     def __init__(self):
+        super(Ring5, self).__init__()
         self.name = 'Ring5'
 
     def __call__(self, x):
@@ -31,10 +46,10 @@ class Ring5(object):
         u = torch.cat((u1, u2, u3, u4, u5), dim=1)
         return -torch.min(u, dim=1)[0]
 
-
-class Wave(object):
+class Wave(Target):
 
     def __init__(self):
+        super(Wave, self).__init__()
         self.name = "Wave"
 
     def __call__(self, x):

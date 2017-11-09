@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 
 from model import Gaussian,MLP,RealNVP
-from train.objectives import Ring2D, Ring5 
+from train.objectives import Ring2D, Ring5, Wave
 
 def inference(model, target):
 
@@ -37,7 +37,7 @@ def inference(model, target):
     counter = 0
     for i in range(Z.shape[0]):
         for j in range(Z.shape[1]):
-            Z[i,j] = np.exp ( logp[counter] ) 
+            Z[j, i] = np.exp ( logp[counter] ) 
             counter += 1
     plt.contour(X, Y, Z)
     ###########################
@@ -45,31 +45,43 @@ def inference(model, target):
     plt.show()
 
 if __name__=="__main__":
-
+    import sys, os 
     import argparse
+    import re 
+    import h5py 
     parser = argparse.ArgumentParser(description='')
-
-    parser.add_argument("-Nvars", type=int, default=2, help="")
-    parser.add_argument("-Nlayers", type=int, default=8, help="")
-    parser.add_argument("-Hs", type=int, default=10, help="")
-    parser.add_argument("-Ht", type=int, default=10, help="")
-    parser.add_argument("-target", default='ring2d', help="target distribution")
+    parser.add_argument("-modelname", default=None, help="model name")
     args = parser.parse_args()
+        
+    h5filename = re.search('(.*)_[su]l',args.modelname).group(1)
+    h5filename += '_mc.h5'
 
-    sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)] 
-    tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)] 
+    h5 = h5py.File(h5filename,'r')
+    Nvars = int(h5['params']['Nvars'][()])
+    Nlayers = int(h5['params']['Nlayers'][()])
+    Hs = int(h5['params']['Hs'][()])
+    Ht = int(h5['params']['Ht'][()])
+    targetname = h5['params']['target'][()]
+    h5.close() 
 
-    gaussian = Gaussian([args.Nvars])
+    print (Nvars, Nlayers, Hs, Ht)
 
-    model = RealNVP([args.Nvars], sList, tList, Gaussian([args.Nvars]))
+    sList = [MLP(Nvars//2, Hs) for _ in range(Nlayers)] 
+    tList = [MLP(Nvars//2, Ht) for _ in range(Nlayers)] 
+
+    gaussian = Gaussian([Nvars])
+
+    model = RealNVP([Nvars], sList, tList, gaussian, args.modelname)
     model.loadModel(torch.load(model.name))
 
-    if args.target == 'ring2d':
+    if targetname == 'ring2d':
         target = Ring2D()
-    elif args.target == 'ring5':
+    elif targetname == 'ring5':
         target = Ring5()
+    elif targetname == 'wave':
+        target = Wave()
     else:
-        print ('what target ?', args.target)
+        print ('what target ?', targetname)
         sys.exit(1) 
  
     inference(model, target) 

@@ -23,19 +23,24 @@ class MCMC:
     Args:
         nvars (int): number of variables.
         batchsize (int): batch size.
-        logp (function): target log-probability.
+        target (Target): target log-probability.
         model (): model used for update proposal.
     """
 
-    def __init__(self, nvars, batchsize, logp, model, usemodel):
+    def __init__(self, nvars, batchsize, target, model, usemodel, collectdata):
         
         self.batchsize = batchsize
         self.nvars = nvars
-        self.logp = logp 
+        self.target = target 
         self.model = model
         self.usemodel = usemodel
+        self.collectdata = collectdata 
 
         self.x = torch.randn(self.batchsize, self.nvars)
+        self.measurements = []
+
+        if self.collectdata:
+            self.data= []
         
     def run(self,ntherm,nmeasure,nskip):
         self.nmeasure= nmeasure 
@@ -44,12 +49,14 @@ class MCMC:
         for n in range(ntherm): 
             self.step()
         
-        accratio = 0.0 
+        self.accratio = 0.0 
         for n in range(nmeasure):
             for i in range(nskip):
-                accratio += self.step()
+                self.accratio += self.step()
             self.measure()
-        print ('#accratio:', accratio/float(nmeasure*nskip)) 
+        self.accratio /= float(nmeasure*nskip) 
+
+        print ('#accratio:', self.accratio)
 
     def step(self):
             
@@ -59,13 +66,13 @@ class MCMC:
         if self.usemodel: 
             x = self.model.generate(z) # use the model to generate sample
 
-            accept = _accept(self.logp(x.data)-self.model.logProbability(x).data, 
-                             self.logp(self.x)-self.model.logProbability(Variable(self.x, volatile=True)).data)
+            accept = _accept(self.target(x.data)-self.model.logProbability(x).data, 
+                             self.target(self.x)-self.model.logProbability(Variable(self.x, volatile=True)).data)
 
         else:
             x = z                      # pass prior directly to the output
-            accept = _accept(self.logp(x.data)-self.model.prior.logProbability(x).data, 
-                             self.logp(self.x)-self.model.prior.logProbability(Variable(self.x, volatile=True)).data)
+            accept = _accept(self.target(x.data)-self.model.prior.logProbability(x).data, 
+                             self.target(self.x)-self.model.prior.logProbability(Variable(self.x, volatile=True)).data)
 
 
         accratio = accept.float().mean()
@@ -76,21 +83,32 @@ class MCMC:
         return accratio
 
     def measure(self):
-        x = self.x.numpy()
-        logp = self.logp(self.x)
-        for i in range(x.shape[0]):
-            print (x[i, 0], x[i, 1], logp[i])
+        
+        if self.collectdata:
+            x = self.x.numpy()
+            logp = self.target(self.x).numpy()
+            logp.shape = (-1, 1)
+            self.data.append(np.concatenate((x, logp), axis=1))
+
+        self.measurements.append( self.target.measure(self.x) )
 
 if __name__ == '__main__': 
-    from numpy.random.mtrand import RandomState 
     import os, sys 
+    import h5py 
     import argparse
+    import subprocess 
 
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument("-Nvars", type=int, default=2, help="")
-    parser.add_argument("-Batchsize", type=int, default=100, help="")
-    parser.add_argument("-loadmodel", action='store_true', help="load model")
     parser.add_argument("-target", default='ring2d', help="target distribution")
+    parser.add_argument("-Nvars", type=int, default=2, help="")
+    parser.add_argument("-modelname", default=None, help="model name")
+    parser.add_argument("-collectdata", action='store_true', help="collect data")
+    parser.add_argument("-folder", default='data/', help="where to store results")
+
+    group = parser.add_argument_group('mc parameters')
+    group.add_argument("-Batchsize", type=int, default=16, help="")
+    group.add_argument("-Nsamples", type=int, default=1000, help="")
+    group.add_argument("-Nskips", type=int, default=1, help="")
 
     group = parser.add_argument_group('network parameters')
     group.add_argument("-Nlayers", type=int, default=8, help="")
@@ -98,24 +116,6 @@ if __name__ == '__main__':
     group.add_argument("-Ht", type=int, default=10, help="")
     args = parser.parse_args()
 
-    gaussian = Gaussian([args.Nvars])
-
-    sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)]
-    tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)] 
-
-    #start from a fresh model 
-    #if args.loadmodel = False, we actually only use its prior 
-    model = RealNVP([args.Nvars], sList, tList, gaussian)
-   
-    if args.loadmodel:
-        try:
-            saveDict = torch.load('./'+model.name)
-            model.loadModel(saveDict)
-            print ('load model', model.name)
-        except FileNotFoundError:
-            print ('model file not found:', model.name)
-            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model 
-    
     if args.target == 'ring2d':
         target = Ring2D()
     elif args.target == 'ring5':
@@ -125,6 +125,56 @@ if __name__ == '__main__':
     else:
         print ('what target ?', args.target)
         sys.exit(1) 
+
+    gaussian = Gaussian([args.Nvars])
+
+    sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)]
+    tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)] 
+
+    model = RealNVP([args.Nvars], sList, tList, gaussian, name=args.modelname)
+
+    usemodel = (args.modelname is not None)
+   
+    if usemodel:
+        try:
+            model.loadModel(torch.load(model.name))
+            print ('#load model', model.name)
+        except FileNotFoundError:
+            print ('model file not found:', model.name)
+            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model  
   
-    mcmc = MCMC(args.Nvars, args.Batchsize, target, model, usemodel=args.loadmodel)
-    mcmc.run(0, 100, 10)
+    mcmc = MCMC(args.Nvars, args.Batchsize, target, model, usemodel=usemodel, collectdata=args.collectdata)
+    mcmc.run(0, args.Nsamples, args.Nskips)
+    
+    # store results
+    cmd = ['mkdir', '-p', args.folder]
+    subprocess.check_call(cmd)
+    
+    #TODO: better model name in template, so we can avoid this branch 
+    if args.modelname is None:
+        key = args.folder \
+            + args.target \
+            +'_Nl' + str(args.Nlayers) \
+            +'_Hs' + str(args.Hs) \
+            +'_Ht' + str(args.Ht) 
+    else:
+        key = args.modelname
+
+    h5filename = key+'_mc.h5'
+
+    h5 = h5py.File(h5filename,'w')
+    params = h5.create_group('params')
+    params.create_dataset("Nvars", data=args.Nvars)
+    params.create_dataset("Nlayers", data=args.Nlayers)
+    params.create_dataset("Hs", data=args.Hs)
+    params.create_dataset("Ht", data=args.Ht)
+    params.create_dataset("target", data=args.target)
+    params.create_dataset("model", data=model.name)
+
+    results = h5.create_group('results')
+    results.create_dataset("obs",data=np.array(mcmc.measurements))
+    results.create_dataset("accratio",data=mcmc.accratio)
+    if args.collectdata:
+        results.create_dataset("samples", data=mcmc.data)
+ 
+    h5.close()
