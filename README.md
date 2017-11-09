@@ -2,13 +2,23 @@
 
 # Real NVP 
 
+
+
+## Main scheme
+
+`train/metropolis.py` will generate data for training
+
+`train/learn_model.py` will learn a RealNVP model, which can be used to speed up data generation in return. These two scripts exchange **data** and **model**.  
+
+## How to Run 
+
 First, generate some training samples using metropolis
 
 ```python
 python train/metropolis.py -collectdata
 ```
 
-It will write results to `data/ring2d_Nl8_Hs10_Ht10_mc.h5`. To see its content, do 
+It will write results to `data/ring2d_Nl8_Hs10_Ht10_mc.h5`. `-collectdata` tells it to collect training data.  To see its content, do 
 
 ```python
 h5ls -r data/ring2d_Nl8_Hs10_Ht10_mc.h5
@@ -27,8 +37,13 @@ After learning, it will write results and model to disk, e.g.
 
 ```bash
 data/ring2d_Nl8_Hs10_Ht10_sl.h5
-data/ring2d_Nl8_Hs10_Ht10_sl/
+data/ring2d_Nl8_Hs10_Ht10_sl/epoch0
+data/ring2d_Nl8_Hs10_Ht10_sl/epoch10
+...
+data/ring2d_Nl8_Hs10_Ht10_sl/epoch490
 ```
+
+The `.h5` file contains the results of the model, while the folder contains the trained model at each epoch. 
 
 To inspect the hdf5 data, do 
 
@@ -54,3 +69,4 @@ Or, use the model to make MC update proposal
 python train/metropolis.py -modelname data/ring2d_Nl8_Hs10_Ht10_sl/epoch490 
 ```
 
+By providing `-collectdata` to the command, one will get new train data. Which can be used to improve the model. 
