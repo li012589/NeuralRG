@@ -167,7 +167,7 @@ if __name__ == '__main__':
     params.create_dataset("Nvars", data=args.Nvars)
     params.create_dataset("Nlayers", data=args.Nlayers)
     params.create_dataset("Hs", data=args.Hs)
-    params.create_dataset("Ht", data=args.Nlayers)
+    params.create_dataset("Ht", data=args.Ht)
     params.create_dataset("target", data=args.target)
     params.create_dataset("model", data=model.name)
 
