@@ -27,16 +27,20 @@ class MCMC:
         model (): model used for update proposal.
     """
 
-    def __init__(self, nvars, batchsize, target, model, usemodel):
+    def __init__(self, nvars, batchsize, target, model, usemodel, collectdata):
         
         self.batchsize = batchsize
         self.nvars = nvars
         self.target = target 
         self.model = model
         self.usemodel = usemodel
+        self.collectdata = collectdata 
 
         self.x = torch.randn(self.batchsize, self.nvars)
         self.measurements = []
+
+        if self.collectdata:
+            self.data= []
         
     def run(self,ntherm,nmeasure,nskip):
         self.nmeasure= nmeasure 
@@ -79,11 +83,13 @@ class MCMC:
         return accratio
 
     def measure(self):
+        
+        if self.collectdata:
+            x = self.x.numpy()
+            logp = self.target(self.x).numpy()
+            logp.shape = (-1, 1)
+            self.data.append(np.concatenate((x, logp), axis=1))
 
-        x = self.x.numpy()
-        logp = self.target(self.x)
-        for i in range(x.shape[0]):
-            print (x[i, 0], x[i, 1], logp[i])
         self.measurements.append( self.target.measure(self.x) )
 
 if __name__ == '__main__': 
@@ -93,12 +99,16 @@ if __name__ == '__main__':
     import subprocess 
 
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument("-Nvars", type=int, default=2, help="")
-    parser.add_argument("-Batchsize", type=int, default=100, help="")
-    parser.add_argument("-loadmodel", action='store_true', help="load model")
-    parser.add_argument("-modelname", default=None, help="model name")
     parser.add_argument("-target", default='ring2d', help="target distribution")
+    parser.add_argument("-Nvars", type=int, default=2, help="")
+    parser.add_argument("-modelname", default=None, help="model name")
+    parser.add_argument("-collectdata", action='store_true', help="collect data")
     parser.add_argument("-folder", default='data/', help="where to store results")
+
+    group = parser.add_argument_group('mc parameters')
+    group.add_argument("-Batchsize", type=int, default=16, help="")
+    group.add_argument("-Nsamples", type=int, default=1000, help="")
+    group.add_argument("-Nskips", type=int, default=1, help="")
 
     group = parser.add_argument_group('network parameters')
     group.add_argument("-Nlayers", type=int, default=8, help="")
@@ -106,24 +116,6 @@ if __name__ == '__main__':
     group.add_argument("-Ht", type=int, default=10, help="")
     args = parser.parse_args()
 
-    gaussian = Gaussian([args.Nvars])
-
-    sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)]
-    tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)] 
-
-    #start from a fresh model 
-    #if args.loadmodel = False, we actually only use its prior 
-    model = RealNVP([args.Nvars], sList, tList, gaussian, name=args.modelname)
-   
-    if args.loadmodel:
-        try:
-            saveDict = torch.load('./'+model.name)
-            model.loadModel(saveDict)
-            print ('load model', model.name)
-        except FileNotFoundError:
-            print ('model file not found:', model.name)
-            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model 
-    
     if args.target == 'ring2d':
         target = Ring2D()
     elif args.target == 'ring5':
@@ -133,10 +125,27 @@ if __name__ == '__main__':
     else:
         print ('what target ?', args.target)
         sys.exit(1) 
-  
-    mcmc = MCMC(args.Nvars, args.Batchsize, target, model, usemodel=args.loadmodel)
-    mcmc.run(0, 1000, 1)
 
+    gaussian = Gaussian([args.Nvars])
+
+    sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)]
+    tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)] 
+
+    model = RealNVP([args.Nvars], sList, tList, gaussian, name=args.modelname)
+
+    usemodel = (args.modelname is not None)
+   
+    if usemodel:
+        try:
+            model.loadModel(torch.load(model.name))
+            print ('load model', model.name)
+        except FileNotFoundError:
+            print ('model file not found:', model.name)
+            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model  
+  
+    mcmc = MCMC(args.Nvars, args.Batchsize, target, model, usemodel=usemodel, collectdata=args.collectdata)
+    mcmc.run(0, args.Nsamples, args.Nskips)
+    
     # store results
     cmd = ['mkdir', '-p', args.folder]
     subprocess.check_call(cmd)
@@ -160,10 +169,12 @@ if __name__ == '__main__':
     params.create_dataset("Hs", data=args.Hs)
     params.create_dataset("Ht", data=args.Nlayers)
     params.create_dataset("target", data=args.target)
-    params.create_dataset("loadmodel", data=args.loadmodel)
     params.create_dataset("model", data=model.name)
 
     results = h5.create_group('results')
     results.create_dataset("obs",data=np.array(mcmc.measurements))
     results.create_dataset("accratio",data=mcmc.accratio)
+    if args.collectdata:
+        results.create_dataset("samples", data=mcmc.data)
+ 
     h5.close()

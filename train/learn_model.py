@@ -10,9 +10,16 @@ import numpy as np
 from model import Gaussian,MLP,RealNVP
 from train.objectives import Ring2D, Ring5, Wave 
 
-def fit(Nlayers, Hs, Ht, Nepochs, supervised, modelname, ifCuda = False):
+def fit(Nlayers, Hs, Ht, Nepochs, supervised, traindata, modelname, ifCuda = False):
     LOSS=[]
-    xy = np.loadtxt('train.dat', dtype=np.float32)
+    
+    h5 = h5py.File(traindata,'r')
+    xy = np.array(h5['results']['samples'])
+    h5.close()
+
+    Nvars = xy.shape[-1] -1 
+    xy.shape = (-1, Nvars +1)
+
     x_data = Variable(torch.from_numpy(xy[:, 0:-1]))
     if ifCuda:
         x_data = x_data.cuda()
@@ -22,7 +29,6 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised, modelname, ifCuda = False):
         if ifCuda:
             y_data = y_data.cuda()
 
-    Nvars = x_data.data.shape[-1]
 
     gaussian = Gaussian([Nvars])
 
@@ -70,6 +76,7 @@ if __name__=="__main__":
     parser.add_argument("-target", default='ring2d', help="target distribution")
     parser.add_argument("-cuda", action='store_true', help="use GPU")
     parser.add_argument("-folder", default='data/', help="where to store results")
+    parser.add_argument("-traindata", default=None, help="train data")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-supervised", action='store_true', help="supervised")
@@ -103,6 +110,7 @@ if __name__=="__main__":
                                     args.Ht, 
                                     args.Nepochs, 
                                     args.supervised,
+                                    args.traindata,
                                     modelfolder, 
                                     args.cuda)
 

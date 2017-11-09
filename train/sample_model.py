@@ -53,6 +53,7 @@ if __name__=="__main__":
     parser.add_argument("-Nlayers", type=int, default=8, help="")
     parser.add_argument("-Hs", type=int, default=10, help="")
     parser.add_argument("-Ht", type=int, default=10, help="")
+    parser.add_argument("-modelname", default=None, help="model name")
     parser.add_argument("-target", default='ring2d', help="target distribution")
     args = parser.parse_args()
 
@@ -61,7 +62,7 @@ if __name__=="__main__":
 
     gaussian = Gaussian([args.Nvars])
 
-    model = RealNVP([args.Nvars], sList, tList, Gaussian([args.Nvars]))
+    model = RealNVP([args.Nvars], sList, tList, gaussian, args.modelname)
     model.loadModel(torch.load(model.name))
 
     if args.target == 'ring2d':
