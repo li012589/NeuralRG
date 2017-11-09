@@ -92,9 +92,10 @@ if __name__=="__main__":
     else:
         print ('what target ?', args.target)
         sys.exit(1)
-    
-    modelfolder = args.traindata.replace('_mc.h5', '/')
-    h5filename = args.traindata.replace('_mc', '_sl' if args.supervised else '_ul')
+   
+    sl_or_ul = '_sl' if args.supervised else '_ul'
+    modelfolder = args.traindata.replace('_mc.h5', sl_or_ul+'/')
+    h5filename = args.traindata.replace('_mc', sl_or_ul)
 
     print (modelfolder)
     print (h5filename)
