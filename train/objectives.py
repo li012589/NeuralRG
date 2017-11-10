@@ -5,8 +5,9 @@ class Target(object):
     '''
     base class for target 
     '''
-    def __init__(self):
-        self.name = None
+    def __init__(self,nvars,name = "Target"):
+        self.nvars = nvars
+        self.name = name
 
     def __call__(self, x):
         raise NotImplementedError(str(type(self)))
@@ -17,9 +18,7 @@ class Target(object):
 class Ring2D(Target):
 
     def __init__(self):
-        super(Ring2D, self).__init__()
-        self.name = 'Ring2d'
-        self.nvars = 2 
+        super(Ring2D, self).__init__(2,'Ring2D')
 
     def __call__(self, x):
         return -(torch.sqrt((x**2).sum(dim=1))-2.0)**2/0.32
@@ -27,9 +26,7 @@ class Ring2D(Target):
 class Ring5(Target):
 
     def __init__(self):
-        super(Ring5, self).__init__()
-        self.name = 'Ring5'
-        self.nvars = 2 
+        super(Ring5, self).__init__(2,'Ring5')
 
     def __call__(self, x):
         x2 = torch.sqrt((x**2).sum(dim=1))
@@ -52,9 +49,7 @@ class Ring5(Target):
 class Wave(Target):
 
     def __init__(self):
-        super(Wave, self).__init__()
-        self.name = "Wave"
-        self.nvars = 2 
+        super(Wave, self).__init__(2,'Wave')
 
     def __call__(self, x):
         w = torch.sin(np.pi*x[:, 0]/2.)
@@ -62,7 +57,6 @@ class Wave(Target):
 
 class Phi4(Target):
     def __init__(self,l,dims,kappa,lamb,hoppingTable=None,name=None):
-        super(Phi4, self).__init__()
         self.dims = dims
         self.l = l
         self.nvars = l**dims
@@ -76,6 +70,7 @@ class Phi4(Target):
             self.hoppingTable = self.createTable()
         else:
             self.hoppingTable = hoppingTable
+        super(Phi4, self).__init__(self.nvars,self.name)
     def __call__(self,z):
         S = (torch.zeros(z[:,0].shape))
         for i in range(self.nvars):
