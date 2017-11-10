@@ -137,7 +137,7 @@ if __name__ == '__main__':
     group.add_argument("-Nskips", type=int, default=1, help="")
 
     group = parser.add_argument_group('network parameters')
-    group.add_argument("-Skipmodel",action = 'store_true', help="")
+    group.add_argument("-Skipmodel", action='store_true', help="")
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     elif args.target == 'wave':
         target = Wave()
     elif args.target == 'phi4':
-        target = Phi4(3,2,1.0,1.0)
+        target = Phi4(3, 2, 1.0, 1.0)
     else:
         print('what target ?', args.target)
         sys.exit(1)
@@ -171,14 +171,14 @@ if __name__ == '__main__':
     if args.savename is None:
         key = args.folder \
             + args.target \
-            +'_Nl' + str(args.Nlayers) \
-            +'_Hs' + str(args.Hs) \
-            +'_Ht' + str(args.Ht)
+            + '_Nl' + str(args.Nlayers) \
+            + '_Hs' + str(args.Hs) \
+            + '_Ht' + str(args.Ht)
     else:
         key = args.savename
-    h5filename = key+'_mc.h5'
-    print("save at: "+h5filename)
-    h5 = h5py.File(h5filename,'w')
+    h5filename = key + '_mc.h5'
+    print("save at: " + h5filename)
+    h5 = h5py.File(h5filename, 'w')
     params = h5.create_group('params')
     params.create_dataset("Nvars", data=target.nvars)
     params.create_dataset("Nlayers", data=args.Nlayers)
@@ -187,8 +187,8 @@ if __name__ == '__main__':
     params.create_dataset("target", data=args.target)
     params.create_dataset("model", data=model.name)
     results = h5.create_group('results')
-    results.create_dataset("obs",data=np.array(mcmc.measurements))
-    results.create_dataset("accratio",data=mcmc.accratio)
+    results.create_dataset("obs", data=np.array(mcmc.measurements))
+    results.create_dataset("accratio", data=mcmc.accratio)
     if args.collectdata:
         results.create_dataset("samples", data=mcmc.data)
     h5.close()
