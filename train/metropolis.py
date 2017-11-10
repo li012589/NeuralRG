@@ -1,4 +1,4 @@
-if __name__ =="__main__":
+if __name__ == "__main__":
     import os
     import sys
     sys.path.append(os.getcwd())
@@ -7,8 +7,8 @@ torch.manual_seed(42)
 from torch.autograd import Variable
 import numpy as np
 
-from model import Gaussian,MLP,RealNVP
-from train.objectives import Ring2D, Ring5, Wave, Phi4 
+from model import Gaussian, MLP, RealNVP
+from train.objectives import Ring2D, Ring5, Wave
 
 __all__ = ["MCMC"]
 
@@ -21,30 +21,52 @@ class MCMC:
         nvars (int): number of variables.
         batchsize (int): batch size.
         target (Target): target log-probability.
-        model (): model used for update proposal.
+        prior (nn.Module): sampler.
+        collectdata (bool): if to collect all data generated.
     """
 
-    def __init__(self, nvars, batchsize, target, model, usemodel, collectdata):
+    def __init__(self, batchsize, target, prior, collectdata):
+        """
+        Init MCMC class
+        Args:
+            batchSize (int): batch size.
+            target (Target): target log-probability.
+            prior (sampler): sampler.
+            collectdata (bool): if to collect all data generated.
+        """
         self.batchsize = batchsize
-        self.nvars = nvars
         self.target = target
-        self.model = model
-        self.usemodel = usemodel
+        self.prior = prior
         self.collectdata = collectdata
+        self.x = self.prior(self.batchsize).data
 
-        self.x = torch.randn(self.batchsize, self.nvars)
         self.measurements = []
 
         if self.collectdata:
-            self.data= []
+            self.data = []
 
     @staticmethod
-    def _accept(e1,e2):
-        diff = e1-e2
-        return diff.exp()-diff.uniform_()>=0.0
+    def _accept(e1, e2):
+        """
+        This method gives if or not update x.
+        Args:
+            e1 (torch.Tensor): energy of original x.
+            e2 (torch.Tensor): energy of proposed x.
+        Return:
+            ifUpdate (bool): if update x.
+        """
+        diff = e1 - e2
+        return diff.exp() - diff.uniform_() >= 0.0
 
-    def run(self,ntherm,nmeasure,nskip):
-        self.nmeasure= nmeasure
+    def run(self, ntherm, nmeasure, nskip):
+        """
+        This method start sampling.
+        Args:
+            ntherm (int): number of steps used in thermalize.
+            nmeasure (int): number of steps used in measure.
+            nskip (int): number of steps skiped in measure.
+        """
+        self.nmeasure = nmeasure
         self.ntherm = ntherm
 
         for n in range(ntherm):
@@ -55,26 +77,18 @@ class MCMC:
             for i in range(nskip):
                 self.accratio += self.step()
             self.measure()
-        self.accratio /= float(nmeasure*nskip)
+        self.accratio /= float(nmeasure * nskip)
 
-        print ('#accratio:', self.accratio)
+        # print ('#accratio:', self.accratio)
 
     def step(self):
-
-        #sample prior
-        z = model.prior(self.batchsize, volatile=True)
-
-        if self.usemodel:
-            x = self.model.generate(z) # use the model to generate sample
-
-            accept = self._accept(self.target(x.data)-self.model.logProbability(x).data,
-                             self.target(self.x)-self.model.logProbability(Variable(self.x, volatile=True)).data)
-
-        else:
-            x = z                      # pass prior directly to the output
-            accept = self._accept(self.target(x.data)-self.model.prior.logProbability(x).data,
-                             self.target(self.x)-self.model.prior.logProbability(Variable(self.x, volatile=True)).data)
-
+        """
+        This method run a step of sampling.
+        """
+        x = self.prior(self.batchsize)
+        accept = self._accept(
+            self.target(x.data) - self.prior.logProbability(x).data,
+            self.target(self.x) - self.prior.logProbability(Variable(self.x, volatile=True)).data)
 
         accratio = accept.float().mean()
         accept = accept.view(self.batchsize, -1)
@@ -83,27 +97,39 @@ class MCMC:
 
         return accratio
 
-    def measure(self):
-
+    def measure(self, measureFn=None):
+        """
+        This method measures some varibales.
+        Args:
+            measureFn (function): function to measure variables. If None, will run measure at target class.
+        """
         if self.collectdata:
             x = self.x.numpy()
             logp = self.target(self.x).numpy()
             logp.shape = (-1, 1)
             self.data.append(np.concatenate((x, logp), axis=1))
 
-        self.measurements.append( self.target.measure(self.x) )
+        if measureFn is None:
+            self.measurements.append(self.target.measure(self.x))
+        else:
+            self.measurements.append(measureFn(self.x))
+
 
 if __name__ == '__main__':
-    import os, sys
+    import os
+    import sys
     import h5py
     import argparse
     import subprocess
 
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument("-target", default='ring2d', help="target distribution")
-    parser.add_argument("-modelname", default=None, help="model name")
-    parser.add_argument("-collectdata", action='store_true', help="collect data")
-    parser.add_argument("-folder", default='data/', help="where to store results")
+    parser.add_argument("-target", default='ring2d',
+                        help="target distribution")
+    parser.add_argument("-collectdata", action='store_true',
+                        help="collect data")
+    parser.add_argument("-folder", default='data/',
+                        help="where to store results")
+    parser.add_argument("-savename", default=None, help="")
 
     group = parser.add_argument_group('mc parameters')
     group.add_argument("-Batchsize", type=int, default=16, help="")
@@ -111,6 +137,7 @@ if __name__ == '__main__':
     group.add_argument("-Nskips", type=int, default=1, help="")
 
     group = parser.add_argument_group('network parameters')
+    group.add_argument("-Skipmodel",action = 'store_true', help="")
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -123,48 +150,34 @@ if __name__ == '__main__':
     elif args.target == 'wave':
         target = Wave()
     elif args.target == 'phi4':
-        target = Phi4(3,2,1.0,1.0) 
+        target = Phi4(3,2,1.0,1.0)
     else:
-        print ('what target ?', args.target)
+        print('what target ?', args.target)
         sys.exit(1)
 
     gaussian = Gaussian([target.nvars])
 
-    sList = [MLP(target.nvars//2, args.Hs) for _ in range(args.Nlayers)]
-    tList = [MLP(target.nvars//2, args.Ht) for _ in range(args.Nlayers)] 
+    if args.Skipmodel:
+        sList = [MLP(target.nvars // 2, args.Hs) for _ in range(args.Nlayers)]
+        tList = [MLP(target.nvars // 2, args.Ht) for _ in range(args.Nlayers)]
 
-    model = RealNVP([target.nvars], sList, tList, gaussian, name=args.modelname)
-
-    usemodel = (args.modelname is not None)
-
-    if usemodel:
-        try:
-            model.loadModel(torch.load(model.name))
-            print ('#load model', model.name)
-        except FileNotFoundError:
-            print ('model file not found:', model.name)
-            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model  
-  
-    mcmc = MCMC(target.nvars, args.Batchsize, target, model, usemodel=usemodel, collectdata=args.collectdata)
-
+        model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
+    else:
+        model = gaussian
+    mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
     mcmc.run(0, args.Nsamples, args.Nskips)
-
-    # store results
     cmd = ['mkdir', '-p', args.folder]
     subprocess.check_call(cmd)
-
-    #TODO: better model name in template, so we can avoid this branch
-    if args.modelname is None:
+    if args.savename is None:
         key = args.folder \
             + args.target \
             +'_Nl' + str(args.Nlayers) \
             +'_Hs' + str(args.Hs) \
             +'_Ht' + str(args.Ht)
     else:
-        key = args.modelname
-
+        key = args.savename
     h5filename = key+'_mc.h5'
-
+    print("save at: "+h5filename)
     h5 = h5py.File(h5filename,'w')
     params = h5.create_group('params')
     params.create_dataset("Nvars", data=target.nvars)
@@ -173,7 +186,6 @@ if __name__ == '__main__':
     params.create_dataset("Ht", data=args.Ht)
     params.create_dataset("target", data=args.target)
     params.create_dataset("model", data=model.name)
-
     results = h5.create_group('results')
     results.create_dataset("obs",data=np.array(mcmc.measurements))
     results.create_dataset("accratio",data=mcmc.accratio)
