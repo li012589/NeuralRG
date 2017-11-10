@@ -137,7 +137,7 @@ if __name__ == '__main__':
     group.add_argument("-Nskips", type=int, default=1, help="")
 
     group = parser.add_argument_group('network parameters')
-    group.add_argument("-Skipmodel", action='store_true', help="")
+    group.add_argument("-Skipmodel", action='store_false', help="")
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -158,12 +158,14 @@ if __name__ == '__main__':
     gaussian = Gaussian([target.nvars])
 
     if args.Skipmodel:
+        model = gaussian
+        print("using gaussian")
+    else:
         sList = [MLP(target.nvars // 2, args.Hs) for _ in range(args.Nlayers)]
         tList = [MLP(target.nvars // 2, args.Ht) for _ in range(args.Nlayers)]
 
         model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
-    else:
-        model = gaussian
+        print("using model")
     mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
     mcmc.run(0, args.Nsamples, args.Nskips)
     cmd = ['mkdir', '-p', args.folder]
