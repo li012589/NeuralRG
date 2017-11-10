@@ -35,8 +35,7 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised, traindata, modelname, ifCuda = Fal
     sList = [MLP(Nvars//2, Hs) for i in range(Nlayers)] 
     tList = [MLP(Nvars//2, Ht) for i in range(Nlayers)] 
 
-    model = RealNVP([Nvars], sList, tList, gaussian, name=modelname)
-    model.createMask()
+    model = RealNVP([Nvars], sList, tList, gaussian, maskTpye="channel",name = modelname)
     if ifCuda:
         model = model.cuda()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.001)
