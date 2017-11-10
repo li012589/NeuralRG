@@ -1,2 +1,3 @@
 from .GPUmanager import torchGPUmanager
-__all__ = ["torchGPUmanager"]
+from .dataLoader import dataSet
+__all__ = ["torchGPUmanager","dataSet"]
