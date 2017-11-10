@@ -163,7 +163,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, name=None):
+    def __init__(self, shapeList, sList, tList, prior, maskTpye = "channel", name=None):
         """
 
         This mehtod initialise this class.
@@ -177,7 +177,7 @@ class RealNVP(RealNVPtemplate):
         """
         super(RealNVP, self).__init__(
             shapeList, sList, tList, prior, name=None)
-        self.mask = None
+        self.createMask("channel")
 
     def createMask(self, maskType="channel", ifByte=1):
         """
