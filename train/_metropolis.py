@@ -29,7 +29,7 @@ class MCMC:
         self.target = target
         self.prior = prior
         self.collectdata = collectdata
-        self.x = torch.randn(self.batchsize, self.target.nvars)
+        self.x = self.prior(self.batchsize).data
 
         self.measurements = []
 
@@ -60,8 +60,9 @@ class MCMC:
     def step(self):
         #sample prior
         x = self.prior(self.batchsize)                # pass prior directly to the output
-        accept = self._accept(self.target(x.data)-self.model.prior.logProbability(x).data,
-                self.target(self.x)-self.model.prior.logProbability(Variable(self.x, volatile=True)).data)
+        accept = self._accept(
+            self.target(x.data)-self.prior.logProbability(x).data,
+            self.target(self.x)-self.prior.logProbability(Variable(self.x,volatile=True)).data)
 
 
         accratio = accept.float().mean()
@@ -120,7 +121,7 @@ if __name__ == '__main__':
 
     model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
 
-    mcmc = MCMC(args.Batchsize, target, model.sample, collectdata=args.collectdata)
+    mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
     mcmc.run(0, args.Nsamples, args.Nskips)
     '''
     # store results
