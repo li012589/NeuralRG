@@ -8,7 +8,7 @@ from torch.autograd import Variable
 import numpy as np
 
 from model import Gaussian,MLP,RealNVP
-from train.objectives import Ring2D, Ring5, Wave
+from train.objectives import Ring2D, Ring5, Wave, Phi4 
 
 __all__ = ["MCMC"]
 
@@ -101,7 +101,6 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='')
     parser.add_argument("-target", default='ring2d', help="target distribution")
-    parser.add_argument("-Nvars", type=int, default=2, help="")
     parser.add_argument("-modelname", default=None, help="model name")
     parser.add_argument("-collectdata", action='store_true', help="collect data")
     parser.add_argument("-folder", default='data/', help="where to store results")
@@ -123,16 +122,18 @@ if __name__ == '__main__':
         target = Ring5()
     elif args.target == 'wave':
         target = Wave()
+    elif args.target == 'phi4':
+        target = Phi4(3,2,1.0,1.0) 
     else:
         print ('what target ?', args.target)
         sys.exit(1)
 
-    gaussian = Gaussian([args.Nvars])
+    gaussian = Gaussian([target.nvars])
 
-    sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)]
-    tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)]
+    sList = [MLP(target.nvars//2, args.Hs) for _ in range(args.Nlayers)]
+    tList = [MLP(target.nvars//2, args.Ht) for _ in range(args.Nlayers)] 
 
-    model = RealNVP([args.Nvars], sList, tList, gaussian, name=args.modelname)
+    model = RealNVP([target.nvars], sList, tList, gaussian, name=args.modelname)
 
     usemodel = (args.modelname is not None)
 
@@ -142,9 +143,10 @@ if __name__ == '__main__':
             print ('#load model', model.name)
         except FileNotFoundError:
             print ('model file not found:', model.name)
-            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model
+            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model  
+  
+    mcmc = MCMC(target.nvars, args.Batchsize, target, model, usemodel=usemodel, collectdata=args.collectdata)
 
-    mcmc = MCMC(args.Nvars, args.Batchsize, target, model, usemodel=usemodel, collectdata=args.collectdata)
     mcmc.run(0, args.Nsamples, args.Nskips)
 
     # store results
@@ -165,7 +167,7 @@ if __name__ == '__main__':
 
     h5 = h5py.File(h5filename,'w')
     params = h5.create_group('params')
-    params.create_dataset("Nvars", data=args.Nvars)
+    params.create_dataset("Nvars", data=target.nvars)
     params.create_dataset("Nlayers", data=args.Nlayers)
     params.create_dataset("Hs", data=args.Hs)
     params.create_dataset("Ht", data=args.Ht)

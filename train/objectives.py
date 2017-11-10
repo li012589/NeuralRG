@@ -19,6 +19,7 @@ class Ring2D(Target):
     def __init__(self):
         super(Ring2D, self).__init__()
         self.name = 'Ring2d'
+        self.nvars = 2 
 
     def __call__(self, x):
         return -(torch.sqrt((x**2).sum(dim=1))-2.0)**2/0.32
@@ -28,6 +29,7 @@ class Ring5(Target):
     def __init__(self):
         super(Ring5, self).__init__()
         self.name = 'Ring5'
+        self.nvars = 2 
 
     def __call__(self, x):
         x2 = torch.sqrt((x**2).sum(dim=1))
@@ -52,21 +54,22 @@ class Wave(Target):
     def __init__(self):
         super(Wave, self).__init__()
         self.name = "Wave"
+        self.nvars = 2 
 
     def __call__(self, x):
         w = torch.sin(np.pi*x[:, 0]/2.)
         return -0.5*((x[:, 1] -w)/0.4)**2
 
-class phi4(Target):
+class Phi4(Target):
     def __init__(self,l,dims,kappa,lamb,hoppingTable=None,name=None):
-        super(phi4, self).__init__()
+        super(Phi4, self).__init__()
         self.dims = dims
         self.l = l
-        self.n = l**dims
+        self.nvars = l**dims
         self.kappa = kappa
         self.lamb = lamb
         if name is None:
-            self.name = "phi_"+str(self.n)+"n_"+str(self.l)+"l_"+str(self.dims)+"dim_"+str(self.kappa)+"kappa_"+str(self.lamb)+"lambda"
+            self.name = "phi_"+str(self.nvars)+"n_"+str(self.l)+"l_"+str(self.dims)+"dim_"+str(self.kappa)+"kappa_"+str(self.lamb)+"lambda"
         else:
             self.name = name
         if hoppingTable is None:
@@ -75,7 +78,7 @@ class phi4(Target):
             self.hoppingTable = hoppingTable
     def __call__(self,z):
         S = (torch.zeros(z[:,0].shape))
-        for i in range(self.n):
+        for i in range(self.nvars):
             tmp = (torch.zeros(z[:,0].shape))
             for j in range(self.dims):
                 #print(z[:,self.hoppingTable[i][j*2]])
@@ -86,8 +89,8 @@ class phi4(Target):
         return S
     def createTable(self):
         hoppingTable = []
-        for i in range(self.n):
-            LK = self.n
+        for i in range(self.nvars):
+            LK = self.nvars
             y = i
             hoppingTable.append([])
             for j in reversed(range(self.dims)):
