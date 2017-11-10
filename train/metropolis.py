@@ -2,23 +2,20 @@ if __name__ =="__main__":
     import os
     import sys
     sys.path.append(os.getcwd())
-import torch 
+import torch
 torch.manual_seed(42)
-from torch.autograd import Variable 
-import numpy as np 
+from torch.autograd import Variable
+import numpy as np
 
 from model import Gaussian,MLP,RealNVP
-from train.objectives import Ring2D, Ring5, Wave 
+from train.objectives import Ring2D, Ring5, Wave
 
 __all__ = ["MCMC"]
 
-def _accept(e1,e2):
-   diff = e1-e2
-   return diff.exp()-diff.uniform_()>=0.0
 
 class MCMC:
     """
-    Markov Chain Monte Carlo 
+    Markov Chain Monte Carlo
 
     Args:
         nvars (int): number of variables.
@@ -28,62 +25,66 @@ class MCMC:
     """
 
     def __init__(self, nvars, batchsize, target, model, usemodel, collectdata):
-        
         self.batchsize = batchsize
         self.nvars = nvars
-        self.target = target 
+        self.target = target
         self.model = model
         self.usemodel = usemodel
-        self.collectdata = collectdata 
+        self.collectdata = collectdata
 
         self.x = torch.randn(self.batchsize, self.nvars)
         self.measurements = []
 
         if self.collectdata:
             self.data= []
-        
+
+    @staticmethod
+    def _accept(e1,e2):
+        diff = e1-e2
+        return diff.exp()-diff.uniform_()>=0.0
+
     def run(self,ntherm,nmeasure,nskip):
-        self.nmeasure= nmeasure 
+        self.nmeasure= nmeasure
         self.ntherm = ntherm
-            
-        for n in range(ntherm): 
+
+        for n in range(ntherm):
             self.step()
-        
-        self.accratio = 0.0 
+
+        self.accratio = 0.0
         for n in range(nmeasure):
             for i in range(nskip):
                 self.accratio += self.step()
             self.measure()
-        self.accratio /= float(nmeasure*nskip) 
+        self.accratio /= float(nmeasure*nskip)
 
         print ('#accratio:', self.accratio)
 
     def step(self):
-            
-        #sample prior 
+
+        #sample prior
         z = model.prior(self.batchsize, volatile=True)
 
-        if self.usemodel: 
+        if self.usemodel:
             x = self.model.generate(z) # use the model to generate sample
 
-            accept = _accept(self.target(x.data)-self.model.logProbability(x).data, 
+            accept = self._accept(self.target(x.data)-self.model.logProbability(x).data,
                              self.target(self.x)-self.model.logProbability(Variable(self.x, volatile=True)).data)
 
         else:
             x = z                      # pass prior directly to the output
-            accept = _accept(self.target(x.data)-self.model.prior.logProbability(x).data, 
+            accept = self._accept(self.target(x.data)-self.model.prior.logProbability(x).data,
                              self.target(self.x)-self.model.prior.logProbability(Variable(self.x, volatile=True)).data)
 
 
         accratio = accept.float().mean()
         accept = accept.view(self.batchsize, -1)
-        
+
         self.x.masked_scatter_(accept, torch.masked_select(x.data, accept))
 
         return accratio
 
     def measure(self):
-        
+
         if self.collectdata:
             x = self.x.numpy()
             logp = self.target(self.x).numpy()
@@ -92,11 +93,11 @@ class MCMC:
 
         self.measurements.append( self.target.measure(self.x) )
 
-if __name__ == '__main__': 
-    import os, sys 
-    import h5py 
+if __name__ == '__main__':
+    import os, sys
+    import h5py
     import argparse
-    import subprocess 
+    import subprocess
 
     parser = argparse.ArgumentParser(description='')
     parser.add_argument("-target", default='ring2d', help="target distribution")
@@ -124,39 +125,39 @@ if __name__ == '__main__':
         target = Wave()
     else:
         print ('what target ?', args.target)
-        sys.exit(1) 
+        sys.exit(1)
 
     gaussian = Gaussian([args.Nvars])
 
     sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)]
-    tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)] 
+    tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)]
 
     model = RealNVP([args.Nvars], sList, tList, gaussian, name=args.modelname)
 
     usemodel = (args.modelname is not None)
-   
+
     if usemodel:
         try:
             model.loadModel(torch.load(model.name))
             print ('#load model', model.name)
         except FileNotFoundError:
             print ('model file not found:', model.name)
-            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model  
-  
+            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model
+
     mcmc = MCMC(args.Nvars, args.Batchsize, target, model, usemodel=usemodel, collectdata=args.collectdata)
     mcmc.run(0, args.Nsamples, args.Nskips)
-    
+
     # store results
     cmd = ['mkdir', '-p', args.folder]
     subprocess.check_call(cmd)
-    
-    #TODO: better model name in template, so we can avoid this branch 
+
+    #TODO: better model name in template, so we can avoid this branch
     if args.modelname is None:
         key = args.folder \
             + args.target \
             +'_Nl' + str(args.Nlayers) \
             +'_Hs' + str(args.Hs) \
-            +'_Ht' + str(args.Ht) 
+            +'_Ht' + str(args.Ht)
     else:
         key = args.modelname
 
@@ -176,5 +177,4 @@ if __name__ == '__main__':
     results.create_dataset("accratio",data=mcmc.accratio)
     if args.collectdata:
         results.create_dataset("samples", data=mcmc.data)
- 
     h5.close()
