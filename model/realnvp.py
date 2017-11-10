@@ -333,6 +333,17 @@ class RealNVP(RealNVPtemplate):
         else:
             return self.inference(z,sliceDim)
 
+    def __call__(self,batchSize,sliceDim=0,useGenerate = True):
+        """
+        This method is a wrapped sample method
+        Args:
+            batchSize (int): size of sampled batch.
+            sliceDim (int): in which dimension should mask be used on y.
+        return:
+            samples: (torch.autograd.Variable): output Variable.
+        """
+        return self.sample(batchSize,sliceDim,useGenerate)
+
 if __name__ == "__main__":
 
     pass
