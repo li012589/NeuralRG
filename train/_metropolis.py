@@ -1,4 +1,4 @@
-if __name__ =="__main__":
+if __name__ == "__main__":
     import os
     import sys
     sys.path.append(os.getcwd())
@@ -7,7 +7,7 @@ torch.manual_seed(42)
 from torch.autograd import Variable
 import numpy as np
 
-from model import Gaussian,MLP,RealNVP
+from model import Gaussian, MLP, RealNVP
 from train.objectives import Ring2D, Ring5, Wave
 
 __all__ = ["MCMC"]
@@ -43,10 +43,10 @@ class MCMC:
         self.measurements = []
 
         if self.collectdata:
-            self.data= []
+            self.data = []
 
     @staticmethod
-    def _accept(e1,e2):
+    def _accept(e1, e2):
         """
         This method gives if or not update x.
         Args:
@@ -55,10 +55,10 @@ class MCMC:
         Return:
             ifUpdate (bool): if update x.
         """
-        diff = e1-e2
-        return diff.exp()-diff.uniform_()>=0.0
+        diff = e1 - e2
+        return diff.exp() - diff.uniform_() >= 0.0
 
-    def run(self,ntherm,nmeasure,nskip):
+    def run(self, ntherm, nmeasure, nskip):
         """
         This method start sampling.
         Args:
@@ -66,7 +66,7 @@ class MCMC:
             nmeasure (int): number of steps used in measure.
             nskip (int): number of steps skiped in measure.
         """
-        self.nmeasure= nmeasure
+        self.nmeasure = nmeasure
         self.ntherm = ntherm
 
         for n in range(ntherm):
@@ -77,9 +77,9 @@ class MCMC:
             for i in range(nskip):
                 self.accratio += self.step()
             self.measure()
-        self.accratio /= float(nmeasure*nskip)
+        self.accratio /= float(nmeasure * nskip)
 
-        #print ('#accratio:', self.accratio)
+        # print ('#accratio:', self.accratio)
 
     def step(self):
         """
@@ -87,9 +87,8 @@ class MCMC:
         """
         x = self.prior(self.batchsize)
         accept = self._accept(
-            self.target(x.data)-self.prior.logProbability(x).data,
-            self.target(self.x)-self.prior.logProbability(Variable(self.x,volatile=True)).data)
-
+            self.target(x.data) - self.prior.logProbability(x).data,
+            self.target(self.x) - self.prior.logProbability(Variable(self.x, volatile=True)).data)
 
         accratio = accept.float().mean()
         accept = accept.view(self.batchsize, -1)
@@ -98,7 +97,7 @@ class MCMC:
 
         return accratio
 
-    def measure(self,measureFn = None):
+    def measure(self, measureFn=None):
         """
         This method measures some varibales.
         Args:
@@ -111,20 +110,25 @@ class MCMC:
             self.data.append(np.concatenate((x, logp), axis=1))
 
         if measureFn is None:
-            self.measurements.append( self.target.measure(self.x) )
+            self.measurements.append(self.target.measure(self.x))
         else:
-            self.measurements.append( measureFn(self.x) )
+            self.measurements.append(measureFn(self.x))
+
 
 if __name__ == '__main__':
-    import os, sys
+    import os
+    import sys
     import h5py
     import argparse
     import subprocess
 
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument("-target", default='ring2d', help="target distribution")
-    parser.add_argument("-collectdata", action='store_true', help="collect data")
-    parser.add_argument("-folder", default='data/', help="where to store results")
+    parser.add_argument("-target", default='ring2d',
+                        help="target distribution")
+    parser.add_argument("-collectdata", action='store_true',
+                        help="collect data")
+    parser.add_argument("-folder", default='data/',
+                        help="where to store results")
 
     group = parser.add_argument_group('mc parameters')
     group.add_argument("-Batchsize", type=int, default=16, help="")
@@ -144,13 +148,13 @@ if __name__ == '__main__':
     elif args.target == 'wave':
         target = Wave()
     else:
-        print ('what target ?', args.target)
+        print('what target ?', args.target)
         sys.exit(1)
 
     gaussian = Gaussian([target.nvars])
 
-    sList = [MLP(target.nvars//2, args.Hs) for _ in range(args.Nlayers)]
-    tList = [MLP(target.nvars//2, args.Ht) for _ in range(args.Nlayers)]
+    sList = [MLP(target.nvars // 2, args.Hs) for _ in range(args.Nlayers)]
+    tList = [MLP(target.nvars // 2, args.Ht) for _ in range(args.Nlayers)]
 
     model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
 
