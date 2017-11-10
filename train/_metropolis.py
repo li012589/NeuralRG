@@ -24,14 +24,13 @@ class MCMC:
         model (): model used for update proposal.
     """
 
-    def __init__(self, nvars, batchsize, target, prior, collectdata):
+    def __init__(self,  batchsize, target, prior, collectdata):
         self.batchsize = batchsize
-        self.nvars = nvars
         self.target = target
         self.prior = prior
         self.collectdata = collectdata
+        self.x = torch.randn(self.batchsize, self.target.nvars)
 
-        self.x = torch.randn(self.batchsize, self.nvars)
         self.measurements = []
 
         if self.collectdata:
@@ -59,20 +58,10 @@ class MCMC:
         print ('#accratio:', self.accratio)
 
     def step(self):
-
         #sample prior
-        z = model.prior(self.batchsize, volatile=True)
-
-        if self.usemodel:
-            x = self.model.generate(z) # use the model to generate sample
-
-            accept = self._accept(self.target(x.data)-self.model.logProbability(x).data,
-                             self.target(self.x)-self.model.logProbability(Variable(self.x, volatile=True)).data)
-
-        else:
-            x = z                      # pass prior directly to the output
-            accept = self._accept(self.target(x.data)-self.model.prior.logProbability(x).data,
-                             self.target(self.x)-self.model.prior.logProbability(Variable(self.x, volatile=True)).data)
+        x = self.prior(self.batchsize)                # pass prior directly to the output
+        accept = self._accept(self.target(x.data)-self.model.prior.logProbability(x).data,
+                self.target(self.x)-self.model.prior.logProbability(Variable(self.x, volatile=True)).data)
 
 
         accratio = accept.float().mean()
@@ -100,8 +89,6 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='')
     parser.add_argument("-target", default='ring2d', help="target distribution")
-    parser.add_argument("-Nvars", type=int, default=2, help="")
-    parser.add_argument("-modelname", default=None, help="model name")
     parser.add_argument("-collectdata", action='store_true', help="collect data")
     parser.add_argument("-folder", default='data/', help="where to store results")
 
@@ -126,26 +113,16 @@ if __name__ == '__main__':
         print ('what target ?', args.target)
         sys.exit(1)
 
-    gaussian = Gaussian([args.Nvars])
+    gaussian = Gaussian([target.nvars])
 
-    sList = [MLP(args.Nvars//2, args.Hs) for _ in range(args.Nlayers)]
-    tList = [MLP(args.Nvars//2, args.Ht) for _ in range(args.Nlayers)]
+    sList = [MLP(target.nvars//2, args.Hs) for _ in range(args.Nlayers)]
+    tList = [MLP(target.nvars//2, args.Ht) for _ in range(args.Nlayers)]
 
-    model = RealNVP([args.Nvars], sList, tList, gaussian, name=args.modelname)
+    model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
 
-    usemodel = (args.modelname is not None)
-
-    if usemodel:
-        try:
-            model.loadModel(torch.load(model.name))
-            print ('#load model', model.name)
-        except FileNotFoundError:
-            print ('model file not found:', model.name)
-            sys.exit(1) # exit, otherwise we will continue newly constructed real NVP model
-
-    mcmc = MCMC(args.Nvars, args.Batchsize, target, model, usemodel=usemodel, collectdata=args.collectdata)
+    mcmc = MCMC(args.Batchsize, target, model.sample, collectdata=args.collectdata)
     mcmc.run(0, args.Nsamples, args.Nskips)
-
+    '''
     # store results
     cmd = ['mkdir', '-p', args.folder]
     subprocess.check_call(cmd)
@@ -177,3 +154,4 @@ if __name__ == '__main__':
     if args.collectdata:
         results.create_dataset("samples", data=mcmc.data)
     h5.close()
+    '''
