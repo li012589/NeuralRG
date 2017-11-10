@@ -24,12 +24,11 @@ class MCMC:
         model (): model used for update proposal.
     """
 
-    def __init__(self, nvars, batchsize, target, model, usemodel, collectdata):
+    def __init__(self, nvars, batchsize, target, prior, collectdata):
         self.batchsize = batchsize
         self.nvars = nvars
         self.target = target
-        self.model = model
-        self.usemodel = usemodel
+        self.prior = prior
         self.collectdata = collectdata
 
         self.x = torch.randn(self.batchsize, self.nvars)
