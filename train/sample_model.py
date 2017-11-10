@@ -70,8 +70,8 @@ if __name__=="__main__":
     tList = [MLP(Nvars//2, Ht) for _ in range(Nlayers)] 
 
     gaussian = Gaussian([Nvars])
-
-    model = RealNVP([Nvars], sList, tList, gaussian, args.modelname)
+    
+    model = RealNVP([Nvars], sList, tList, gaussian, name=args.modelname)
     model.loadModel(torch.load(model.name))
 
     if targetname == 'ring2d':
