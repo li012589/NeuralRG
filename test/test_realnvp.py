@@ -181,6 +181,35 @@ def test_checkerboard_cuda():
 
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
+def test_sample():
+    gaussian3d = Gaussian([2,4,4])
+    x3d = gaussian3d(3)
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d,"checkerboard")
+
+    z3d = realNVP3d.sample(100,2,True)
+
+    zp3d = realNVP3d.sample(100,2,False)
+
+    print(realNVP3d.logProbability(z3d,2))
+
+@skipIfNoCuda
+def test_sample_cuda():
+    gaussian3d = Gaussian([2,4,4])
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d,"checkerboard").cuda()
+
+    z3d = realNVP3d.sample(100,2,True)
+
+    zp3d = realNVP3d.sample(100,2,False)
+
+    print(realNVP3d.logProbability(z3d,2))
 
 if __name__ == "__main__":
     test_3d()

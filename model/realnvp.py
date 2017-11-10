@@ -314,6 +314,24 @@ class RealNVP(RealNVPtemplate):
         self.shapeList = saveDic["shapeList"]
         return saveDic
 
+    def sample(self,batchSize,sliceDim=0,useGenerate = True):
+        """
+
+        This method directly sample samples of batch size given
+        Args:
+            batchSize (int): size of sampled batch.
+            sliceDim (int): in which dimension should mask be used on y.
+        return:
+            samples: (torch.autograd.Variable): output Variable.
+        """
+        if self.ifCuda:
+            z = self.prior(batchSize).cuda()
+        else:
+            z = self.prior(batchSize)
+        if useGenerate:
+            return self.generate(z,sliceDim)
+        else:
+            return self.inference(z,sliceDim)
 
 if __name__ == "__main__":
 
