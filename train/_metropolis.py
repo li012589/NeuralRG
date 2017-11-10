@@ -129,6 +129,7 @@ if __name__ == '__main__':
                         help="collect data")
     parser.add_argument("-folder", default='data/',
                         help="where to store results")
+    parser.add_argument("-savename", default=None, help="")
 
     group = parser.add_argument_group('mc parameters')
     group.add_argument("-Batchsize", type=int, default=16, help="")
@@ -136,6 +137,7 @@ if __name__ == '__main__':
     group.add_argument("-Nskips", type=int, default=1, help="")
 
     group = parser.add_argument_group('network parameters')
+    group.add_argument("-Skipmodel",action = 'store_true', help="")
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -147,49 +149,46 @@ if __name__ == '__main__':
         target = Ring5()
     elif args.target == 'wave':
         target = Wave()
+    elif args.target == 'phi4':
+        target = Phi4(3,2,1.0,1.0)
     else:
         print('what target ?', args.target)
         sys.exit(1)
 
     gaussian = Gaussian([target.nvars])
 
-    sList = [MLP(target.nvars // 2, args.Hs) for _ in range(args.Nlayers)]
-    tList = [MLP(target.nvars // 2, args.Ht) for _ in range(args.Nlayers)]
+    if args.Skipmodel:
+        sList = [MLP(target.nvars // 2, args.Hs) for _ in range(args.Nlayers)]
+        tList = [MLP(target.nvars // 2, args.Ht) for _ in range(args.Nlayers)]
 
-    model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
-
+        model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
+    else:
+        model = gaussian
     mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
     mcmc.run(0, args.Nsamples, args.Nskips)
-    '''
-    # store results
     cmd = ['mkdir', '-p', args.folder]
     subprocess.check_call(cmd)
-
-    #TODO: better model name in template, so we can avoid this branch
-    if args.modelname is None:
+    if args.savename is None:
         key = args.folder \
             + args.target \
             +'_Nl' + str(args.Nlayers) \
             +'_Hs' + str(args.Hs) \
             +'_Ht' + str(args.Ht)
     else:
-        key = args.modelname
-
+        key = args.savename
     h5filename = key+'_mc.h5'
-
+    print("save at: "+h5filename)
     h5 = h5py.File(h5filename,'w')
     params = h5.create_group('params')
-    params.create_dataset("Nvars", data=args.Nvars)
+    params.create_dataset("Nvars", data=target.nvars)
     params.create_dataset("Nlayers", data=args.Nlayers)
     params.create_dataset("Hs", data=args.Hs)
     params.create_dataset("Ht", data=args.Ht)
     params.create_dataset("target", data=args.target)
     params.create_dataset("model", data=model.name)
-
     results = h5.create_group('results')
     results.create_dataset("obs",data=np.array(mcmc.measurements))
     results.create_dataset("accratio",data=mcmc.accratio)
     if args.collectdata:
         results.create_dataset("samples", data=mcmc.data)
     h5.close()
-    '''
