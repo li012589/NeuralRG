@@ -1,5 +1,5 @@
 import numpy as np
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from torch.autograd import Variable
 
 class dataSet(Dataset):
