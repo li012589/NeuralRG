@@ -46,7 +46,7 @@ class RealNVPtemplate(torch.nn.Module):
         if name is None:
             self.name = "realNVP_" + \
                 str(self.NumLayers) + "inner_" + \
-                "_layers_" + self.prior.name + "Prior"
+                "layers_" + self.prior.name + "Prior"
         else:
             self.name = name
 
