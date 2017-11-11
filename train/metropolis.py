@@ -137,7 +137,8 @@ if __name__ == '__main__':
     group.add_argument("-Nskips", type=int, default=1, help="")
 
     group = parser.add_argument_group('network parameters')
-    group.add_argument("-Loadmodel", action='store_false', help="")
+    group.add_argument("-Loadname", default=None, help="")
+    group.add_argument("-modelname", default=None, help="")
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -157,7 +158,7 @@ if __name__ == '__main__':
 
     gaussian = Gaussian([target.nvars])
 
-    if args.Loadmodel:
+    if args.Loadname is None:
         model = gaussian
         print("using gaussian")
     else:
@@ -166,10 +167,10 @@ if __name__ == '__main__':
 
         model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
         try:
-            model.loadModel(torch.load(model.name))
-            print ('#load model', model.name)
+            model.loadModel(torch.load(args.Loadname))
+            print ('#load model', args.Loadname)
         except FileNotFoundError:
-            print ('model file not found:', model.name)
+            print ('model file not found:', args.Loadname)
         print("using model")
     mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
     mcmc.run(0, args.Nsamples, args.Nskips)
