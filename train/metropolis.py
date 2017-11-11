@@ -125,7 +125,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument("-target", default='ring2d',
                         help="target distribution")
-    parser.add_argument("-collectdata", action='store_true',
+    parser.add_argument("-collectdata", action='store_false',
                         help="collect data")
     parser.add_argument("-folder", default='data/',
                         help="where to store results")
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     group.add_argument("-Nskips", type=int, default=1, help="")
 
     group = parser.add_argument_group('network parameters')
-    group.add_argument("-Skipmodel", action='store_false', help="")
+    group.add_argument("-Loadmodel", action='store_false', help="")
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -157,7 +157,7 @@ if __name__ == '__main__':
 
     gaussian = Gaussian([target.nvars])
 
-    if args.Skipmodel:
+    if args.Loadmodel:
         model = gaussian
         print("using gaussian")
     else:
@@ -165,6 +165,11 @@ if __name__ == '__main__':
         tList = [MLP(target.nvars // 2, args.Ht) for _ in range(args.Nlayers)]
 
         model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
+        try:
+            model.loadModel(torch.load(model.name))
+            print ('#load model', model.name)
+        except FileNotFoundError:
+            print ('model file not found:', model.name)
         print("using model")
     mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
     mcmc.run(0, args.Nsamples, args.Nskips)
