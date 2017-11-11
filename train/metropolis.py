@@ -168,9 +168,9 @@ if __name__ == '__main__':
         model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
         try:
             model.loadModel(torch.load(args.Loadname))
-            print ('#load model', args.Loadname)
+            print('#load model', args.Loadname)
         except FileNotFoundError:
-            print ('model file not found:', args.Loadname)
+            print('model file not found:', args.Loadname)
         print("using model")
     mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
     mcmc.run(0, args.Nsamples, args.Nskips)

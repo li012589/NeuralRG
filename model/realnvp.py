@@ -163,7 +163,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, maskTpye = "channel", name=None):
+    def __init__(self, shapeList, sList, tList, prior, maskTpye="channel", name=None):
         """
 
         This mehtod initialise this class.
@@ -314,7 +314,7 @@ class RealNVP(RealNVPtemplate):
         self.shapeList = saveDic["shapeList"]
         return saveDic
 
-    def sample(self,batchSize,sliceDim=0,useGenerate = True):
+    def sample(self, batchSize, sliceDim=0, useGenerate=True):
         """
 
         This method directly sample samples of batch size given
@@ -329,11 +329,11 @@ class RealNVP(RealNVPtemplate):
         else:
             z = self.prior(batchSize)
         if useGenerate:
-            return self.generate(z,sliceDim)
+            return self.generate(z, sliceDim)
         else:
-            return self.inference(z,sliceDim)
+            return self.inference(z, sliceDim)
 
-    def __call__(self,batchSize,sliceDim=0,useGenerate = True):
+    def __call__(self, batchSize, sliceDim=0, useGenerate=True):
         """
         This method is a wrapped sample method
         Args:
@@ -342,7 +342,8 @@ class RealNVP(RealNVPtemplate):
         return:
             samples: (torch.autograd.Variable): output Variable.
         """
-        return self.sample(batchSize,sliceDim,useGenerate)
+        return self.sample(batchSize, sliceDim, useGenerate)
+
 
 if __name__ == "__main__":
 
