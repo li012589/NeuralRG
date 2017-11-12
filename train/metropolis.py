@@ -79,7 +79,7 @@ class MCMC:
             self.measure()
         self.accratio /= float(nmeasure * nskip)
 
-        # print ('#accratio:', self.accratio)
+        print ('#accratio:', self.accratio)
 
     def step(self):
         """
@@ -137,7 +137,6 @@ if __name__ == '__main__':
     group.add_argument("-Nskips", type=int, default=1, help="")
 
     group = parser.add_argument_group('network parameters')
-    group.add_argument("-Loadname", default=None, help="")
     group.add_argument("-modelname", default=None, help="")
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
@@ -158,7 +157,7 @@ if __name__ == '__main__':
 
     gaussian = Gaussian([target.nvars])
 
-    if args.Loadname is None:
+    if args.modelname is None:
         model = gaussian
         print("using gaussian")
     else:
@@ -167,11 +166,11 @@ if __name__ == '__main__':
 
         model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
         try:
-            model.loadModel(torch.load(args.Loadname))
-            print('#load model', args.Loadname)
+            model.loadModel(torch.load(args.modelname))
+            print('#load model', args.modelname)
         except FileNotFoundError:
-            print('model file not found:', args.Loadname)
-        print("using model")
+            print('model file not found:', args.modelname)
+        print("using model", args.modelname)
     mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
     mcmc.run(0, args.Nsamples, args.Nskips)
     cmd = ['mkdir', '-p', args.folder]
