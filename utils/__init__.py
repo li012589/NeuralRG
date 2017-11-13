@@ -1,3 +1,4 @@
 from .GPUmanager import torchGPUmanager
 from .dataLoader import dataSet
-__all__ = ["torchGPUmanager","dataSet"]
+from .timer import Timer
+__all__ = ["torchGPUmanager","dataSet", 'Timer']
