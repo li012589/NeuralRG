@@ -125,7 +125,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument("-target", default='ring2d',
                         help="target distribution")
-    parser.add_argument("-collectdata", action='store_false',
+    parser.add_argument("-collectdata", action='store_true',
                         help="collect data")
     parser.add_argument("-folder", default='data/',
                         help="where to store results")
