@@ -269,7 +269,7 @@ def test_copy_cuda():
     z3d = realNVP3d.generate(x3d,2)
 
     realNVP3dcp = copy.copy(realNVP3d).cuda()
-    x3d = x3d,cuda()
+    x3d = x3d.cuda()
     z3dcp = realNVP3dcp.generate(x3d,2)
 
     assert_array_almost_equal(x3d.data.numpy(),z3dcp.cpu().data.numpy())
