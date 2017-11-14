@@ -41,4 +41,4 @@ def parallelize(model,deviceID,fnName,inputs,args):
     for i in range(nGroup):
         output.append(results[i].cuda(deviceID[0]))
 
-    return output
+    return torch.Tensor(output)
