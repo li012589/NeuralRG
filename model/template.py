@@ -59,7 +59,7 @@ class RealNVPtemplate(torch.nn.Module):
             cudaModel (nn.Module.cuda): the instance in GPU.
 
         """
-        cudaModel = super(RealNVPtemplate, self).cuda(device,async)
+        cudaModel = super(RealNVPtemplate, self).cuda(device)
         cudaModel.ifCuda = True
         cudaModel.cudaConf = (device,async)
         return cudaModel
