@@ -1,23 +1,22 @@
-if __name__ =="__main__":
-    import os
-    import sys
-    sys.path.append(os.getcwd())
-import torch 
+import os
+import sys
+sys.path.append(os.getcwd())
+import torch
 torch.manual_seed(42)
-from torch.autograd import Variable 
-import numpy as np 
+from torch.autograd import Variable
+import numpy as np
 
 from model import Gaussian,MLP,RealNVP
-from train.objectives import Ring2D, Ring5, Wave 
+from train import Ring2D, Ring5, Wave, Phi4
 
 def fit(Nlayers, Hs, Ht, Nepochs, supervised, traindata, modelname, ifCuda = False):
     LOSS=[]
-    
+
     h5 = h5py.File(traindata,'r')
     xy = np.array(h5['results']['samples'])
     h5.close()
 
-    Nvars = xy.shape[-1] -1 
+    Nvars = xy.shape[-1] -1
     xy.shape = (-1, Nvars +1)
 
     x_data = Variable(torch.from_numpy(xy[:, 0:-1]))
@@ -32,8 +31,8 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised, traindata, modelname, ifCuda = Fal
 
     gaussian = Gaussian([Nvars])
 
-    sList = [MLP(Nvars//2, Hs) for i in range(Nlayers)] 
-    tList = [MLP(Nvars//2, Ht) for i in range(Nlayers)] 
+    sList = [MLP(Nvars//2, Hs) for i in range(Nlayers)]
+    tList = [MLP(Nvars//2, Ht) for i in range(Nlayers)]
 
     model = RealNVP([Nvars], sList, tList, gaussian, maskTpye="channel",name = modelname)
     if ifCuda:
@@ -48,15 +47,15 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised, traindata, modelname, ifCuda = Fal
         if supervised:
             loss = criterion(logp, y_data)
         else:
-            loss = -logp.mean() 
+            loss = -logp.mean()
 
         print (epoch, loss.data[0])
         LOSS.append(loss.data[0])
 
         optimizer.zero_grad()
-        loss.backward() 
+        loss.backward()
         optimizer.step()
-            
+
         if epoch%10==0:
             saveDict = model.saveModel({})
             torch.save(saveDict, model.name+'/epoch'+str(epoch))
