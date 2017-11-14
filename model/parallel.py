@@ -1,10 +1,13 @@
 import threading
+import copy
+
+import torch
 
 def parallelize(model,deviceID,fnName,inputs,args):
 
     models = []
     for device in deviceID:
-        tmp = model.cuda(device)
+        tmp = copy.copy(model).cuda(device)
         models.append(tmp)
 
     nGroup = len(deviceID)
