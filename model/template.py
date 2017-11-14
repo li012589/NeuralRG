@@ -43,6 +43,7 @@ class RealNVPtemplate(torch.nn.Module):
         self.prior = prior
         self.shapeList = shapeList
         self.ifCuda = False
+        self.cudaConf = ()
         if name is None:
             self.name = "realNVP_" + \
                 str(self.NumLayers) + "inner_" + \
@@ -50,7 +51,7 @@ class RealNVPtemplate(torch.nn.Module):
         else:
             self.name = name
 
-    def cuda(self,*args,**kwargs):
+    def cuda(self,device,async):
         """
 
         This method move everything in RealNVPtemplate to GPU.
@@ -58,8 +59,9 @@ class RealNVPtemplate(torch.nn.Module):
             cudaModel (nn.Module.cuda): the instance in GPU.
 
         """
-        cudaModel = super(RealNVPtemplate, self).cuda(*args,**kwargs)
+        cudaModel = super(RealNVPtemplate, self).cuda(device,async)
         cudaModel.ifCuda = True
+        cudaModel.cudaConf = (device,async)
         return cudaModel
 
     def cpu(self,*args,**kwargs):
@@ -72,6 +74,7 @@ class RealNVPtemplate(torch.nn.Module):
         """
         cpuModel = super(RealNVPtemplate, self).cpu(*args,**kwargs)
         cpuModel.ifCuda = False
+        cudaModel.cudaConf = ()
         return cpuModel
 
     def _generate(self, y, mask, mask_, ifLogjac=False):
@@ -90,7 +93,7 @@ class RealNVPtemplate(torch.nn.Module):
         if ifLogjac:
             if self.ifCuda:
                 self._generateLogjac = Variable(
-                    torch.zeros(y.data.shape[0])).cuda()
+                    torch.zeros(y.data.shape[0])).cuda(self.cudaConf[0],self.cudaConf[1])
             else:
                 self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         for i in range(self.NumLayers):
@@ -163,7 +166,7 @@ class RealNVPtemplate(torch.nn.Module):
         if ifLogjac:
             if self.ifCuda:
                 self._generateLogjac = Variable(
-                    torch.zeros(y.data.shape[0])).cuda()
+                    torch.zeros(y.data.shape[0])).cuda(self.cudaConf[0],self.cudaConf[1])
             else:
                 self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         size = [-1] + self.shapeList
@@ -172,7 +175,7 @@ class RealNVPtemplate(torch.nn.Module):
         y1 = torch.masked_select(y, mask_).view(size)
         y0, y1 = self._generateMeta(y0, y1, ifLogjac)
         if self.ifCuda:
-            output = Variable(torch.zeros(y.data.shape)).cuda()
+            output = Variable(torch.zeros(y.data.shape)).cuda(self.cudaConf[0],self.cudaConf[1])
         else:
             output = Variable(torch.zeros(y.data.shape))
         output.masked_scatter_(mask, y0)
@@ -196,7 +199,7 @@ class RealNVPtemplate(torch.nn.Module):
         if ifLogjac:
             if self.ifCuda:
                 self._generateLogjac = Variable(
-                    torch.zeros(y.data.shape[0])).cuda()
+                    torch.zeros(y.data.shape[0])).cuda(self.cudaConf[0],self.cudaConf[1])
             else:
                 self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
@@ -222,7 +225,7 @@ class RealNVPtemplate(torch.nn.Module):
         if ifLogjac:
             if self.ifCuda:
                 self._inferenceLogjac = Variable(
-                    torch.zeros(y.data.shape[0])).cuda()
+                    torch.zeros(y.data.shape[0])).cuda(self.cudaConf[0],self.cudaConf[1])
             else:
                 self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         for i in list(range(self.NumLayers))[::-1]:
@@ -295,7 +298,7 @@ class RealNVPtemplate(torch.nn.Module):
         if ifLogjac:
             if self.ifCuda:
                 self._inferenceLogjac = Variable(
-                    torch.zeros(y.data.shape[0])).cuda()
+                    torch.zeros(y.data.shape[0])).cuda(self.cudaConf[0],self.cudaConf[1])
             else:
                 self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         size = [-1] + self.shapeList
@@ -305,7 +308,7 @@ class RealNVPtemplate(torch.nn.Module):
         y1 = torch.masked_select(y, mask_).view(size)
         y0, y1 = self._inferenceMeta(y0, y1, ifLogjac)
         if self.ifCuda:
-            output = Variable(torch.zeros(y.data.shape)).cuda()
+            output = Variable(torch.zeros(y.data.shape)).cuda(self.cudaConf[0],self.cudaConf[1])
         else:
             output = Variable(torch.zeros(y.data.shape))
         output.masked_scatter_(mask, y0)
@@ -329,7 +332,7 @@ class RealNVPtemplate(torch.nn.Module):
         if ifLogjac:
             if self.ifCuda:
                 self._inferenceLogjac = Variable(
-                    torch.zeros(y.data.shape[0])).cuda()
+                    torch.zeros(y.data.shape[0])).cuda(self.cudaConf[0],self.cudaConf[1])
             else:
                 self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
