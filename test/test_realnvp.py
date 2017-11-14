@@ -2,6 +2,9 @@ import os
 import sys
 sys.path.append(os.getcwd())
 
+import copy
+from profilehooks import profile
+
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
@@ -229,6 +232,20 @@ def test_checkerboard_cuda_cudaNot0():
 
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
+@profile
+def copyTest():
+    gaussian3d = Gaussian([2,4,4])
+    x3d = gaussian3d(3)
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
+    tmp = realNVP3d.sList
+    for i in range(100):
+        tmp2 = copy.deepcopy(tmp)
+
 if __name__ == "__main__":
-    test_checkerboard_cuda_cudaNot0()
+    #test_checkerboard_cuda_cudaNot0()
+    copyTest()
 
