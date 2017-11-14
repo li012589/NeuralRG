@@ -211,6 +211,24 @@ def test_sample_cuda():
 
     print(realNVP3d.logProbability(z3d,2))
 
+@skipIfNoCuda
+def test_checkerboard_cuda_cudaNot0():
+    gaussian3d = Gaussian([2,4,4])
+    x3d = gaussian3d(3).cuda(2)
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda(2)
+    mask3d = realNVP3d.createMask("checkerboard")
+
+    z3d = realNVP3d.generate(x3d,2)
+    zp3d = realNVP3d.inference(z3d,2)
+
+    print(realNVP3d.logProbability(z3d,2))
+
+    assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
+
 if __name__ == "__main__":
-    test_3d()
+    test_checkerboard_cuda_cudaNot0()
 
