@@ -1,89 +1,90 @@
 import os
 import sys
-import h5py
-import argparse
-import subprocess
-from train import MCMC
-from torch.autograd import Variable
-import numpy as np
+sys.path.append(os.getcwd())
+import torch 
+torch.manual_seed(42)
+from torch.autograd import Variable 
+import numpy as np 
+import matplotlib.pyplot as plt 
 
-from model import Gaussian, MLP, RealNVP
+from model import Gaussian,MLP,RealNVP
 from train.objectives import Ring2D, Ring5, Wave
 
-parser = argparse.ArgumentParser(description='')
-parser.add_argument("-target", default='ring2d',
-                    help="target distribution")
-parser.add_argument("-collectdata", action='store_true',
-                    help="collect data")
-parser.add_argument("-folder", default='data/',
-                    help="where to store results")
-parser.add_argument("-savename", default=None, help="")
+def inference(model, target):
 
-group = parser.add_argument_group('mc parameters')
-group.add_argument("-Batchsize", type=int, default=16, help="")
-group.add_argument("-Nsamples", type=int, default=1000, help="")
-group.add_argument("-Nskips", type=int, default=1, help="")
+    #after training, generate some data from the network
+    Ntest = 1000 # test samples 
+    z = model.prior(Ntest)#Variable(torch.randn(self.batchsize, self.nvars), volatile=True) # prior 
+    x = model.generate(z)
 
-group = parser.add_argument_group('network parameters')
-group.add_argument("-modelname", default=None, help="")
-group.add_argument("-Nlayers", type=int, default=8, help="")
-group.add_argument("-Hs", type=int, default=10, help="")
-group.add_argument("-Ht", type=int, default=10, help="")
-args = parser.parse_args()
+    x = x.data.numpy()
 
-if args.target == 'ring2d':
-    target = Ring2D()
-elif args.target == 'ring5':
-    target = Ring5()
-elif args.target == 'wave':
-    target = Wave()
-elif args.target == 'phi4':
-    target = Phi4(3, 2, 1.0, 1.0)
-else:
-    print('what target ?', args.target)
-    sys.exit(1)
+    plt.figure()
+    plt.scatter(x[:,0], x[:,1], alpha=0.5, label='$x$')
 
-gaussian = Gaussian([target.nvars])
+    plt.xlim([-5, 5])
+    plt.ylim([-5, 5])
 
-if args.modelname is None:
-    model = gaussian
-    print("using gaussian")
-else:
-    sList = [MLP(target.nvars // 2, args.Hs) for _ in range(args.Nlayers)]
-    tList = [MLP(target.nvars // 2, args.Ht) for _ in range(args.Nlayers)]
+    plt.xlabel('$x_1$')
+    plt.ylabel('$x_2$')
+    plt.legend() 
 
-    model = RealNVP([target.nvars], sList, tList, gaussian, name=None)
-    try:
-        model.loadModel(torch.load(args.modelname))
-        print('#load model', args.modelname)
-    except FileNotFoundError:
-        print('model file not found:', args.modelname)
-    print("using model", args.modelname)
-mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
-mcmc.run(0, args.Nsamples, args.Nskips)
-cmd = ['mkdir', '-p', args.folder]
-subprocess.check_call(cmd)
-if args.savename is None:
-    key = args.folder \
-          + args.target \
-          + '_Nl' + str(args.Nlayers) \
-          + '_Hs' + str(args.Hs) \
-          + '_Ht' + str(args.Ht)
-else:
-    key = args.savename
-h5filename = key + '_mc.h5'
-print("save at: " + h5filename)
-h5 = h5py.File(h5filename, 'w')
-params = h5.create_group('params')
-params.create_dataset("Nvars", data=target.nvars)
-params.create_dataset("Nlayers", data=args.Nlayers)
-params.create_dataset("Hs", data=args.Hs)
-params.create_dataset("Ht", data=args.Ht)
-params.create_dataset("target", data=args.target)
-params.create_dataset("model", data=model.name)
-results = h5.create_group('results')
-results.create_dataset("obs", data=np.array(mcmc.measurements))
-results.create_dataset("accratio", data=mcmc.accratio)
-if args.collectdata:
-    results.create_dataset("samples", data=mcmc.data)
-h5.close()
+    ###########################
+    #plot contour of the target potential 
+    grid = np.arange(-5, 5, 0.01)
+    X, Y = np.meshgrid(grid, grid)
+    Z = np.zeros_like(X)
+
+    x = np.array( [[X[i,j], Y[i, j]] for j in range(Z.shape[1]) for i in range(Z.shape[0])])
+    logp = target(torch.from_numpy(x))
+    counter = 0
+    for i in range(Z.shape[0]):
+        for j in range(Z.shape[1]):
+            Z[j, i] = np.exp ( logp[counter] ) 
+            counter += 1
+    plt.contour(X, Y, Z)
+    ###########################
+
+    plt.show()
+
+if __name__=="__main__":
+    import sys, os 
+    import argparse
+    import re 
+    import h5py 
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument("-modelname", default=None, help="model name")
+    args = parser.parse_args()
+        
+    h5filename = re.search('(.*)_[su]l',args.modelname).group(1)
+    h5filename += '_mc.h5'
+
+    h5 = h5py.File(h5filename,'r')
+    Nvars = int(h5['params']['Nvars'][()])
+    Nlayers = int(h5['params']['Nlayers'][()])
+    Hs = int(h5['params']['Hs'][()])
+    Ht = int(h5['params']['Ht'][()])
+    targetname = h5['params']['target'][()]
+    h5.close() 
+
+    print (Nvars, Nlayers, Hs, Ht)
+
+    sList = [MLP(Nvars//2, Hs) for _ in range(Nlayers)] 
+    tList = [MLP(Nvars//2, Ht) for _ in range(Nlayers)] 
+
+    gaussian = Gaussian([Nvars])
+    
+    model = RealNVP([Nvars], sList, tList, gaussian, name=args.modelname)
+    model.loadModel(torch.load(model.name))
+
+    if targetname == 'ring2d':
+        target = Ring2D()
+    elif targetname == 'ring5':
+        target = Ring5()
+    elif targetname == 'wave':
+        target = Wave()
+    else:
+        print ('what target ?', targetname)
+        sys.exit(1) 
+ 
+    inference(model, target) 
