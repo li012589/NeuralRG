@@ -4,6 +4,7 @@ import h5py
 import argparse
 import subprocess
 from train import MCMC
+import torch
 from torch.autograd import Variable
 import numpy as np
 
