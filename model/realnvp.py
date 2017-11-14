@@ -215,7 +215,7 @@ class RealNVP(RealNVPtemplate):
             self.mask_ = self.mask_.cuda()
         return self.mask
 
-    def cuda(self):
+    def cuda(self,*args,**kwargs):
         """
 
         This method move everything in RealNVP to GPU.
@@ -223,13 +223,13 @@ class RealNVP(RealNVPtemplate):
             cudaModel (nn.Module.cuda): the instance in GPU.
 
         """
-        cudaModel = super(RealNVP, self).cuda()
+        cudaModel = super(RealNVP, self).cuda(*args,**kwargs)
         if cudaModel.mask is not None:
             cudaModel.mask = self.mask.cuda()
             cudaModel.mask_ = self.mask_.cuda()
         return cudaModel
 
-    def cpu(self):
+    def cpu(self,*args,**kwargs):
         """
 
         This method move everything in RealNVP to CPU.
@@ -237,7 +237,7 @@ class RealNVP(RealNVPtemplate):
             cudaModel (nn.Module): the instance in CPU.
 
         """
-        cpuModel = super(RealNVP, self).cpu()
+        cpuModel = super(RealNVP, self).cpu(*args,**kwargs)
         if cpuModel.mask is not None:
             cpuModel.mask = self.mask.cpu()
             cpuModel_.mask = self.mask_.cpu()

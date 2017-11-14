@@ -62,7 +62,7 @@ class RealNVPtemplate(torch.nn.Module):
         cudaModel.ifCuda = True
         return cudaModel
 
-    def cpu(self):
+    def cpu(self,*args,**kwargs):
         """
 
         This method move everything in RealNVPtemplate to CPU.
@@ -70,7 +70,7 @@ class RealNVPtemplate(torch.nn.Module):
             cudaModel (nn.Module): the instance in CPU.
 
         """
-        cpuModel = super(RealNVPtemplate, self).cpu()
+        cpuModel = super(RealNVPtemplate, self).cpu(*args,**kwargs)
         cpuModel.ifCuda = False
         return cpuModel
 
