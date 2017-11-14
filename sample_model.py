@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.append(os.getcwd())
 import torch 
 torch.manual_seed(42)
 from torch.autograd import Variable 

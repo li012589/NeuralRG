@@ -6,9 +6,9 @@
 
 ## Main scheme
 
-`train/metropolis.py` will generate data for training,
+`sample_model.py` will generate data for training,
 
-`train/learn_model.py` will learn a RealNVP model, which can be used to speed up metropolis in return. 
+`learn_model.py` will learn a RealNVP model, which can be used to speed up metropolis in return. 
 
 In the bootstrap training, these two scripts exchange **data** and **model** and improve iteratively.   
 
@@ -16,13 +16,13 @@ In the bootstrap training, these two scripts exchange **data** and **model** and
 
 First, generate some training samples using metropolis
 
-```python
-python train/metropolis.py -target ring2d -collectdata
+```bash
+python ./MC_sample.py -target ring2d -collectdata
 ```
 
 It will write results to `data/ring2d_Nl8_Hs10_Ht10_mc.h5`. `-collectdata` tells it to collect training data.  To see its content, do 
 
-```python
+```bash
 h5ls -r data/ring2d_Nl8_Hs10_Ht10_mc.h5
 ```
 
@@ -31,8 +31,10 @@ in which `/results/samples         Dataset {1000, 16, 3}` stores the training da
 Then, you can learn the probability either in the supervised or unsupervised way. The supervised approach fits `model.logProbability(x)` to data. While the unsupervised way performs maximum log-likelihood estimation on the sample data.
 
 ```python
-python train/learn_model.py -target ring2d -supervised -traindata data/ring2d_Nl8_Hs10_Ht10_mc.h5 
-python train/learn_model.py -target ring2d -unsupervised -traindata data/ring2d_Nl8_Hs10_Ht10_mc.h5 
+# supervised
+python ./learn_model.py -target ring2d -supervised -traindata data/ring2d_Nl8_Hs10_Ht10_mc.h5 
+# unsupervised
+python ./learn_model.py -target ring2d -unsupervised -traindata data/ring2d_Nl8_Hs10_Ht10_mc.h5 
 ```
 
 After learning, it will write results and model to disk, e.g. 
@@ -49,26 +51,26 @@ The `.h5` file contains the results of the model, while the folder contains the 
 
 To inspect the hdf5 data, do 
 
-```python
+```bash
 h5ls -r data/ring2d_Nl8_Hs10_Ht10_sl.h5
 ```
 
  To make plots, do 
 
-```python
+```bash
 python analysis/load_data.py -f data/ring2d_Nl8_Hs10_Ht10_sl.h5 -s
 ```
 
 Next, one can use the real NVP net to generate new samples
 
-```python
-python train/sample_model.py -modelname data/ring2d_Nl8_Hs10_Ht10_sl/epoch490
+```bash
+python ./sample_model.py -modelname data/ring2d_Nl8_Hs10_Ht10_sl/epoch490
 ```
 
 Or, use the model to make MC update proposal
 
-```python
-python train/metropolis.py -target ring2d -modelname data/ring2d_Nl8_Hs10_Ht10_sl/epoch490 
+```bash
+python ./MC_sample.py -target ring2d -modelname data/ring2d_Nl8_Hs10_Ht10_sl/epoch490 
 ```
 
 By providing `-collectdata` to the command, one will get new train data. Which can be used to improve the model. 
