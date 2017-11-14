@@ -34,7 +34,7 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised, traindata, modelname, ifCuda = Fal
     sList = [MLP(Nvars//2, Hs) for i in range(Nlayers)]
     tList = [MLP(Nvars//2, Ht) for i in range(Nlayers)]
 
-    model = RealNVP([Nvars], sList, tList, gaussian, maskTpye="channel",name = modelname)
+    model = RealNVP([Nvars], sList, tList, gaussian, maskType="channel",name = modelname)
     if ifCuda:
         model = model.cuda()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.001)
@@ -101,7 +101,7 @@ if __name__=="__main__":
     cmd = ['mkdir', '-p', modelfolder]
     subprocess.check_call(cmd)
 
-    Nvars, x_data, model, LOSS= fit(args.Nlayers
+    Nvars, x_data, model, LOSS= fit(args.Nlayers,
                                     args.Hs,
                                     args.Ht,
                                     args.Nepochs,

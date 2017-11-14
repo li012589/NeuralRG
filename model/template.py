@@ -44,6 +44,7 @@ class RealNVPtemplate(torch.nn.Module):
         self.shapeList = shapeList
         self.ifCuda = False
         self.cudaConf = ()
+        self.pointer = self.logProbability
         if name is None:
             self.name = "realNVP_" + \
                 str(self.NumLayers) + "inner_" + \
@@ -417,6 +418,9 @@ class RealNVPtemplate(torch.nn.Module):
             self.sList[i].load_state_dict(saveDic["__" + str(i) + 'sLayer'])
             self.tList[i].load_state_dict(saveDic["__" + str(i) + 'tLayer'])
         return saveDic
+
+    def forward(self,*args,**kwargs):
+        return self.pointer(*args,**kwargs)
 
 
 class PriorTemplate():

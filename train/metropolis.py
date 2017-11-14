@@ -34,7 +34,7 @@ class MCMC:
         self.target = target
         self.prior = prior
         self.collectdata = collectdata
-        self.x = self.prior(self.batchsize).data
+        self.x = self.prior.sample(self.batchsize).data
 
         self.measurements = []
 
@@ -81,7 +81,7 @@ class MCMC:
         """
         This method run a step of sampling.
         """
-        x = self.prior(self.batchsize)
+        x = self.prior.sample(self.batchsize)
         accept = self._accept(
             self.target(x.data) - self.prior.logProbability(x).data,
             self.target(self.x) - self.prior.logProbability(Variable(self.x, volatile=True)).data)

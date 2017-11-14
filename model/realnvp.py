@@ -28,7 +28,7 @@ class Gaussian(PriorTemplate):
         super(Gaussian, self).__init__(name)
         self.shapeList = shapeList
 
-    def __call__(self, batchSize, volatile=False):
+    def sample(self, batchSize, volatile=False):
         """
 
         This method gives variables sampled from prior distribution.
@@ -41,6 +41,9 @@ class Gaussian(PriorTemplate):
         """
         size = [batchSize] + self.shapeList
         return Variable(torch.randn(size), volatile=volatile)
+
+    def __call__(self,batchSize,volatile = False):
+        return self.sample(batchSize,volatile)
 
     def logProbability(self, z):
         """
@@ -334,18 +337,6 @@ class RealNVP(RealNVPtemplate):
             return self.generate(z, sliceDim)
         else:
             return self.inference(z, sliceDim)
-
-    def __call__(self, batchSize, sliceDim=0, useGenerate=True):
-        """
-        This method is a wrapped sample method
-        Args:
-            batchSize (int): size of sampled batch.
-            sliceDim (int): in which dimension should mask be used on y.
-        return:
-            samples: (torch.autograd.Variable): output Variable.
-        """
-        return self.sample(batchSize, sliceDim, useGenerate)
-
 
 if __name__ == "__main__":
 
