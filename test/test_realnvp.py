@@ -247,6 +247,23 @@ def test_copy():
 
     assert_array_almost_equal(x3d.data.numpy(),z3dcp.data.numpy())
 
+@skipIfNoCuda
+def test_copy_cuda():
+    gaussian3d = Gaussian([2,4,4])
+    x3d = gaussian3d(3)
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
+    z3d = realNVP3d.generate(x3d,2)
+
+    realNVP3dcp = copy.copy(realNVP3d).cuda()
+    x3d = x3d,cuda()
+    z3dcp = realNVP3dcp.generate(x3d,2)
+
+    assert_array_almost_equal(x3d.data.numpy(),z3dcp.cpu().data.numpy())
+
 @pytest.mark.skip(reason="test of copy speed")
 @profile
 def copyTest_list():
