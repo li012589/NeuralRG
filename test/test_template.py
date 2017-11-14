@@ -270,11 +270,26 @@ def test_tempalte_contractionCNN_cuda():
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
     assert_array_almost_equal(realNVP3d._generateLogjac.cpu().data.numpy(),-realNVP3d._inferenceLogjac.cpu().data.numpy())
 
+@skipIfNoCuda
+def test_slice_cudaNo0():
+    gaussian3d = Gaussian([2,4,4])
+    x = gaussian3d(3).cuda(2)
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    sList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
+    tList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
+    realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
+    realNVP = realNVP.cuda(2)
+    z = realNVP._generateWithSlice(x,0,True)
+    print(realNVP._logProbabilityWithSlice(z,0))
+    zz = realNVP._inferenceWithSlice(z,0,True)
+    assert_array_almost_equal(x.cpu().data.numpy(),zz.cpu().data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.cpu().data.numpy(),-realNVP._inferenceLogjac.cpu().data.numpy())
+
 if __name__ == "__main__":
     #test_tempalte_contraction_mlp()
     #test_tempalte_invertibleMLP()
     #test_tempalte_invertible()
     #test_template_slice_function()
     #test_template_contraction_function()
-    test_slice_cuda()
+    test_slice_cudaNo0()
 
