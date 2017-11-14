@@ -10,7 +10,7 @@ torch.manual_seed(42)
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
-from model import Gaussian,MLP,RealNVP,CNN
+from model import Gaussian,MLP,RealNVP,CNN,parallelize
 
 from subprocess import Popen, PIPE
 import pytest
@@ -21,9 +21,12 @@ try:
 except OSError:
     noCuda = 1
 
+skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "NO cuda insatllation, found through nvidia-smi")xs
+
+@skipIfNoCuda
 def test_parallel():
     gaussian3d = Gaussian([2,4,4])
-    x3d = gaussian3d(3)
+    x3d = gaussian3d(1000)
     #z3dp = z3d[:,0,:,:].view(10,-1,4,4)
     #print(z3dp)
 
@@ -45,6 +48,7 @@ def test_parallel():
 
     print("3d logProbability")
     print(realNVP3d.logProbability(z3d,2))
+    a = parallelize(realNVP3d,[0,1,2],"logProbability",x3d,)
 
 if __name__ == "__main__":
     test_parallel()

@@ -1,6 +1,7 @@
 import threading
 
-def parallelize(model,deviceID,inputs,dims = 0):
+def parallelize(model,deviceID,fnName,inputs,args):
+
     models = []
     for device in deviceID:
         tmp = model.cuda(device)
@@ -8,16 +9,33 @@ def parallelize(model,deviceID,inputs,dims = 0):
 
     nGroup = len(deviceID)
     nBatch = len(device)//nGroup
-    nLast = nGroup - nBatch*nGroup
+    #nLast = nGroup - nBatch*nGroup
 
-    group = []
+    group = {}
     for i in range(nGroup):
         end = (i+1)*nBatch
         if i == nGroup-1:
-            group.append(inputs[end-nBatch,:])
+            group[i]=(inputs[end-nBatch,-1].cuda(deviceID[i]))
         else:
-            group.append(inputs[end-nBatch,end])
+            group[i]=(inputs[end-nBatch,end].cuda(deviceID[i]))
 
-    result = []
-    def _work(model,inputs):
-        pass
+    lock = threading.Lock()
+
+    results = {}
+    def _work(i,model,inputs):
+        result = getattr(model,fnName)(inputs,*args)
+        with lock:
+            results[i] = result
+
+    threads = [threading.Thread(target=_work,ags = (i,models[i],group[i])) for i in range(nGroup)]
+
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    output = []
+    for i in range(nGroup):
+        output.append(results[i].cuda(deviceID[0]))
+
+    return output
