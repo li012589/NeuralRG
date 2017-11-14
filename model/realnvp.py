@@ -211,8 +211,8 @@ class RealNVP(RealNVPtemplate):
             self.mask = self.mask.byte()
             self.mask_ = self.mask_.byte()
         if self.ifCuda:
-            self.mask = self.mask.cuda()
-            self.mask_ = self.mask_.cuda()
+            self.mask = self.mask.cuda(self.cudaConf[0],self.cudaConf[1])
+            self.mask_ = self.mask_.cuda(self.cudaConf[0],self.cudaConf[1])
         return self.mask
 
     def cuda(self,device=None,async=False):
