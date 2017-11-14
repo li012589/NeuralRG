@@ -8,7 +8,7 @@ def parallelize(model,deviceID,fnName,inputs,args):
         models.append(tmp)
 
     nGroup = len(deviceID)
-    nBatch = len(device)//nGroup
+    nBatch = len(inputs)//nGroup
     #nLast = nGroup - nBatch*nGroup
 
     group = {}
