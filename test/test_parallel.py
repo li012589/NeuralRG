@@ -15,7 +15,7 @@ from model import Gaussian,MLP,RealNVP,CNN,parallelize
 from subprocess import Popen, PIPE
 import pytest
 
-noCuda = 0
+noCuda = 1
 try:
     p  = Popen(["nvidia-smi","--query-gpu=index,utilization.gpu,memory.total,memory.used,memory.free,driver_version,name,gpu_serial,display_active,display_mode", "--format=csv,noheader,nounits"], stdout=PIPE)
 except OSError:
