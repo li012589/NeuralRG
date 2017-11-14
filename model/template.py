@@ -50,7 +50,7 @@ class RealNVPtemplate(torch.nn.Module):
         else:
             self.name = name
 
-    def cuda(self):
+    def cuda(self,*args,**kwargs):
         """
 
         This method move everything in RealNVPtemplate to GPU.
@@ -58,7 +58,7 @@ class RealNVPtemplate(torch.nn.Module):
             cudaModel (nn.Module.cuda): the instance in GPU.
 
         """
-        cudaModel = super(RealNVPtemplate, self).cuda()
+        cudaModel = super(RealNVPtemplate, self).cuda(*args,**kwargs)
         cudaModel.ifCuda = True
         return cudaModel
 
