@@ -48,7 +48,7 @@ def test_parallel():
 
     #print("3d logProbability")
     b = (realNVP3d.logProbability(z3d,2))
-    a = parallelize(realNVP3d,[0,1,2],"logProbability",x3d,(2))
+    a = parallelize(realNVP3d,[0,1,2],"logProbability",x3d,(2,))
 
 if __name__ == "__main__":
     test_parallel()

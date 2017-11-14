@@ -15,9 +15,9 @@ def parallelize(model,deviceID,fnName,inputs,args):
     for i in range(nGroup):
         end = (i+1)*nBatch
         if i == nGroup-1:
-            group[i]=(inputs[end-nBatch,-1].cuda(deviceID[i]))
+            group[i]=(inputs[end-nBatch:-1].cuda(deviceID[i]))
         else:
-            group[i]=(inputs[end-nBatch,end].cuda(deviceID[i]))
+            group[i]=(inputs[end-nBatch:end].cuda(deviceID[i]))
 
     lock = threading.Lock()
 
@@ -27,7 +27,7 @@ def parallelize(model,deviceID,fnName,inputs,args):
         with lock:
             results[i] = result
 
-    threads = [threading.Thread(target=_work,ags = (i,models[i],group[i])) for i in range(nGroup)]
+    threads = [threading.Thread(target=_work,args = (i,models[i],group[i])) for i in range(nGroup)]
 
     for thread in threads:
         thread.start()
