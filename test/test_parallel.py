@@ -21,7 +21,7 @@ try:
 except OSError:
     noCuda = 1
 
-skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "NO cuda insatllation, found through nvidia-smi")xs
+skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "NO cuda insatllation, found through nvidia-smi")
 
 @skipIfNoCuda
 def test_parallel():
@@ -39,16 +39,16 @@ def test_parallel():
     #mask3d = realNVP3d.createMask("checkerboard")
 
     z3d = realNVP3d.generate(x3d,2)
-    print("3d forward:")
+    #print("3d forward:")
     #print(z3d)
 
     zp3d = realNVP3d.inference(z3d,2)
-    print("Backward")
+    #print("Backward")
     #print(zp3d)
 
-    print("3d logProbability")
-    print(realNVP3d.logProbability(z3d,2))
-    a = parallelize(realNVP3d,[0,1,2],"logProbability",x3d,)
+    #print("3d logProbability")
+    b = (realNVP3d.logProbability(z3d,2))
+    a = parallelize(realNVP3d,[0,1,2],"logProbability",x3d,(2))
 
 if __name__ == "__main__":
     test_parallel()
