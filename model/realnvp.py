@@ -182,12 +182,6 @@ class RealNVP(RealNVPtemplate):
         self.maskType = maskType
         self.createMask(maskType)
 
-    def __copy__(self):
-        tcpyList = [copy.deepcopy(t) for t in self.tList]
-        scpyList = [copy.deepcopy(s) for s in self.sList]
-        cpy = RealNVP(self.shapeList,scpyList,tcpyList,self.prior,self.maskType,self.name)
-        return cpy
-
     def createMask(self, maskType="channel", ifByte=1):
         """
 

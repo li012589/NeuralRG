@@ -50,6 +50,8 @@ def test_parallel():
     b = (realNVP3d.logProbability(z3d,2))
     a = parallelize(realNVP3d,[0,1,2],"logProbability",x3d,(2,))
 
+    print(a)
+
     assert_array_almost_equal(b.data.numpy(),a.cpu().data.numpy())
 
 if __name__ == "__main__":
