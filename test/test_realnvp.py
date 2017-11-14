@@ -24,7 +24,17 @@ try:
 except OSError:
     noCuda = 1
 
-skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "NO cuda insatllation, found through nvidia-smi")
+maxGPU = 0
+if noCuda == 0:
+    try:
+        p = os.popen('nvidia-smi --query-gpu=index --format=csv,noheader,nounits')
+        i = p.read().split('\n')
+        maxGPU = int(i[-2])+1
+    except OSError:
+        noCuda = 1
+
+skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "No cuda insatllation, found through nvidia-smi")
+skipIfOnlyOneGPU = pytest.mark.skipif(maxGPU < 2,reason = "Only one gpu")
 
 def test_invertible():
 
@@ -214,15 +224,15 @@ def test_sample_cuda():
 
     print(realNVP3d.logProbability(z3d,2))
 
-@skipIfNoCuda
+@skipIfOnlyOneGPU
 def test_checkerboard_cuda_cudaNot0():
     gaussian3d = Gaussian([2,4,4])
-    x3d = gaussian3d(3).cuda(2)
+    x3d = gaussian3d(3).cuda(maxGPU//2)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
     sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
     tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
 
-    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda(2)
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda(maxGPU//2)
     mask3d = realNVP3d.createMask("checkerboard")
 
     z3d = realNVP3d.generate(x3d,2)
@@ -276,7 +286,7 @@ def copyTest_list():
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     tmp = realNVP3d.sList
     tmpp = realNVP3d.tList
-    for i in range(4):
+    for i in range(maxGPU):
         if noCuda == 0:
             tmp2 = copy.deepcopy(tmp).cuda(i)
             tmpp2 = copy.deepcopy(tmpp).cuda(i)
@@ -294,7 +304,7 @@ def copyTest_model():
     tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    for i in range(4):
+    for i in range(maxGPU):
         if noCuda == 0:
             tmp = copy.copy(realNVP3d).cuda(i)
         else:
