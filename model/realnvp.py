@@ -1,3 +1,5 @@
+import copy
+
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
@@ -177,7 +179,16 @@ class RealNVP(RealNVPtemplate):
         """
         super(RealNVP, self).__init__(
             shapeList, sList, tList, prior, name=name)
+        self.maskType = maskType
         self.createMask(maskType)
+
+    def __copy__(self):
+        tcpyList = copy.deepcopy(self.tList)
+        scpyList = copy.deepcopy(self.sList)
+        cpy = RealNVP(self.shapeList,[],[],self.prior,self.maskType,self.name)
+        cpy.tList = tcpyList
+        cpy.sList = scpyList
+        return cpy
 
     def createMask(self, maskType="channel", ifByte=1):
         """
@@ -190,6 +201,7 @@ class RealNVP(RealNVPtemplate):
             mask (torch.Tensor): mask to divide x into y0 and y1.
 
         """
+        self.maskType = maskType
         size = self.shapeList.copy()
         if maskType == "channel":
             size[0] = size[0] // 2
