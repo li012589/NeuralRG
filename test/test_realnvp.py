@@ -232,6 +232,7 @@ def test_checkerboard_cuda_cudaNot0():
 
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
+@pytest.mark.skip(reason="test of copy speed")
 @profile
 def copyTest():
     gaussian3d = Gaussian([2,4,4])
@@ -242,8 +243,14 @@ def copyTest():
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     tmp = realNVP3d.sList
-    for i in range(100):
-        tmp2 = copy.deepcopy(tmp)
+    tmpp = realNVP3d.tList
+    for i in range(4):
+        if noCuda == 0:
+            tmp2 = copy.deepcopy(tmp).cuda(i)
+            tmpp2 = copy.deepcopy(tmpp).cuda(i)
+        else:
+            tmp2 = copy.deepcopy(tmp)
+            tmpp2 = copy.deepcopy(tmpp)
 
 if __name__ == "__main__":
     #test_checkerboard_cuda_cudaNot0()
