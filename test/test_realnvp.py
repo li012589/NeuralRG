@@ -243,9 +243,24 @@ def test_checkerboard_cuda_cudaNot0():
 
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
+@profile
+@pytest.mark.skip(reason = "speed test")
+def testCopyspeed():
+    for _ in range(100):
+        t = torch.randn([1000,1000])
+        a = Variable(t)
+
+@profile
+@pytest.mark.skip(reason = "speed test")
+def testCopyspeedCuda():
+    for i in range(100):
+        t = torch.randn([3000,3000]).cuda()
+        t = torch.randn([3000,3000]).pin_memory().cuda()
+
 if __name__ == "__main__":
-    test_checkerboardMask()
+    #test_checkerboardMask()
     #test_checkerboard_cuda_cudaNot0()
     #copyTest()
     #copyTest_model()
+    testCopyspeed()
 
