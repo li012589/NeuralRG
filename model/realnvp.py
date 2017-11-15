@@ -216,8 +216,8 @@ class RealNVP(RealNVPtemplate):
             self.mask = self.mask.byte()
             self.mask_ = self.mask_.byte()
         if self.ifCuda:
-            self.mask = self.mask.cuda(self.cudaConf[0],self.cudaConf[1])
-            self.mask_ = self.mask_.cuda(self.cudaConf[0],self.cudaConf[1])
+            self.mask = self.mask.pin_memory().cuda(self.cudaConf[0],self.cudaConf[1])
+            self.mask_ = self.mask_.pin_memory().cuda(self.cudaConf[0],self.cudaConf[1])
         return self.mask
 
     def cuda(self,device=None,async=False):
@@ -230,8 +230,8 @@ class RealNVP(RealNVPtemplate):
         """
         cudaModel = super(RealNVP, self).cuda(device,async)
         if cudaModel.mask is not None:
-            cudaModel.mask = self.mask.cuda(device,async)
-            cudaModel.mask_ = self.mask_.cuda(device,async)
+            cudaModel.mask = self.mask.pin_memory().cuda(device,async)
+            cudaModel.mask_ = self.mask_.pin_memory().cuda(device,async)
         return cudaModel
 
     def cpu(self):
@@ -330,7 +330,7 @@ class RealNVP(RealNVPtemplate):
             samples: (torch.autograd.Variable): output Variable.
         """
         if self.ifCuda:
-            z = self.prior(batchSize).cuda(self.cudaConf[0],self.cudaConf[1])
+            z = self.prior(batchSize).pin_memory().cuda(self.cudaConf[0],self.cudaConf[1])
         else:
             z = self.prior(batchSize)
         if useGenerate:
