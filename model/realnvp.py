@@ -204,52 +204,21 @@ class RealNVP(RealNVPtemplate):
             maskOne = torch.ones(size)
             maskZero = torch.zeros(size)
             mask = torch.cat([maskOne, maskZero], 0)
-            self.mask = (mask)
-            self.mask_ = (1 - mask)
         elif maskType == "checkerboard":
             assert (size[1] % 2 == 0)
             assert (size[2] % 2 == 0)
             unit = torch.Tensor([[1, 0], [0, 1]])
-            self.mask = (unit.repeat(
+            mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
-            self.mask_ = (1 - self.mask)
         else:
             raise ValueError("maskType not known.")
         if ifByte:
-            self.mask = self.mask.byte()
-            self.mask_ = self.mask_.byte()
+            mask = mask.byte()
         if self.ifCuda:
-            self.mask = self.mask.pin_memory().cuda(self.cudaConf[0],self.cudaConf[1])
-            self.mask_ = self.mask_.pin_memory().cuda(self.cudaConf[0],self.cudaConf[1])
-        return self.mask
-
-    def cuda(self,device=None,async=False):
-        """
-
-        This method move everything in RealNVP to GPU.
-        Return:
-            cudaModel (nn.Module.cuda): the instance in GPU.
-
-        """
-        cudaModel = super(RealNVP, self).cuda(device,async)
-        if cudaModel.mask is not None:
-            cudaModel.mask = self.mask.pin_memory().cuda(device,async)
-            cudaModel.mask_ = self.mask_.pin_memory().cuda(device,async)
-        return cudaModel
-
-    def cpu(self):
-        """
-
-        This method move everything in RealNVP to CPU.
-        Return:
-            cudaModel (nn.Module): the instance in CPU.
-
-        """
-        cpuModel = super(RealNVP, self).cpu()
-        if cpuModel.mask is not None:
-            cpuModel.mask = self.mask.cpu()
-            cpuModel_.mask = self.mask_.cpu()
-        return cpuModel
+            mask = mask.pin_memory().cuda(self.cudaConf[0],self.cudaConf[1])
+        self.register_buffer("mask",mask)
+        self.register_buffer("mask_",1-mask)
+        return mask
 
     def generate(self, z, sliceDim=0):
         """
@@ -317,8 +286,8 @@ class RealNVP(RealNVPtemplate):
 
         """
         self._loadModel(saveDic)
-        self.mask = saveDic["mask"]
-        self.mask_ = saveDic["mask_"]
+        self.register_buffer("mask",saveDic["mask"])
+        self.register_buffer("mask_",saveDic["mask_"])
         self.shapeList = saveDic["shapeList"]
         return saveDic
 
