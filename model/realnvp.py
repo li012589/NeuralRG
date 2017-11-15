@@ -45,8 +45,8 @@ class Gaussian(PriorTemplate):
         else:
             return Variable(torch.randn(size), volatile=volatile)
 
-    def __call__(self,batchSize,volatile = False):
-        return self.sample(batchSize,volatile)
+    def __call__(self,*args,**kwargs):
+        return self.sample(*args,**kwargs)
 
     def logProbability(self, z):
         """
