@@ -309,7 +309,7 @@ def test_parallel():
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     z = realNVP(x)
     print(z)
-    net = torch.nn.DataParallel(realNVP,device_ids=[2,3])
+    net = torch.nn.DataParallel(realNVP.cuda(1),device_ids=[1,2,3])
     output = net(x.cuda())
     print(output)
 
