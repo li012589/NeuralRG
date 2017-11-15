@@ -91,6 +91,8 @@ class RealNVPtemplate(torch.nn.Module):
             y (torch.autograd.Variable): output Variable.
 
         """
+        mask = Variable(mask)
+        mask_ = Variable(mask_)
         if ifLogjac:
             if self.ifCuda:
                 self._generateLogjac = Variable(
@@ -164,6 +166,8 @@ class RealNVPtemplate(torch.nn.Module):
             output (torch.autograd.Variable): output Variable.
 
         """
+        mask = Variable(mask)
+        mask_ = Variable(mask_)
         if ifLogjac:
             if self.ifCuda:
                 self._generateLogjac = Variable(
@@ -223,6 +227,8 @@ class RealNVPtemplate(torch.nn.Module):
             mask (torch.Tensor): mask to divide y into y0 and y1.
 
         """
+        mask = Variable(mask)
+        mask_ = Variable(mask_)
         if ifLogjac:
             if self.ifCuda:
                 self._inferenceLogjac = Variable(
@@ -296,6 +302,8 @@ class RealNVPtemplate(torch.nn.Module):
             output (torch.autograd.Variable): output Variable.
 
         """
+        mask = Variable(mask)
+        mask_ = Variable(mask_)
         if ifLogjac:
             if self.ifCuda:
                 self._inferenceLogjac = Variable(

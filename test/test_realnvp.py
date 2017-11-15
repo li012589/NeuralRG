@@ -47,7 +47,7 @@ def test_invertible():
 
     z = realNVP.prior(10)
     #mask = realNVP.createMask()
-    assert realNVP.mask.data.shape[0] == 2
+    assert realNVP.mask.shape[0] == 2
 
     print("original")
     #print(x)
@@ -95,9 +95,9 @@ def test_3d():
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     #mask3d = realNVP3d.createMask()
 
-    assert realNVP3d.mask.data.shape[0] == 2
-    assert realNVP3d.mask.data.shape[1] == 4
-    assert realNVP3d.mask.data.shape[2] == 4
+    assert realNVP3d.mask.shape[0] == 2
+    assert realNVP3d.mask.shape[1] == 4
+    assert realNVP3d.mask.shape[2] == 4
 
     print("test high dims")
 
@@ -145,9 +145,11 @@ def test_checkerboardMask():
     tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    #mask3d = realNVP3d.createMask("checkerboard")
+    mask3d = realNVP3d.createMask("checkerboard")
+    print(realNVP3d.mask)
 
     z3d = realNVP3d.generate(x3d,2)
+    print(realNVP3d.mask)
     print("3d forward:")
     #print(z3d)
 
@@ -242,8 +244,8 @@ def test_checkerboard_cuda_cudaNot0():
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
 if __name__ == "__main__":
+    test_checkerboardMask()
     #test_checkerboard_cuda_cudaNot0()
     #copyTest()
-    test_copy()
     #copyTest_model()
 
