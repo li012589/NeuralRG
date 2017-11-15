@@ -144,7 +144,7 @@ if __name__=="__main__":
         results.create_dataset("logp_model_test",data=logp_model_test.cpu().data.numpy())
         results.create_dataset("logp_data_train",data=logp_data_train.cpu().data.numpy())
         results.create_dataset("logp_data_test",data=logp_data_test.cpu().data.numpy())
-        results.create_dataset("loss",data=LOSS)
+        results.create_dataset("loss",data=[loss.cpu() for loss in LOSS])
     else:
         results.create_dataset("train_data",data=x_data.data.numpy())
         results.create_dataset("generated_data",data=x.data.numpy())
