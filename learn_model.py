@@ -9,11 +9,14 @@ import numpy as np
 from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4
 
-def fit(Nlayers, Hs, Ht, Nepochs, supervised, traindata, modelname, ifCuda = False):
+def fit(Nlayers, Hs, Ht, Nepochs, supervised, traindata, modelname, ifCuda = False,double = True):
     LOSS=[]
 
     h5 = h5py.File(traindata,'r')
-    xy = np.array(h5['results']['samples'])
+    if double:
+        xy = np.array(h5['results']['samples'],dtype=np.float64)
+    else:
+        xy = np.array(h5['results']['samples'],dtype=np.float32)
     h5.close()
 
     Nvars = xy.shape[-1] -1
@@ -34,7 +37,7 @@ def fit(Nlayers, Hs, Ht, Nepochs, supervised, traindata, modelname, ifCuda = Fal
     sList = [MLP(Nvars//2, Hs) for i in range(Nlayers)]
     tList = [MLP(Nvars//2, Ht) for i in range(Nlayers)]
 
-    model = RealNVP([Nvars], sList, tList, gaussian, maskTpye="channel",name = modelname)
+    model = RealNVP([Nvars], sList, tList, gaussian, maskTpye="channel",name = modelname,double=double)
     if ifCuda:
         model = model.cuda()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.001)
