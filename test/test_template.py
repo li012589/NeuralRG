@@ -293,11 +293,11 @@ def test_forward():
     tList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     z = realNVP(x)
-    assert(list(z.shape) == [3])
+    assert(list(z.data.shape) == [3])
     #assert(z.shape ==)
     realNVP.pointer = "generate"
     z = realNVP(x,0)
-    assert(list(z.shape) == [3,2,4,4])
+    assert(list(z.data.shape) == [3,2,4,4])
 
 @skipIfNoCuda
 def test_parallel():
