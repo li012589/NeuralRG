@@ -112,7 +112,11 @@ if __name__=="__main__":
 
     #after training, generate some data from the network
     Ntest = 1000
-    z = model.prior(Ntest, volatile=True) # prior
+    if args.cuda:
+        z = model.prior(Ntest, volatile=True).cuda()# prior
+    else:
+        z = model.prior(Ntest, volatile=True)# prior
+
     x = model.generate(z)
 
     # on training data
