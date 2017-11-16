@@ -21,7 +21,17 @@ try:
 except OSError:
     noCuda = 1
 
+maxGPU = 0
+if noCuda == 0:
+    try:
+        p = os.popen('nvidia-smi --query-gpu=index --format=csv,noheader,nounits')
+        i = p.read().split('\n')
+        maxGPU = int(i[-2])+1
+    except OSError:
+        noCuda = 1
+
 skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "NO cuda insatllation, found through nvidia-smi")
+skipIfOnlyOneGPU = pytest.mark.skipif(maxGPU < 2,reason = "Only one gpu")
 
 def test_tempalte_invertibleMLP():
 
@@ -299,7 +309,7 @@ def test_forward():
     z = realNVP(x,0)
     assert(list(z.data.shape) == [3,2,4,4])
 
-@skipIfNoCuda
+@skipIfOnlyOneGPU
 def test_parallel():
     gaussian3d = Gaussian([2,4,4])
     x = gaussian3d(3)
@@ -309,9 +319,11 @@ def test_parallel():
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     z = realNVP(x)
     print(z)
-    net = torch.nn.DataParallel(realNVP.cuda(1),device_ids=[1,2,3])
+    net = torch.nn.DataParallel(realNVP.cuda(0),device_ids=[0,1])
     output = net(x.cuda())
     print(output)
+
+    assert_array_almost_equal(z.data.numpy(),output.data.numpy())
 
 
 if __name__ == "__main__":
