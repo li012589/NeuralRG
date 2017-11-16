@@ -101,7 +101,7 @@ if __name__=="__main__":
     cmd = ['mkdir', '-p', modelfolder]
     subprocess.check_call(cmd)
 
-    Nvars, x_data, model, LOSS= fit(args.Nlayers
+    Nvars, x_data, model, LOSS= fit(args.Nlayers,
                                     args.Hs,
                                     args.Ht,
                                     args.Nepochs,
