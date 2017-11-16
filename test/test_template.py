@@ -295,7 +295,7 @@ def test_forward():
     z = realNVP(x)
     assert(list(z.shape) == [3])
     #assert(z.shape ==)
-    realNVP.pointer = realNVP.generate
+    realNVP.pointer = "generate"
     z = realNVP(x,0)
     assert(list(z.shape) == [3,2,4,4])
 

@@ -215,7 +215,8 @@ class RealNVP(RealNVPtemplate):
         if ifByte:
             mask = mask.byte()
         if self.ifCuda:
-            mask = mask.pin_memory().cuda(self.cudaConf[0],self.cudaConf[1])
+            cudaNo = self.mask.get_device()
+            mask = mask.pin_memory().cuda(cudaNo)
         self.register_buffer("mask",mask)
         self.register_buffer("mask_",1-mask)
         return mask
@@ -302,7 +303,8 @@ class RealNVP(RealNVPtemplate):
             samples: (torch.autograd.Variable): output Variable.
         """
         if self.ifCuda:
-            z = self.prior(batchSize, ifCuda=True).cuda(self.cudaConf[0],self.cudaConf[1])
+            cudaNo = self.mask.get_device()
+            z = self.prior(batchSize, ifCuda=True).cuda(cudaNo)
         else:
             z = self.prior(batchSize)
         if useGenerate:

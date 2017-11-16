@@ -43,8 +43,7 @@ class RealNVPtemplate(torch.nn.Module):
         self.prior = prior
         self.shapeList = shapeList
         self.ifCuda = False
-        self.cudaConf = ()
-        self.pointer = self.logProbability
+        self.pointer = "logProbability"
         if name is None:
             self.name = "realNVP_" + \
                 str(self.NumLayers) + "inner_" + \
@@ -62,7 +61,6 @@ class RealNVPtemplate(torch.nn.Module):
         """
         cudaModel = super(RealNVPtemplate, self).cuda(device)
         cudaModel.ifCuda = True
-        cudaModel.cudaConf = (device,async)
         return cudaModel
 
     def cpu(self):
@@ -75,7 +73,6 @@ class RealNVPtemplate(torch.nn.Module):
         """
         cpuModel = super(RealNVPtemplate, self).cpu()
         cpuModel.ifCuda = False
-        cudaModel.cudaConf = ()
         return cpuModel
 
     def _generate(self, y, mask, mask_, ifLogjac=False):
@@ -93,10 +90,12 @@ class RealNVPtemplate(torch.nn.Module):
         """
         mask = Variable(mask)
         mask_ = Variable(mask_)
+        if self.ifCuda:
+            cudaNo = y.get_device()
         if ifLogjac:
             if self.ifCuda:
                 self._generateLogjac = Variable(
-                    torch.zeros(y.data.shape[0]).pin_memory().cuda(self.cudaConf[0],self.cudaConf[1]))
+                    torch.zeros(y.data.shape[0]).pin_memory().cuda())
             else:
                 self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         for i in range(self.NumLayers):
@@ -168,10 +167,12 @@ class RealNVPtemplate(torch.nn.Module):
         """
         mask = Variable(mask)
         mask_ = Variable(mask_)
+        if self.ifCuda:
+            cudaNo = y.get_device()
         if ifLogjac:
             if self.ifCuda:
                 self._generateLogjac = Variable(
-                    torch.zeros(y.data.shape[0]).pin_memory().cuda(self.cudaConf[0],self.cudaConf[1]))
+                    torch.zeros(y.data.shape[0]).pin_memory().cuda(cudaNo))
             else:
                 self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         size = [-1] + self.shapeList
@@ -180,7 +181,7 @@ class RealNVPtemplate(torch.nn.Module):
         y1 = torch.masked_select(y, mask_).view(size)
         y0, y1 = self._generateMeta(y0, y1, ifLogjac)
         if self.ifCuda:
-            output = Variable(torch.zeros(y.data.shape).pin_memory().cuda(self.cudaConf[0],self.cudaConf[1]))
+            output = Variable(torch.zeros(y.data.shape).pin_memory().cuda(cudaNo))
         else:
             output = Variable(torch.zeros(y.data.shape))
         output.masked_scatter_(mask, y0)
@@ -201,10 +202,12 @@ class RealNVPtemplate(torch.nn.Module):
             output (torch.autograd.Variable): output Variable.
 
         """
+        if self.ifCuda:
+            cudaNo = y.get_device()
         if ifLogjac:
             if self.ifCuda:
                 self._generateLogjac = Variable(
-                    torch.zeros(y.data.shape[0]).pin_memory().cuda(self.cudaConf[0],self.cudaConf[1]))
+                    torch.zeros(y.data.shape[0]).pin_memory().cuda(cudaNo))
             else:
                 self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
@@ -229,10 +232,12 @@ class RealNVPtemplate(torch.nn.Module):
         """
         mask = Variable(mask)
         mask_ = Variable(mask_)
+        if self.ifCuda:
+            cudaNo = y.get_device()
         if ifLogjac:
             if self.ifCuda:
                 self._inferenceLogjac = Variable(
-                    torch.zeros(y.data.shape[0]).pin_memory().cuda(self.cudaConf[0],self.cudaConf[1]))
+                    torch.zeros(y.data.shape[0]).pin_memory().cuda(cudaNo))
             else:
                 self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         for i in list(range(self.NumLayers))[::-1]:
@@ -304,10 +309,12 @@ class RealNVPtemplate(torch.nn.Module):
         """
         mask = Variable(mask)
         mask_ = Variable(mask_)
+        if self.ifCuda:
+            cudaNo = y.get_device()
         if ifLogjac:
             if self.ifCuda:
                 self._inferenceLogjac = Variable(
-                    torch.zeros(y.data.shape[0]).pin_memory()).cuda(self.cudaConf[0],self.cudaConf[1])
+                    torch.zeros(y.data.shape[0]).pin_memory().cuda(cudaNo))
             else:
                 self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         size = [-1] + self.shapeList
@@ -317,7 +324,7 @@ class RealNVPtemplate(torch.nn.Module):
         y1 = torch.masked_select(y, mask_).view(size)
         y0, y1 = self._inferenceMeta(y0, y1, ifLogjac)
         if self.ifCuda:
-            output = Variable(torch.zeros(y.data.shape).pin_memory().cuda(self.cudaConf[0],self.cudaConf[1]))
+            output = Variable(torch.zeros(y.data.shape).pin_memory().cuda(cudaNo))
         else:
             output = Variable(torch.zeros(y.data.shape))
         output.masked_scatter_(mask, y0)
@@ -338,10 +345,12 @@ class RealNVPtemplate(torch.nn.Module):
             output (torch.autograd.Variable): output Variable.
 
         """
+        if self.ifCuda:
+            cudaNo = y.get_device()
         if ifLogjac:
             if self.ifCuda:
                 self._inferenceLogjac = Variable(
-                    torch.zeros(y.data.shape[0]).pin_memory().cuda(self.cudaConf[0],self.cudaConf[1]))
+                    torch.zeros(y.data.shape[0]).pin_memory().cuda(cudaNo))
             else:
                 self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
@@ -428,7 +437,7 @@ class RealNVPtemplate(torch.nn.Module):
         return saveDic
 
     def forward(self,*args,**kwargs):
-        return self.pointer(*args,**kwargs)
+        return getattr(self,self.pointer)(*args,**kwargs)
 
 
 class PriorTemplate():
