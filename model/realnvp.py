@@ -28,7 +28,7 @@ class Gaussian(PriorTemplate):
         super(Gaussian, self).__init__(name)
         self.shapeList = shapeList
 
-    def sample(self, batchSize, volatile=False, ifCuda=False):
+    def sample(self, batchSize, volatile=False, ifCuda=False, double=True):
         """
 
         This method gives variables sampled from prior distribution.
@@ -41,10 +41,15 @@ class Gaussian(PriorTemplate):
         """
         size = [batchSize] + self.shapeList
         if ifCuda:
-            return Variable(torch.randn(size).pin_memory(),volatile=volatile)
+            if double:
+                return Variable(torch.randn(size).double().pin_memory(),volatile=volatile)
+            else:
+                return Variable(torch.randn(size).pin_memory(),volatile=volatile)
         else:
-            return Variable(torch.randn(size), volatile=volatile)
-
+            if double:
+                return Variable(torch.randn(size).double(), volatile=volatile)
+            else:
+                return Variable(torch.randn(size), volatile=volatile)
     def __call__(self,*args,**kwargs):
         return self.sample(*args,**kwargs)
 
@@ -169,7 +174,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, maskType="channel", name=None):
+    def __init__(self, shapeList, sList, tList, prior, maskTpye="channel", name=None, double=True):
         """
 
         This mehtod initialise this class.
@@ -182,11 +187,11 @@ class RealNVP(RealNVPtemplate):
 
         """
         super(RealNVP, self).__init__(
-            shapeList, sList, tList, prior, name=name)
-        self.maskType = maskType
-        self.createMask(maskType)
+            shapeList, sList, tList, prior, name,double)
+        self.maskType = maskTpye
+        self.createMask("channel")
 
-    def createMask(self, maskType="channel", ifByte=1):
+    def createMask(self, maskType="channel", ifByte=1, double = True):
         """
 
         This method create mask for x, and save it in self.mask for later use.
@@ -201,13 +206,20 @@ class RealNVP(RealNVPtemplate):
         size = self.shapeList.copy()
         if maskType == "channel":
             size[0] = size[0] // 2
-            maskOne = torch.ones(size)
-            maskZero = torch.zeros(size)
+            if double:
+                maskOne = torch.ones(size).double()
+                maskZero = torch.zeros(size).double()
+            else:
+                maskOne = torch.ones(size)
+                maskZero = torch.zeros(size)
             mask = torch.cat([maskOne, maskZero], 0)
         elif maskType == "checkerboard":
             assert (size[1] % 2 == 0)
             assert (size[2] % 2 == 0)
-            unit = torch.Tensor([[1, 0], [0, 1]])
+            if double:
+                unit = torch.FloatTensor([[1, 0], [0, 1]])
+            else:
+                unit = torch.DoubleTensor([[1, 0], [0, 1]])
             mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
         else:
