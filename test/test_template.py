@@ -323,7 +323,7 @@ def test_parallel():
     output = net(x.cuda())
     print(output)
 
-    assert_array_almost_equal(z.data.numpy(),output.data.numpy())
+    assert_array_almost_equal(z.data.numpy(),output.cpu().data.numpy())
 
 
 if __name__ == "__main__":
