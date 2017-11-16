@@ -128,6 +128,16 @@ if __name__=="__main__":
     logp_data_test = target(x)
 
     h5 = h5py.File(h5filename,'w')
+    params = h5.create_group('params')
+    params.create_dataset("Nvars", data=Nvars)
+    params.create_dataset("Nlayers", data=args.Nlayers)
+    params.create_dataset("Hs", data=args.Hs)
+    params.create_dataset("Ht", data=args.Nlayers)
+    params.create_dataset("target", data=args.target)
+    params.create_dataset("supervised", data=args.supervised)
+    params.create_dataset("unsupervised", data=args.unsupervised)
+
+    results = h5.create_group('results')
     if args.cuda:
         results.create_dataset("train_data",data=x_data.cpu().data.numpy())
         results.create_dataset("generated_data",data=x.cpu().data.numpy())
