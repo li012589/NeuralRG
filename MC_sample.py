@@ -30,6 +30,7 @@ group.add_argument("-modelname", default=None, help="")
 group.add_argument("-Nlayers", type=int, default=8, help="")
 group.add_argument("-Hs", type=int, default=10, help="")
 group.add_argument("-Ht", type=int, default=10, help="")
+group.add_argument("-cuda",action='store_true',help='move model to GPU')
 args = parser.parse_args()
 
 if args.target == 'ring2d':
@@ -60,6 +61,9 @@ else:
     except FileNotFoundError:
         print('model file not found:', args.modelname)
     print("using model", args.modelname)
+    if args.cuda:
++        model = model.cuda()
++        print("moving model to GPU")
 mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
 mcmc.run(0, args.Nsamples, args.Nskips)
 cmd = ['mkdir', '-p', args.folder]

@@ -13,4 +13,4 @@ class Target(object):
         raise NotImplementedError(str(type(self)))
 
     def measure(self, x):
-        return (x**2).sum(dim=1).numpy()
+        return (x**2).sum(dim=1).cpu().numpy()
