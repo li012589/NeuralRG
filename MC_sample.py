@@ -62,8 +62,8 @@ else:
         print('model file not found:', args.modelname)
     print("using model", args.modelname)
     if args.cuda:
-+        model = model.cuda()
-+        print("moving model to GPU")
+        model = model.cuda()
+        print("moving model to GPU")
 mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
 mcmc.run(0, args.Nsamples, args.Nskips)
 cmd = ['mkdir', '-p', args.folder]
