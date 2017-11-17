@@ -283,8 +283,8 @@ class RealNVP(RealNVPtemplate):
 
         """
         self._saveModel(saveDic)
-        saveDic["mask"] = self.mask  # Do check if exist !!
-        saveDic["mask_"] = self.mask_
+        saveDic["mask"] = self.mask.cpu()  # Do check if exist !!
+        saveDic["mask_"] = self.mask_.cpu()
         saveDic["shapeList"] = self.shapeList
         return saveDic
 
