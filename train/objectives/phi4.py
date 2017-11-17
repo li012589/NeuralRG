@@ -19,7 +19,7 @@ class Phi4(Target):
             self.hoppingTable = hoppingTable
         super(Phi4, self).__init__(self.nvars,self.name)
     def __call__(self,z):
-        if type(z) == torch.DoubleTensor:
+        if isinstance(z,torch.DoubleTensor):
             S = (torch.zeros(z[:,0].shape).double())
             tmp = (torch.zeros(z[:,0].shape).double())
         else:
