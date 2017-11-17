@@ -76,7 +76,7 @@ if args.savename is None:
           + '_Ht' + str(args.Ht)
 else:
     key = args.savename
-if args.collectdata:
+if not args.collectdata:
     key += "_nosample"
 h5filename = key + '_mc.h5'
 print("save at: " + h5filename)
