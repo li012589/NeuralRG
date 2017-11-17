@@ -9,7 +9,7 @@ from torch.autograd import Variable
 import numpy as np
 
 from model import Gaussian, MLP, RealNVP
-from train.objectives import Ring2D, Ring5, Wave
+from train.objectives import Ring2D, Ring5, Wave, Phi4
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument("-target", default='ring2d',
