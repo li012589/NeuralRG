@@ -1,3 +1,7 @@
+import os
+import sys
+sys.path.append(os.getcwd())
+
 import numpy as np
 import torch
 from torch.autograd import Variable
@@ -49,7 +53,7 @@ class HMCSampler:
     def hamiltonian(energy,v):
         return energy+0.5*torch.sum(v**2,1)
 
-    def sample(self,steps,batchSize):
+    def run(self,steps,batchSize):
         z = self.prior(batchSize)
         zpack = []
         for i in range(steps):
@@ -59,11 +63,37 @@ class HMCSampler:
             if self.dynamicStepSize:
                 self.stepSize = self.updateStepSize(accept,self.stepSize)
             #print(type(accept.numpy()))
-            accept = np.array([accept.numpy()]*self.model.size).transpose()
+            accept = np.array([accept.numpy()]*self.model.nvars).transpose()
             mask = 1-accept
             z = torch.from_numpy(z.numpy()*mask +zp.numpy()*accept)
             zpack.append(z.numpy())
         return zpack
 
 if __name__ == "__main__":
-    pass
+    import os
+    import sys
+    sys.path.append(os.getcwd())
+
+    from train.objectives import Phi4
+
+    modelSize =9
+
+    def prior(batchSize):
+        return torch.randn(batchSize,modelSize)
+
+    model = Phi4(3, 2, 1.0, 1.0)
+    sampler = HMCSampler(model,prior,dynamicStepSize=True)
+    BatchSize = 100
+    Steps = 800
+    BurnIn = 300
+    bins = 2
+    res = sampler.run(Steps,BatchSize)
+    res=np.array(res)
+    z_o = res[BurnIn:,:]
+    z_ = np.reshape(z_o,[-1,modelSize])
+    z1_,z2_= z_[:,0],z_[:,1]
+    print("mean: ",np.mean(z1_))
+    print("std: ",np.std(z1_))
+    autoCorrelation,error =  autoCorrelationTimewithErr(z_o[:,:,0],bins)
+    acceptRate = acceptanceRate(z_o)
+    print('Acceptance Rate:',(acceptRate),'Autocorrelation Time:',(autoCorrelation))
