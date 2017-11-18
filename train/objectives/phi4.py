@@ -22,7 +22,7 @@ class Phi4(Target):
     def energy(self,z):
         if isinstance(z.data,torch.DoubleTensor):
             S = Variable(torch.zeros(z[:,0].data.shape).double())
-            tmp = Variable(torch.zeros(z[:,0].data..shape).double())
+            tmp = Variable(torch.zeros(z[:,0].data.shape).double())
         else:
             S = Variable(torch.zeros(z[:,0].data.shape))
             tmp = Variable(torch.zeros(z[:,0].data.shape))
