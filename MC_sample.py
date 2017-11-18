@@ -3,7 +3,7 @@ import sys
 import h5py
 import argparse
 import subprocess
-from train import MCMC
+from train import MCMC,HMCSampler
 import torch
 from torch.autograd import Variable
 import numpy as np
@@ -21,6 +21,7 @@ parser.add_argument("-folder", default='data/',
 parser.add_argument("-savename", default=None, help="")
 
 group = parser.add_argument_group('mc parameters')
+group.add_argument("-sampler",default='metropolis',help="")
 group.add_argument("-Batchsize", type=int, default=16, help="")
 group.add_argument("-Nsamples", type=int, default=1000, help="")
 group.add_argument("-Nskips", type=int, default=1, help="")
@@ -64,7 +65,12 @@ else:
     if args.cuda:
         model = model.cuda()
         print("moving model to GPU")
-sampler = MCMC(target, model, collectdata=args.collectdata)
+if args.sampler == 'metropolis':
+    print("using MCMC as sampler")
+    sampler = MCMC(target, model, collectdata=args.collectdata)
+elif args.sampler == 'hmc':
+    print("using HMC as sampler")
+    sampler = HMCSampler(target, model, collectdata=args.collectdata)
 data,measurements,accratio = sampler.run(args.Batchsize, 0, args.Nsamples, args.Nskips)
 cmd = ['mkdir', '-p', args.folder]
 subprocess.check_call(cmd)
