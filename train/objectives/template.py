@@ -21,7 +21,10 @@ class Target(object):
         z = Variable(z,requires_grad=True)
         out = self.energy(z)
         batchSize = z.size()[0]
-        out.backward(torch.ones(batchSize))
+        if isinstance(z.data,torch.DoubleTensor):
+            out.backward(torch.ones(batchSize).double())
+        else:
+            out.backward(torch.ones(batchSize))
         return z.grad.data
 
     def measure(self, x):
