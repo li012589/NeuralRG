@@ -63,18 +63,18 @@ class HMCSampler:
             v = torch.randn(z.size())
         '''
         v = torch.randn(z.size()).double()
-        x = z.clone()
+        #x = z.clone()
         zp,vp = self.hmcUpdate(z,v,self.model,self.stepSize,self.interSteps)
         accept = metropolis(self.hamiltonian(self.model(z),v),self.hamiltonian(self.model(zp),vp))
         if self.dynamicStepSize:
             self.stepSize = self.updateStepSize(accept,self.stepSize)
         #print(type(accept.numpy()))
-        #accept = np.array([accept.numpy()]*self.model.nvars).transpose()
-        #mask = 1-accept
-        #x = torch.from_numpy(z.numpy()*mask +zp.numpy()*accept)
-        accratio = accept.float().mean()
-        accept = accept.view(-1,1)
-        x.masked_scatter_(accept, torch.masked_select(z, accept))
+        accept = np.array([accept.numpy()]*self.model.nvars).transpose()
+        mask = 1-accept
+        x = torch.from_numpy(z.numpy()*mask +zp.numpy()*accept)
+        accratio = accept.mean()
+        #accept = accept.view(-1,1)
+        #x.masked_scatter_(accept, torch.masked_select(z, accept))
         #assert_array_almost_equal(x.cpu().numpy(),z.cpu().numpy())
         return accratio,x
 
