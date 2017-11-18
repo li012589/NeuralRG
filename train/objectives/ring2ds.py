@@ -7,7 +7,7 @@ class Ring2D(Target):
     def __init__(self):
         super(Ring2D, self).__init__(2,'Ring2D')
 
-    def __call__(self, x):
+    def energy(self, x):
         return -(torch.sqrt((x**2).sum(dim=1))-2.0)**2/0.32
 
 class Ring5(Target):
@@ -15,7 +15,7 @@ class Ring5(Target):
     def __init__(self):
         super(Ring5, self).__init__(2,'Ring5')
 
-    def __call__(self, x):
+    def energy(self, x):
         x2 = torch.sqrt((x**2).sum(dim=1))
         u1 = (x2 - 1.) **2 /0.04
         u2 = (x2 - 2.) **2 /0.04

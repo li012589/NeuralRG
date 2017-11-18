@@ -7,6 +7,6 @@ class Wave(Target):
     def __init__(self):
         super(Wave, self).__init__(2,'Wave')
 
-    def __call__(self, x):
+    def energy(self, x):
         w = torch.sin(np.pi*x[:, 0]/2.)
         return -0.5*((x[:, 1] -w)/0.4)**2

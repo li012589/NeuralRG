@@ -1,4 +1,5 @@
 import torch
+from torch.autograd import Variable
 import numpy as np
 from .template import Target
 
@@ -18,15 +19,15 @@ class Phi4(Target):
         else:
             self.hoppingTable = hoppingTable
         super(Phi4, self).__init__(self.nvars,self.name)
-    def __call__(self,z):
-        if isinstance(z,torch.DoubleTensor):
-            S = (torch.zeros(z[:,0].shape).double())
-            tmp = (torch.zeros(z[:,0].shape).double())
+    def energy(self,z):
+        if isinstance(z.data,torch.DoubleTensor):
+            S = Variable(torch.zeros(z[:,0].shape).double())
+            tmp = Variable(torch.zeros(z[:,0].shape).double())
         else:
-            S = (torch.zeros(z[:,0].shape))
-            tmp = (torch.zeros(z[:,0].shape))
+            S = Variable(torch.zeros(z[:,0].shape))
+            tmp = Variable(torch.zeros(z[:,0].shape))
         for i in range(self.nvars):
-            tmp.zero_()
+            tmp.data.zero_()
             for j in range(self.dims):
                 #print(z[:,self.hoppingTable[i][j*2]])
                 tmp += z[:,self.hoppingTable[i][j*2]]
