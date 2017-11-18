@@ -57,7 +57,7 @@ class HMCSampler:
 
     def step(self,z):
         v = torch.randn(z.size())
-        x = v.clone()
+        x = z.clone()
         zp,vp = self.hmcUpdate(z,v,self.model,self.stepSize,self.interSteps)
         accept = metropolis(self.hamiltonian(self.model(z),v),self.hamiltonian(self.model(zp),vp))
         if self.dynamicStepSize:
@@ -73,7 +73,7 @@ class HMCSampler:
         return accratio,x
 
     def run(self,batchSize,ntherm,nmeasure,nskip):
-        z = self.prior(batchSize)
+        z = self.prior(batchSize).data
         for _ in range(ntherm):
             _,z = self.step(z)
 
