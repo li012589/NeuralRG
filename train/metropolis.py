@@ -60,9 +60,6 @@ class MCMC:
             nmeasure (int): number of steps used in measure.
             nskip (int): number of steps skiped in measure.
         """
-        self.nmeasure = nmeasure
-        self.ntherm = ntherm
-
         z = self.prior.sample(batchSize).data
         for n in range(ntherm):
             _,z = self.step(batchSize,z)
