@@ -21,11 +21,11 @@ class Phi4(Target):
         super(Phi4, self).__init__(self.nvars,self.name)
     def energy(self,z):
         if isinstance(z.data,torch.DoubleTensor):
-            S = Variable(torch.zeros(z[:,0].shape).double())
-            tmp = Variable(torch.zeros(z[:,0].shape).double())
+            S = Variable(torch.zeros(z[:,0].data.shape).double())
+            tmp = Variable(torch.zeros(z[:,0].data..shape).double())
         else:
-            S = Variable(torch.zeros(z[:,0].shape))
-            tmp = Variable(torch.zeros(z[:,0].shape))
+            S = Variable(torch.zeros(z[:,0].data.shape))
+            tmp = Variable(torch.zeros(z[:,0].data.shape))
         for i in range(self.nvars):
             tmp.data.zero_()
             for j in range(self.dims):
