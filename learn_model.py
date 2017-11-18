@@ -125,11 +125,11 @@ if __name__=="__main__":
 
     # on training data
     logp_model_train = model.logProbability(x_data)
-    logp_data_train = target(x_data)
+    logp_data_train = target(x_data.data)
 
     # on test data
     logp_model_test = model.logProbability(x)
-    logp_data_test = target(x)
+    logp_data_test = target(x.data)
 
     h5 = h5py.File(h5filename,'w')
     params = h5.create_group('params')
@@ -142,20 +142,12 @@ if __name__=="__main__":
     params.create_dataset("unsupervised", data=args.unsupervised)
 
     results = h5.create_group('results')
-    if args.cuda:
-        results.create_dataset("train_data",data=x_data.cpu().data.numpy())
-        results.create_dataset("generated_data",data=x.cpu().data.numpy())
-        results.create_dataset("logp_model_train",data=logp_model_train.cpu().data.numpy())
-        results.create_dataset("logp_model_test",data=logp_model_test.cpu().data.numpy())
-        results.create_dataset("logp_data_train",data=logp_data_train.cpu().data.numpy())
-        results.create_dataset("logp_data_test",data=logp_data_test.cpu().data.numpy())
-    else:
-        results.create_dataset("train_data",data=x_data.data.numpy())
-        results.create_dataset("generated_data",data=x.data.numpy())
-        results.create_dataset("logp_model_train",data=logp_model_train.data.numpy())
-        results.create_dataset("logp_model_test",data=logp_model_test.data.numpy())
-        results.create_dataset("logp_data_train",data=logp_data_train.data.numpy())
-        results.create_dataset("logp_data_test",data=logp_data_test.data.numpy())
+    results.create_dataset("train_data",data=x_data.cpu().data.numpy())
+    results.create_dataset("generated_data",data=x.cpu().data.numpy())
+    results.create_dataset("logp_model_train",data=logp_model_train.cpu().data.numpy())
+    results.create_dataset("logp_model_test",data=logp_model_test.cpu().data.numpy())
+    results.create_dataset("logp_data_train",data=logp_data_train.cpu().numpy())
+    results.create_dataset("logp_data_test",data=logp_data_test.cpu().numpy())
     results.create_dataset("loss",data=LOSS)
 
     h5.close()

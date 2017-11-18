@@ -21,7 +21,7 @@ class MCMC:
         collectdata (bool): if to collect all data generated.
     """
 
-    def __init__(self, batchsize, target, prior, collectdata):
+    def __init__(self, target, prior, collectdata):
         """
         Init MCMC class
         Args:
@@ -30,11 +30,9 @@ class MCMC:
             prior (sampler): sampler.
             collectdata (bool): if to collect all data generated.
         """
-        self.batchsize = batchsize
         self.target = target
         self.prior = prior
         self.collectdata = collectdata
-        self.x = self.prior.sample(self.batchsize).data
 
         self.measurements = []
 
@@ -54,7 +52,7 @@ class MCMC:
         diff = e1 - e2
         return diff.exp() - diff.uniform_() >= 0.0
 
-    def run(self, ntherm, nmeasure, nskip):
+    def run(self, batchSize,ntherm, nmeasure, nskip):
         """
         This method start sampling.
         Args:
@@ -65,50 +63,57 @@ class MCMC:
         self.nmeasure = nmeasure
         self.ntherm = ntherm
 
+        z = self.prior.sample(batchSize).data
         for n in range(ntherm):
-            self.step()
+            _,z = self.step(batchSize,z)
 
-        self.accratio = 0.0
+        zpack = []
+        measurePack = []
+        accratio = 0.0
         for n in range(nmeasure):
             for i in range(nskip):
-                self.accratio += self.step()
-            self.measure()
-        self.accratio /= float(nmeasure * nskip)
+                a,z = self.step(batchSize,z)
+                #zpack.append(z)
+                accratio += a
+            if self.collectdata:
+                z_ = z.cpu().numpy()
+                logp = self.target(z).cpu().numpy()
+                logp.shape = (-1, 1)
+                zpack.append(np.concatenate((z_, logp), axis=1))
+            measure = self.measure(z)
+            measurePack.append(measure)
+        accratio /= float(nmeasure * nskip)
 
-        print ('#accratio:', self.accratio)
+        print ('#accratio:', accratio)
+        return zpack,measurePack,accratio
 
-    def step(self):
+    def step(self,batchSize,z):
         """
         This method run a step of sampling.
         """
-        x = self.prior.sample(self.batchsize)
+        x = self.prior.sample(batchSize)
         accept = self._accept(
             self.target(x.data) - self.prior.logProbability(x).data,
-            self.target(self.x) - self.prior.logProbability(Variable(self.x, volatile=True)).data)
+            self.target(z) - self.prior.logProbability(Variable(z, volatile=True)).data)
 
         accratio = accept.float().mean()
-        accept = accept.view(self.batchsize, -1)
+        accept = 1-accept.view(batchSize, -1)
 
-        self.x.masked_scatter_(accept, torch.masked_select(x.data, accept))
+        x.data.masked_scatter_(accept, torch.masked_select(z, accept))
 
-        return accratio
+        return accratio,x.data
 
-    def measure(self, measureFn=None):
+    def measure(self, x,measureFn=None):
         """
         This method measures some varibales.
         Args:
             measureFn (function): function to measure variables. If None, will run measure at target class.
         """
-        if self.collectdata:
-            x = self.x.numpy()
-            logp = self.target(self.x).numpy()
-            logp.shape = (-1, 1)
-            self.data.append(np.concatenate((x, logp), axis=1))
-
         if measureFn is None:
-            self.measurements.append(self.target.measure(self.x))
+            measurements = self.target.measure(x)
         else:
-            self.measurements.append(measureFn(self.x))
+            measurements = measureFn(x)
+        return measurements
 
 
 if __name__ == '__main__':
