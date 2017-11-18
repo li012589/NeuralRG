@@ -64,8 +64,8 @@ else:
     if args.cuda:
         model = model.cuda()
         print("moving model to GPU")
-mcmc = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
-mcmc.run(0, args.Nsamples, args.Nskips)
+sampler = MCMC(args.Batchsize, target, model, collectdata=args.collectdata)
+sampler.run(0, args.Nsamples, args.Nskips)
 cmd = ['mkdir', '-p', args.folder]
 subprocess.check_call(cmd)
 if args.savename is None:
@@ -89,8 +89,8 @@ params.create_dataset("Ht", data=args.Ht)
 params.create_dataset("target", data=args.target)
 params.create_dataset("model", data=model.name)
 results = h5.create_group('results')
-results.create_dataset("obs", data=np.array(mcmc.measurements))
-results.create_dataset("accratio", data=mcmc.accratio)
+results.create_dataset("obs", data=np.array(sampler.measurements))
+results.create_dataset("accratio", data=sampler.accratio)
 if args.collectdata:
-    results.create_dataset("samples", data=mcmc.data)
+    results.create_dataset("samples", data=sampler.data)
 h5.close()
