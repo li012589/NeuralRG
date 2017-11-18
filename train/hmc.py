@@ -56,7 +56,10 @@ class HMCSampler:
         return energy+0.5*torch.sum(v**2,1)
 
     def step(self,z):
-        v = torch.randn(z.size())
+        if isinstance(z,torch.DoubleTensor):
+            v = torch.randn(z.size()).double()
+        else:
+            v = torch.randn(z.size())
         x = z.clone()
         zp,vp = self.hmcUpdate(z,v,self.model,self.stepSize,self.interSteps)
         accept = metropolis(self.hamiltonian(self.model(z),v),self.hamiltonian(self.model(zp),vp))
