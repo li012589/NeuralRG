@@ -17,7 +17,7 @@ In the bootstrap training, these two scripts exchange **data** and **model** and
 First, generate some training samples using metropolis
 
 ```bash
-python ./MC_sample.py -target ring2d -collectdata
+python ./sampler.py -target ring2d -collectdata
 ```
 
 It will write results to `data/ring2d_Nl8_Hs10_Ht10_mc.h5`. `-collectdata` tells it to collect training data.  To see its content, do 
@@ -70,7 +70,7 @@ python ./sample_model.py -modelname data/ring2d_Nl8_Hs10_Ht10_sl/epoch490
 Or, use the model to make MC update proposal
 
 ```bash
-python ./MC_sample.py -target ring2d -modelname data/ring2d_Nl8_Hs10_Ht10_sl/epoch490 
+python ./sampler.py -target ring2d -modelname data/ring2d_Nl8_Hs10_Ht10_sl/epoch490 
 ```
 
 By providing `-collectdata` to the command, one will get new train data. Which can be used to improve the model. 
