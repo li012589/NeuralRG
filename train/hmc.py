@@ -9,6 +9,8 @@ from utils.autoCorrelation import autoCorrelationTimewithErr
 from utils.acceptRate import acceptanceRate
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 
+__all__ = ['HMCSampler']
+
 def metropolis(e1,e2):
     diff = e1-e2
     return diff.exp()-diff.uniform_()>=0.0
@@ -53,7 +55,7 @@ class HMCSampler:
 
     @staticmethod
     def hamiltonian(energy,v):
-        return energy+0.5*torch.sum(v**2,1)
+        return -energy+0.5*torch.sum(v**2,1)
 
     def step(self,z):
         '''
@@ -117,7 +119,7 @@ class HMCSampler:
             measurements = measureFn(x)
         return measurements
 
-if __name__ == "__main__":
+def plot_phi4():
     import os
     import sys
     sys.path.append(os.getcwd())
@@ -168,3 +170,38 @@ if __name__ == "__main__":
     ax.set_ylabel("$\langle|m|/V\rangle$")
     ax.set_xlabel("$\kappa$")
     plt.show()
+
+def test_ring2d():
+    import os
+    import sys
+    sys.path.append(os.getcwd())
+
+    #from train.objectives import Phi42 as Phi4
+    from train.objectives import Ring2D
+    from model import Gaussian
+
+    gaussian = Gaussian([2])
+
+    batchSize = 100
+    bins = 2
+
+    model = Ring2D()
+    sampler = HMCSampler(model,gaussian,True)
+    ret,mres,_ = sampler.run(batchSize,300,500,1)
+
+    ret = np.array(ret)
+    z_o = ret[:,:,:-1]
+
+    print(z_o.shape)
+    z_ = np.reshape(z_o,[-1,2])
+    z1_,z2_= z_[:,0],z_[:,1]
+    print("mean: ",np.mean(z1_))
+    print("std: ",np.std(z1_))
+    autoCorrelation,error =  autoCorrelationTimewithErr(z_o[:,:,0],bins)
+    acceptRate = acceptanceRate(z_o)
+    print('Acceptance Rate:',(acceptRate),'Autocorrelation Time:',(autoCorrelation))
+
+
+
+if __name__ == "__main__":
+    plot_phi4()

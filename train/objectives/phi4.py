@@ -36,7 +36,7 @@ class Phi4(Target):
                 tmp += z[:,self.hoppingTable[i][j*2]]
             S += -2*self.kappa*tmp*z[:,i]
         S+=torch.sum(z**2,1)+self.lamb*torch.sum((z**2-1)**2,1)
-        return S
+        return -S
     def createTable(self):
         hoppingTable = []
         for i in range(self.nvars):
