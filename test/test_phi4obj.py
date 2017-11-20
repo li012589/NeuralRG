@@ -25,7 +25,7 @@ def test_phi4():
     phi4 = Phi4(3,2,1,1)
     e = phi4(z).numpy()
     #print(e)
-    results = np.array([14097.0,23601.0,23601.0])
+    results = -np.array([14097.0,23601.0,23601.0])
     assert_array_almost_equal(results,e)
 
 if __name__ == "__main__":
