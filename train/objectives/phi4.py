@@ -2,6 +2,7 @@ import torch
 from torch.autograd import Variable
 import numpy as np
 from .template import Target
+from numpy.testing import assert_array_almost_equal,assert_array_equal
 
 class Phi4(Target):
     def __init__(self,l,dims,kappa,lamb,hoppingTable=None,name=None):
@@ -22,13 +23,17 @@ class Phi4(Target):
             self.hoppingTable = hoppingTable
         super(Phi4, self).__init__(self.nvars,self.name)
     def energy(self,z):
-        S = Variable(torch.zeros(z[:,0].shape).double())
+        if isinstance(z.data,torch.DoubleTensor):
+            S = Variable(torch.zeros(z[:,0].data.shape).double())
+        else:
+            S = Variable(torch.zeros(z[:,0].data.shape))
         for i in range(self.nvars):
-            tmp = Variable(torch.zeros(z[:,0].shape).double())
+            if isinstance(z.data,torch.DoubleTensor):
+                tmp = Variable(torch.zeros(z[:,0].data.shape).double())
+            else:
+                tmp = Variable(torch.zeros(z[:,0].data.shape))
             for j in range(self.dims):
-                #print(z[:,self.hoppingTable[i][j*2]])
                 tmp += z[:,self.hoppingTable[i][j*2]]
-            #print("tmp: ",tmp)
             S += -2*self.kappa*tmp*z[:,i]
         S+=torch.sum(z**2,1)+self.lamb*torch.sum((z**2-1)**2,1)
         return S
