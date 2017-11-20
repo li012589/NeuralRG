@@ -62,7 +62,10 @@ class HMCSampler:
         else:
             v = torch.randn(z.size())
         '''
-        v = torch.randn(z.size()).double()
+        if isinstance(z,torch.DoubleTensor):
+            v = torch.randn(z.size()).double()
+        else:
+            v = torch.randn(z.size())
         #x = z.clone()
         zp,vp = self.hmcUpdate(z,v,self.model,self.stepSize,self.interSteps)
         accept = metropolis(self.hamiltonian(self.model(z),v),self.hamiltonian(self.model(zp),vp))
@@ -119,16 +122,49 @@ if __name__ == "__main__":
     import sys
     sys.path.append(os.getcwd())
 
+    #from train.objectives import Phi42 as Phi4
     from train.objectives import Phi4
+    from model import Gaussian
+    modelSize =216
 
-    modelSize =9
+    kappalist = np.arange(0.15,0.22,0.01).tolist()
+    lamb = 1.145
 
-    def prior(batchSize):
-        return Variable(torch.randn(batchSize,modelSize))
-
-    model = Phi4(3, 2, 1.0, 1.0)
-    sampler = HMCSampler(model,prior,True,dynamicStepSize=True)
+    bins = 2
+    dims = 3
+    l = 6
     BatchSize = 100
-    res,mres,_ = sampler.run(BatchSize,30,10,5)
-    #print((res))
-    #print(len(res))
+
+    gaussian = Gaussian([modelSize])
+
+    res = []
+    errors = []
+    for kappa in kappalist:
+
+        model = Phi4(l, dims, kappa, lamb)
+        sampler = HMCSampler(model,gaussian,True,dynamicStepSize=True)
+        ret,mres,_ = sampler.run(BatchSize,300,500,1)
+        ret= np.array(ret)
+        z_o = ret[:,:,:-1]
+        #z_ = np.reshape(ret,[-1,modelSize])
+        m_abs = np.mean(z_o,2)
+        m_abs = np.absolute(m_abs)
+        m_abs_p = np.mean(m_abs)
+        autoCorrelation,error =  autoCorrelationTimewithErr(m_abs,bins)
+        acceptRate = acceptanceRate(z_o)
+        print("kappa:",model.kappa)
+        print("lambda:",model.lamb)
+        res.append(m_abs_p)
+        errors.append(error)
+        print("measure: <|m|/V>",m_abs_p,"with error:",error)
+        print('Acceptance Rate:',(acceptRate),'Autocorrelation Time:',(autoCorrelation))
+
+    print("Results: ",res)
+    print("Errors: ",errors)
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots()
+    ax.errorbar(kappalist,res,yerr=errors)
+    ax.set_title("\langle$|m|/V,\lambda = 1.145\rangle$")
+    ax.set_ylabel("$\langle|m|/V\rangle$")
+    ax.set_xlabel("$\kappa$")
+    plt.show()

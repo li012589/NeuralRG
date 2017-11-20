@@ -5,29 +5,26 @@ from .template import Target
 
 class Phi4(Target):
     def __init__(self,l,dims,kappa,lamb,hoppingTable=None,name=None):
+        if name is None:
+            name = "phi4_l"+str(l)+"_d"+str(dims)+"_kappa"+str(kappa)+"_lamb"+str(lamb)
+        else:
+            pass
+        n = l**dims
+        super(Phi4,self).__init__(n,name)
         self.dims = dims
+        self.nvars = n
         self.l = l
-        self.nvars = l**dims
         self.kappa = kappa
         self.lamb = lamb
-        if name is None:
-            self.name = "phi_"+str(self.nvars)+"n_"+str(self.l)+"l_"+str(self.dims)+"dim_"+str(self.kappa)+"kappa_"+str(self.lamb)+"lambda"
-        else:
-            self.name = name
         if hoppingTable is None:
             self.hoppingTable = self.createTable()
         else:
             self.hoppingTable = hoppingTable
         super(Phi4, self).__init__(self.nvars,self.name)
     def energy(self,z):
-        if isinstance(z.data,torch.DoubleTensor):
-            S = Variable(torch.zeros(z[:,0].data.shape).double())
-            tmp = Variable(torch.zeros(z[:,0].data.shape).double())
-        else:
-            S = Variable(torch.zeros(z[:,0].data.shape))
-            tmp = Variable(torch.zeros(z[:,0].data.shape))
+        S = Variable(torch.zeros(z[:,0].shape).double())
         for i in range(self.nvars):
-            tmp.data.zero_()
+            tmp = Variable(torch.zeros(z[:,0].shape).double())
             for j in range(self.dims):
                 #print(z[:,self.hoppingTable[i][j*2]])
                 tmp += z[:,self.hoppingTable[i][j*2]]
