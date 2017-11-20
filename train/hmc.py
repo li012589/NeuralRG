@@ -4,6 +4,7 @@ sys.path.append(os.getcwd())
 
 import numpy as np
 import torch
+torch.manual_seed(42)
 from torch.autograd import Variable
 from utils.autoCorrelation import autoCorrelationTimewithErr
 from utils.acceptRate import acceptanceRate
@@ -42,14 +43,14 @@ class HMCSampler:
 
     @staticmethod
     def hmcUpdate(z,v,model,stepSize,interSteps):
-        force = model.backward(z)
+        force = -model.backward(z)
         vp = v - 0.5*stepSize*force
         zp  = z + stepSize*vp
         for i in range(interSteps):
-            force = model.backward(zp)
+            force = -model.backward(zp)
             vp -= stepSize*force
             zp += stepSize*vp
-        force = model.backward(zp)
+        force = -model.backward(zp)
         vp = vp - 0.5*stepSize*force
         return zp,vp
 
@@ -201,7 +202,26 @@ def test_ring2d():
     acceptRate = acceptanceRate(z_o)
     print('Acceptance Rate:',(acceptRate),'Autocorrelation Time:',(autoCorrelation))
 
+def test():
+    #plot_phi4()
+    #test_ring2d()
+    import os
+    import sys
+    sys.path.append(os.getcwd())
 
+    #from train.objectives import Phi42 as Phi4
+    from train.objectives import Phi4,Ring2D
+    from model import Gaussian
+    gaussian = Gaussian([2])
+    model = Ring2D()
+    gaussian = Gaussian([9])
+    model = Phi4(3, 2, 0.15, 1.145)
+    sampler = HMCSampler(model,gaussian,True,dynamicStepSize=True)
+    z = sampler.prior(2).data
+    z_,a = sampler.step(z)
+    print(a)
 
 if __name__ == "__main__":
-    plot_phi4()
+    #plot_phi4()
+    test_ring2d()
+    test()
