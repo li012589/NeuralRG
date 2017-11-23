@@ -37,8 +37,8 @@ def boot(batchSize,Ntherm,Nsamples,Nskips,prior,target,sampler = MCMC):
     data,_,_ = sampler.run(batchSize, Ntherm, Nsamples, Nskips)
     return np.array(data)
 
-def strap(model,nsteps,supervised,traindata,modelname,ifCuda,double,save,saveSteps):
-    _,_,_ = fit(model,nsteps,supervised,traindata,modelname,ifCuda,double,save,saveSteps)
+def strap(model,nsteps,supervised,traindata,modelname,ifCuda,double,save=True,saveSteps=10):
+    _,_,_ = fit(model,nsteps,supervised,traindata,modelname,ifCuda,double,save = save,saveSteps = saveSteps)
 
 def test():
     pass
@@ -47,8 +47,8 @@ def main():
     #from utils.autoCorrelation import autoCorrelationTimewithErr
     #from utils.acceptRate import acceptanceRate
 
-    l=6
-    dims =3
+    l=4
+    dims =2
     nvars = l**dims
     batchSize = 100
     trainSet = 500
@@ -58,11 +58,15 @@ def main():
     kappa = 0.20
     lamb = 1.145
     maximum = 1000
-    Nepochs = 3
+    Nepochs = 100
     Nsteps = 500
     supervised = True
     saveSteps = 10
     testSteps = 100
+    Hs = 400
+    Ht = 400
+    Nlayers = 4
+    double = True
 
     modelfolder = "data/bootstrap"
     cuda = False
@@ -77,8 +81,8 @@ def main():
     #target = Ring2D()
     #nvars = 2
 
-    sList = [MLP(nvars//2, 400),MLP(nvars//2, 400),MLP(nvars//2, 400),MLP(nvars//2, 400)]
-    tList = [MLP(nvars//2, 400),MLP(nvars//2, 400),MLP(nvars//2, 400),MLP(nvars//2, 400)]
+    sList = [MLP(nvars//2, Hs) for i in range(Nlayers)]
+    tList = [MLP(nvars//2, Ht) for i in range(Nlayers)]
 
     gaussian = Gaussian([nvars])
 
@@ -103,11 +107,11 @@ def main():
 
         traindata = torch.from_numpy(buf.draw(trainSet))
         print(traindata.shape)
-        strap(model,Nsteps,supervised,traindata,modelfolder,cuda,True,True,saveSteps)
+        strap(model,Nsteps,supervised,traindata,modelfolder,cuda,double)
 
         data = boot(batchSize,Ntherm,Nsamples,Nskips,model,target)
         data = np.reshape(data,[-1,nvars+1])
-        buf.push(data)
+        #buf.push(data)
         if i%testSteps == 0:
             test()
 
