@@ -42,7 +42,7 @@ elif args.target == 'ring5':
 elif args.target == 'wave':
     target = Wave()
 elif args.target == 'phi4':
-    target = Phi4(3, 2, 0.15, 1.145)
+    target = Phi4(4, 2, 0.15, 1.145)
 else:
     print('what target ?', args.target)
     sys.exit(1)

@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.getcwd())
 import torch
-torch.manual_seed(42)
+#torch.manual_seed(42)
 from torch.autograd import Variable
 import numpy as np
 
@@ -36,7 +36,7 @@ if __name__=="__main__":
     elif args.target == 'wave':
         target = Wave()
     elif args.target == 'phi4':
-        target = Phi4(3,2,0.15,1.145)
+        target = Phi4(4,2,0.15,1.145)
     else:
         print ('what target ?', args.target)
         sys.exit(1)
@@ -73,14 +73,19 @@ if __name__=="__main__":
     if args.cuda:
         model = model.cuda()
 
+    for i in model.parameters():
+        print(i)
+
     x_data, model, LOSS= fit(model,
                              args.Nepochs,
                              args.supervised,
                              xy,
                              modelfolder,
                              args.cuda,
-                             not args.float)
-
+                             not args.float,
+                             )
+    for i in model.parameters():
+        print(i)
     #after training, generate some data from the network
     Ntest = 1000
     if args.cuda:
