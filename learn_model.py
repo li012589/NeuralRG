@@ -58,13 +58,20 @@ if __name__=="__main__":
 
     Nvars = xy.shape[-1] -1
     xy.shape = (-1, Nvars +1)
-
+    xy = torch.from_numpy(xy)
+    if args.cuda:
+        xy = xy.cuda()
 
     sList = [MLP(Nvars//2, args.Hs) for i in range(args.Nlayers)]
     tList = [MLP(Nvars//2, args.Ht) for i in range(args.Nlayers)]
 
-    Nvars, x_data, model, LOSS= fit(sList,
-                                    tList,
+    gaussian = Gaussian([Nvars])
+
+    model = RealNVP([Nvars], sList, tList, gaussian, maskTpye="channel",name = modelfolder,double=not args.float)
+    if args.cuda:
+        model = model.cuda()
+
+    Nvars, x_data, model, LOSS= fit(model,
                                     Nvars,
                                     args.Nepochs,
                                     args.supervised,
