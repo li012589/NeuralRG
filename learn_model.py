@@ -36,7 +36,7 @@ if __name__=="__main__":
     elif args.target == 'wave':
         target = Wave()
     elif args.target == 'phi4':
-        target = Phi4(3,2,0.15.1.145)
+        target = Phi4(3,2,0.15,1.145)
     else:
         print ('what target ?', args.target)
         sys.exit(1)
@@ -63,7 +63,7 @@ if __name__=="__main__":
     xy = torch.from_numpy(xy)
     if args.cuda:
         xy = xy.cuda()
-w
+
     sList = [MLP(Nvars//2, args.Hs) for i in range(args.Nlayers)]
     tList = [MLP(Nvars//2, args.Ht) for i in range(args.Nlayers)]
 
@@ -73,14 +73,13 @@ w
     if args.cuda:
         model = model.cuda()
 
-    Nvars, x_data, model, LOSS= fit(model,
-                                    args.Nepochs,
-                                    args.supervised,
-                                    xy,
-                                    modelfolder,
-                                    args.cuda,
-                                    not args.float
-                                    )
+    x_data, model, LOSS= fit(model,
+                             args.Nepochs,
+                             args.supervised,
+                             xy,
+                             modelfolder,
+                             args.cuda,
+                             not args.float)
 
     #after training, generate some data from the network
     Ntest = 1000
