@@ -9,7 +9,7 @@ import numpy as np
 from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, MCMC
 
-def fit(model, Nvars, Nepochs, supervised, traindata, modelname, ifCuda = False,double = True,save = True, saveSteps=10, feed=True):
+def fit(model, Nepochs, supervised, traindata, modelname, ifCuda = False,double = True,save = True, saveSteps=10, feed=True):
     LOSS=[]
     
     x_data = Variable(traindata[:, 0:-1])
@@ -17,7 +17,7 @@ def fit(model, Nvars, Nepochs, supervised, traindata, modelname, ifCuda = False,
     if supervised:
         y_data = Variable(traindata[:, -1])
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
     if supervised:
         criterion = torch.nn.MSELoss(size_average=True)
 
@@ -43,4 +43,4 @@ def fit(model, Nvars, Nepochs, supervised, traindata, modelname, ifCuda = False,
             saveDict = model.saveModel({})
             torch.save(saveDict, model.name+'/epoch'+str(epoch))
 
-    return Nvars, x_data, model, LOSS
+    return  x_data, model, LOSS
