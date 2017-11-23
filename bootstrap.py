@@ -29,18 +29,33 @@ class Buffer(object):
         perm = np.random.permutation(self.data.shape[0])
         self.data = self.data[perm[:self.maximum]]
 
-def boot():
-    pass
+def boot(batchSize,Ntherm,Nsamples,Nskips,prior,target,sampler = MCMC):
+    sampler = sampler(target, prior, collectdata=True)
+    data,_,_ = sampler.run(batchSize, Ntherm, Nsamples, Nskips)
+    return np.array(data)
 
 def strap():
     pass
 
 def main():
-    maximum = 100
+    l=3
+    dims =2
+    nvars = l**dims
+    batchSize = 100
+    Ntherm = 300
+    Nsamples = 500
+    Nskips = 1
+    kappa = 0.15
+    lamb = 1.145
+    maximum = 1000
+
+    gaussian = Gaussian([nvars])
     buf = Buffer(maximum)
-    buf.push(np.random.randn(200,5))
-    print(buf.data.shape)
-    print(buf.draw(10).shape)
+    target = Phi4(l, dims, kappa, lamb)
+
+    data = boot(batchSize,Ntherm,Nsamples,Nskips,gaussian,target,sampler=HMCSampler)
+    buf.push(data)
+    
 
 
 if __name__ == "__main__":
