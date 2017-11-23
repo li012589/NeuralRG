@@ -28,7 +28,7 @@ class Gaussian(PriorTemplate):
         super(Gaussian, self).__init__(name)
         self.shapeList = shapeList
 
-    def __call__(self, batchSize, volatile=False):
+    def sample(self, batchSize, volatile=False, ifCuda=False, double=True):
         """
 
         This method gives variables sampled from prior distribution.
@@ -40,7 +40,18 @@ class Gaussian(PriorTemplate):
 
         """
         size = [batchSize] + self.shapeList
-        return Variable(torch.randn(size), volatile=volatile)
+        if ifCuda:
+            if double:
+                return Variable(torch.randn(size).double().pin_memory(),volatile=volatile)
+            else:
+                return Variable(torch.randn(size).pin_memory(),volatile=volatile)
+        else:
+            if double:
+                return Variable(torch.randn(size).double(), volatile=volatile)
+            else:
+                return Variable(torch.randn(size), volatile=volatile)
+    def __call__(self,*args,**kwargs):
+        return self.sample(*args,**kwargs)
 
     def logProbability(self, z):
         """
@@ -163,7 +174,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, maskTpye = "channel", name=None):
+    def __init__(self, shapeList, sList, tList, prior, maskTpye="channel", name=None, double=True):
         """
 
         This mehtod initialise this class.
@@ -176,10 +187,11 @@ class RealNVP(RealNVPtemplate):
 
         """
         super(RealNVP, self).__init__(
-            shapeList, sList, tList, prior, name=name)
+            shapeList, sList, tList, prior, name,double)
+        self.maskType = maskTpye
         self.createMask("channel")
 
-    def createMask(self, maskType="channel", ifByte=1):
+    def createMask(self, maskType="channel", ifByte=1, double = True):
         """
 
         This method create mask for x, and save it in self.mask for later use.
@@ -190,58 +202,36 @@ class RealNVP(RealNVPtemplate):
             mask (torch.Tensor): mask to divide x into y0 and y1.
 
         """
+        self.maskType = maskType
         size = self.shapeList.copy()
         if maskType == "channel":
             size[0] = size[0] // 2
-            maskOne = torch.ones(size)
-            maskZero = torch.zeros(size)
+            if double:
+                maskOne = torch.ones(size).double()
+                maskZero = torch.zeros(size).double()
+            else:
+                maskOne = torch.ones(size)
+                maskZero = torch.zeros(size)
             mask = torch.cat([maskOne, maskZero], 0)
-            self.mask = Variable(mask)
-            self.mask_ = Variable(1 - mask)
         elif maskType == "checkerboard":
             assert (size[1] % 2 == 0)
             assert (size[2] % 2 == 0)
-            unit = torch.Tensor([[1, 0], [0, 1]])
-            self.mask = Variable(unit.repeat(
+            if double:
+                unit = torch.FloatTensor([[1, 0], [0, 1]])
+            else:
+                unit = torch.DoubleTensor([[1, 0], [0, 1]])
+            mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
-            self.mask_ = (1 - self.mask)
         else:
             raise ValueError("maskType not known.")
         if ifByte:
-            self.mask = self.mask.byte()
-            self.mask_ = self.mask_.byte()
+            mask = mask.byte()
         if self.ifCuda:
-            self.mask = self.mask.cuda()
-            self.mask_ = self.mask_.cuda()
-        return self.mask
-
-    def cuda(self):
-        """
-
-        This method move everything in RealNVP to GPU.
-        Return:
-            cudaModel (nn.Module.cuda): the instance in GPU.
-
-        """
-        cudaModel = super(RealNVP, self).cuda()
-        if cudaModel.mask is not None:
-            cudaModel.mask = self.mask.cuda()
-            cudaModel.mask_ = self.mask_.cuda()
-        return cudaModel
-
-    def cpu(self):
-        """
-
-        This method move everything in RealNVP to CPU.
-        Return:
-            cudaModel (nn.Module): the instance in CPU.
-
-        """
-        cpuModel = super(RealNVP, self).cpu()
-        if cpuModel.mask is not None:
-            cpuModel.mask = self.mask.cpu()
-            cpuModel_.mask = self.mask_.cpu()
-        return cpuModel
+            cudaNo = self.mask.get_device()
+            mask = mask.pin_memory().cuda(cudaNo)
+        self.register_buffer("mask",mask)
+        self.register_buffer("mask_",1-mask)
+        return mask
 
     def generate(self, z, sliceDim=0):
         """
@@ -293,8 +283,8 @@ class RealNVP(RealNVPtemplate):
 
         """
         self._saveModel(saveDic)
-        saveDic["mask"] = self.mask  # Do check if exist !!
-        saveDic["mask_"] = self.mask_
+        saveDic["mask"] = self.mask.cpu()  # Do check if exist !!
+        saveDic["mask_"] = self.mask_.cpu()
         saveDic["shapeList"] = self.shapeList
         return saveDic
 
@@ -309,11 +299,30 @@ class RealNVP(RealNVPtemplate):
 
         """
         self._loadModel(saveDic)
-        self.mask = saveDic["mask"]
-        self.mask_ = saveDic["mask_"]
+        self.register_buffer("mask",saveDic["mask"])
+        self.register_buffer("mask_",saveDic["mask_"])
         self.shapeList = saveDic["shapeList"]
         return saveDic
 
+    def sample(self, batchSize, sliceDim=0, useGenerate=True):
+        """
+
+        This method directly sample samples of batch size given
+        Args:
+            batchSize (int): size of sampled batch.
+            sliceDim (int): in which dimension should mask be used on y.
+        return:
+            samples: (torch.autograd.Variable): output Variable.
+        """
+        if self.ifCuda:
+            cudaNo = self.mask.get_device()
+            z = self.prior(batchSize, ifCuda=True).cuda(cudaNo)
+        else:
+            z = self.prior(batchSize)
+        if useGenerate:
+            return self.generate(z, sliceDim)
+        else:
+            return self.inference(z, sliceDim)
 
 if __name__ == "__main__":
 

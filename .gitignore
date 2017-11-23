@@ -3,6 +3,6 @@
 **/*.pyc
 **/.DS_Store
 **/test.py
-**/*.png
 **/*.testSave
 docs/_build
+data

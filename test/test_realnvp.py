@@ -2,6 +2,8 @@ import os
 import sys
 sys.path.append(os.getcwd())
 
+from profilehooks import profile
+
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
@@ -21,7 +23,17 @@ try:
 except OSError:
     noCuda = 1
 
-skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "NO cuda insatllation, found through nvidia-smi")
+maxGPU = 0
+if noCuda == 0:
+    try:
+        p = os.popen('nvidia-smi --query-gpu=index --format=csv,noheader,nounits')
+        i = p.read().split('\n')
+        maxGPU = int(i[-2])+1
+    except OSError:
+        noCuda = 1
+
+skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "No cuda insatllation, found through nvidia-smi")
+skipIfOnlyOneGPU = pytest.mark.skipif(maxGPU < 2,reason = "Only one gpu")
 
 def test_invertible():
 
@@ -35,7 +47,7 @@ def test_invertible():
 
     z = realNVP.prior(10)
     #mask = realNVP.createMask()
-    assert realNVP.mask.data.shape[0] == 2
+    assert realNVP.mask.shape[0] == 2
 
     print("original")
     #print(x)
@@ -83,9 +95,9 @@ def test_3d():
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     #mask3d = realNVP3d.createMask()
 
-    assert realNVP3d.mask.data.shape[0] == 2
-    assert realNVP3d.mask.data.shape[1] == 4
-    assert realNVP3d.mask.data.shape[2] == 4
+    assert realNVP3d.mask.shape[0] == 2
+    assert realNVP3d.mask.shape[1] == 4
+    assert realNVP3d.mask.shape[2] == 4
 
     print("test high dims")
 
@@ -133,9 +145,11 @@ def test_checkerboardMask():
     tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    #mask3d = realNVP3d.createMask("checkerboard")
+    mask3d = realNVP3d.createMask("checkerboard")
+    print(realNVP3d.mask)
 
     z3d = realNVP3d.generate(x3d,2)
+    print(realNVP3d.mask)
     print("3d forward:")
     #print(z3d)
 
@@ -181,7 +195,72 @@ def test_checkerboard_cuda():
 
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
+def test_sample():
+    gaussian3d = Gaussian([2,4,4])
+    x3d = gaussian3d(3)
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d,"checkerboard")
+
+    z3d = realNVP3d.sample(100,2,True)
+
+    zp3d = realNVP3d.sample(100,2,False)
+
+    print(realNVP3d.logProbability(z3d,2))
+
+@skipIfNoCuda
+def test_sample_cuda():
+    gaussian3d = Gaussian([2,4,4])
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d,"checkerboard").cuda()
+
+    z3d = realNVP3d.sample(100,2,True)
+
+    zp3d = realNVP3d.sample(100,2,False)
+
+    print(realNVP3d.logProbability(z3d,2))
+
+@skipIfOnlyOneGPU
+def test_checkerboard_cuda_cudaNot0():
+    gaussian3d = Gaussian([2,4,4])
+    x3d = gaussian3d(3).cuda(maxGPU//2)
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda(maxGPU//2)
+    mask3d = realNVP3d.createMask("checkerboard")
+
+    z3d = realNVP3d.generate(x3d,2)
+    zp3d = realNVP3d.inference(z3d,2)
+
+    print(realNVP3d.logProbability(z3d,2))
+
+    assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
+
+@profile
+@pytest.mark.skip(reason = "speed test")
+def testCopyspeed():
+    for _ in range(100):
+        t = torch.randn([1000,1000])
+        a = Variable(t)
+
+@profile
+@pytest.mark.skip(reason = "speed test")
+def testCopyspeedCuda():
+    for i in range(100):
+        t = torch.randn([3000,3000]).cuda()
+        t = torch.randn([3000,3000]).pin_memory().cuda()
 
 if __name__ == "__main__":
-    test_3d()
+    #test_checkerboardMask()
+    #test_checkerboard_cuda_cudaNot0()
+    #copyTest()
+    #copyTest_model()
+    testCopyspeed()
 
