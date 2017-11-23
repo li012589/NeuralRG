@@ -35,6 +35,8 @@ if __name__=="__main__":
         target = Ring5()
     elif args.target == 'wave':
         target = Wave()
+    elif args.target == 'phi4':
+        target = Phi4(3,2,0.15.1.145)
     else:
         print ('what target ?', args.target)
         sys.exit(1)
@@ -61,7 +63,7 @@ if __name__=="__main__":
     xy = torch.from_numpy(xy)
     if args.cuda:
         xy = xy.cuda()
-
+w
     sList = [MLP(Nvars//2, args.Hs) for i in range(args.Nlayers)]
     tList = [MLP(Nvars//2, args.Ht) for i in range(args.Nlayers)]
 
@@ -72,7 +74,6 @@ if __name__=="__main__":
         model = model.cuda()
 
     Nvars, x_data, model, LOSS= fit(model,
-                                    Nvars,
                                     args.Nepochs,
                                     args.supervised,
                                     xy,
