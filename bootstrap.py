@@ -46,48 +46,55 @@ def test():
 def main():
     #from utils.autoCorrelation import autoCorrelationTimewithErr
     #from utils.acceptRate import acceptanceRate
+    import argparse
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument("-Nlayers", type=int, default=8, help="")
+    parser.add_argument("-L",type=int,default=4,help="")
+    parser.add_argument("-Dims",type=int,default=2,help="")
+    parser.add_argument("-batchSize",type=int,default=16,help="")
+    parser.add_argument("-trainSet",type=int,default=1000,help="")
+    parser.add_argument("-Ntherm",type=int,default=300,help="")
+    parser.add_argument("-Nsamples",type=int,default=500,help="")
+    parser.add_argument("-Nskips",type=int,default=1,help="")
+    parser.add_argument("-kappa",type=float,default=0.20,help="")
+    parser.add_argument("-lamb",type=float,default=1.145,help="")
+    parser.add_argument("-maximum",type=int,default=1000,help="")
+    parser.add_argument("-Nepochs",type=int,default=100,help="")
+    parser.add_argument("-Nsteps",type=int,default=500,help="")
 
-    l=4
-    dims =2
-    nvars = l**dims
-    batchSize = 100
-    trainSet = 500
-    Ntherm = 300
-    Nsamples = 500
-    Nskips = 1
-    kappa = 0.20
-    lamb = 1.145
-    maximum = 1000
-    Nepochs = 100
-    Nsteps = 500
-    supervised = True
-    saveSteps = 10
-    testSteps = 100
-    Hs = 400
-    Ht = 400
-    Nlayers = 4
-    double = True
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-supervised", action='store_true', help="supervised")
+    group.add_argument("-unsupervised", action='store_true', help="unsupervised")
+
+    parser.add_argument("-saveSteps",type=int,default=10,help="")
+    parser.add_argument("-testSteps",type=int,default=100,help="")
+    parser.add_argument("-Hs", type=int, default=10, help="")
+    parser.add_argument("-Ht", type=int, default=10, help="")
+    parser.add_argument("-float", action='store_true', help="use float32")
+    parser.add_argument("-cuda", action='store_true', help="use GPU")
+    args = parser.parse_args()
+    double = not args.float
+    nvars = args.L**args.Dims
 
     modelfolder = "data/bootstrap"
-    cuda = False
 
 
 
 
     gaussian = Gaussian([nvars])
-    buf = Buffer(maximum)
-    target = Phi4(l, dims, kappa, lamb)
+    buf = Buffer(args.maximum)
+    target = Phi4(args.L, args.Dims, args.kappa, args.lamb)
     
     #target = Ring2D()
     #nvars = 2
 
-    sList = [MLP(nvars//2, Hs) for i in range(Nlayers)]
-    tList = [MLP(nvars//2, Ht) for i in range(Nlayers)]
+    sList = [MLP(nvars//2, args.Hs) for i in range(args.Nlayers)]
+    tList = [MLP(nvars//2, args.Ht) for i in range(args.Nlayers)]
 
     gaussian = Gaussian([nvars])
 
-    model = RealNVP([nvars], sList, tList, gaussian, maskTpye="channel",name = modelfolder,double=True)
-    if cuda:
+    model = RealNVP([nvars], sList, tList, gaussian, maskTpye="channel",name = modelfolder,double=double)
+    if args.cuda:
         model = model.cuda()
 
     print("start initialization")
@@ -95,7 +102,7 @@ def main():
     cmd = ['mkdir', '-p', modelfolder]
     subprocess.check_call(cmd)
 
-    data = boot(batchSize,Ntherm,maximum//batchSize,Nskips,gaussian,target,sampler=HMCSampler)
+    data = boot(args.batchSize,args.Ntherm,args.maximum//args.batchSize,args.Nskips,gaussian,target,sampler=HMCSampler)
 
     data = np.reshape(data,[-1,nvars+1])
     buf.push(data)
@@ -103,16 +110,16 @@ def main():
 
     print("start bootstrap")
 
-    for i in range(Nepochs):
+    for i in range(args.Nepochs):
 
-        traindata = torch.from_numpy(buf.draw(trainSet))
+        traindata = torch.from_numpy(buf.draw(args.trainSet))
         print(traindata.shape)
-        strap(model,Nsteps,supervised,traindata,modelfolder,cuda,double)
+        strap(model,args.Nsteps,args.supervised,traindata,modelfolder,args.cuda,double)
 
-        data = boot(batchSize,Ntherm,Nsamples,Nskips,model,target)
+        data = boot(args.batchSize,args.Ntherm,args.Nsamples,args.Nskips,model,target)
         data = np.reshape(data,[-1,nvars+1])
         #buf.push(data)
-        if i%testSteps == 0:
+        if i%args.testSteps == 0:
             test()
 
 
