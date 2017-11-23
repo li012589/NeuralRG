@@ -7,64 +7,7 @@ from torch.autograd import Variable
 import numpy as np
 
 from model import Gaussian,MLP,RealNVP
-from train import Ring2D, Ring5, Wave, Phi4
-
-def fit(Nlayers, Hs, Ht, Nepochs, supervised, traindata, modelname, ifCuda = False,double = True):
-    LOSS=[]
-
-    h5 = h5py.File(traindata,'r')
-    if double:
-        xy = np.array(h5['results']['samples'],dtype=np.float64)
-    else:
-        xy = np.array(h5['results']['samples'],dtype=np.float32)
-    h5.close()
-
-    Nvars = xy.shape[-1] -1
-    xy.shape = (-1, Nvars +1)
-
-    x_data = Variable(torch.from_numpy(xy[:, 0:-1]))
-    if ifCuda:
-        x_data = x_data.cuda()
-
-    if supervised:
-        y_data = Variable(torch.from_numpy(xy[:, -1]))
-        if ifCuda:
-            y_data = y_data.cuda()
-
-
-    gaussian = Gaussian([Nvars])
-
-    sList = [MLP(Nvars//2, Hs) for i in range(Nlayers)]
-    tList = [MLP(Nvars//2, Ht) for i in range(Nlayers)]
-
-    model = RealNVP([Nvars], sList, tList, gaussian, maskTpye="channel",name = modelname,double=double)
-
-    if ifCuda:
-        model = model.cuda()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.001)
-    if supervised:
-        criterion = torch.nn.MSELoss(size_average=True)
-
-    for epoch in range(Nepochs):
-
-        logp = model.logProbability(x_data)
-        if supervised:
-            loss = criterion(logp, y_data)
-        else:
-            loss = -logp.mean()
-
-        print (epoch, loss.data[0])
-        LOSS.append(loss.data[0])
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        if epoch%10==0:
-            saveDict = model.saveModel({})
-            torch.save(saveDict, model.name+'/epoch'+str(epoch))
-
-    return Nvars, x_data, model, LOSS
+from train import Ring2D, Ring5, Wave, Phi4, fit
 
 if __name__=="__main__":
     import h5py
@@ -77,6 +20,7 @@ if __name__=="__main__":
     parser.add_argument("-Nepochs", type=int, default=500, help="")
     parser.add_argument("-target", default='ring2d', help="target distribution")
     parser.add_argument("-cuda", action='store_true', help="use GPU")
+    parser.add_argument("-float", action='store_true', help="use float32")
     parser.add_argument("-folder", default='data/', help="where to store results")
     parser.add_argument("-traindata", default=None, help="train data")
 
@@ -105,14 +49,30 @@ if __name__=="__main__":
     cmd = ['mkdir', '-p', modelfolder]
     subprocess.check_call(cmd)
 
-    Nvars, x_data, model, LOSS= fit(args.Nlayers,
-                                    args.Hs,
-                                    args.Ht,
+    h5 = h5py.File(args.traindata,'r')
+    if not args.float:
+        xy = np.array(h5['results']['samples'],dtype=np.float64)
+    else:
+        xy = np.array(h5['results']['samples'],dtype=np.float32)
+    h5.close()
+
+    Nvars = xy.shape[-1] -1
+    xy.shape = (-1, Nvars +1)
+
+
+    sList = [MLP(Nvars//2, args.Hs) for i in range(args.Nlayers)]
+    tList = [MLP(Nvars//2, args.Ht) for i in range(args.Nlayers)]
+
+    Nvars, x_data, model, LOSS= fit(sList,
+                                    tList,
+                                    Nvars,
                                     args.Nepochs,
                                     args.supervised,
-                                    args.traindata,
+                                    xy,
                                     modelfolder,
-                                    args.cuda)
+                                    args.cuda,
+                                    not args.float
+                                    )
 
     #after training, generate some data from the network
     Ntest = 1000
@@ -120,6 +80,9 @@ if __name__=="__main__":
         z = model.prior(Ntest, volatile=True).cuda()# prior
     else:
         z = model.prior(Ntest, volatile=True)# prior
+
+    if args.float:
+        z=z.float()
 
     x = model.generate(z)
 
