@@ -73,9 +73,6 @@ if __name__=="__main__":
     if args.cuda:
         model = model.cuda()
 
-    for i in model.parameters():
-        print(i)
-
     x_data, model, LOSS= fit(model,
                              args.Nepochs,
                              args.supervised,
@@ -84,8 +81,6 @@ if __name__=="__main__":
                              args.cuda,
                              not args.float,
                              )
-    for i in model.parameters():
-        print(i)
     #after training, generate some data from the network
     Ntest = 1000
     if args.cuda:
