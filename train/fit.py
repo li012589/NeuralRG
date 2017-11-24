@@ -9,6 +9,33 @@ import numpy as np
 from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, MCMC
 
+class Buffer(object):
+    def __init__(self,maximum,data=None):
+        self.data = data
+        self.maximum = maximum
+    def draw(self,batchSize,testBatchSize=None):
+        if batchSize >self.data.shape[0]:
+            batchSize = self.data.shape[0]
+        perm = torch.from_numpy(np.random.permutation(self.data.shape[0]))
+        if testBatchSize is None:
+            return self.data[perm[:batchSize]]
+        else:
+            train =self.data[perm[:batchSize]]
+            test = self.data[perm[batchSize:batchSize+testBatchSize]]
+            return train,test
+    def push(self,data):
+        if self.data is None:
+            self.data = data
+        else:
+            self.data = np.concatenate([self.data,data],axis=0)
+        if self.data.shape[0] > self.maximum:
+            self._maintain()
+    def kill(self,ratio):
+        pass
+    def _maintain(self):
+        perm = np.random.permutation(self.data.shape[0])
+        self.data = self.data[perm[:self.maximum]]
+
 def train(model, Nepochs, supervised, traindata, modelname, lr = 5e-4,decay = 0.001,save = True, saveSteps=10, feed=True):
     LOSS=[]
 
@@ -45,10 +72,10 @@ def train(model, Nepochs, supervised, traindata, modelname, lr = 5e-4,decay = 0.
     return  x_data, model, LOSS
 
 def test(model, supervised, testdata):
-    x_data = Variable(traindata[:, 0:-1])
+    x_data = Variable(testdata[:, 0:-1])
 
     if supervised:
-        y_data = Variable(traindata[:, -1])
+        y_data = Variable(testdata[:, -1])
         criterion = torch.nn.MSELoss(size_average=True)
 
     logp = model.logProbability(x_data)
