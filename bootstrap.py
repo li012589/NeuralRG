@@ -48,7 +48,7 @@ def main():
     parser.add_argument("-Nepochs",type=int,default=100,help="")
     parser.add_argument("-Nsteps",type=int,default=500,help="")
     parser.add_argument("-testNtherm",type=int,default=300,help="")
-    parser.add_argument("-testNsamples",type=int,default=500,help="")
+    parser.add_argument("-testNsamples",type=int,default=1000,help="")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-supervised", action='store_true', help="supervised")
