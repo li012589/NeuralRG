@@ -16,7 +16,7 @@ class Buffer(object):
     def draw(self,batchSize,testBatchSize=None):
         if batchSize >self.data.shape[0]:
             batchSize = self.data.shape[0]
-        perm = torch.from_numpy(np.random.permutation(self.data.shape[0]))
+        perm = torch.randperm(self.data.shape[0])
         if testBatchSize is None:
             return self.data[perm[:batchSize]]
         else:
@@ -33,21 +33,21 @@ class Buffer(object):
     def kill(self,ratio):
         pass
     def _maintain(self):
-        perm = np.random.permutation(self.data.shape[0])
+        perm = torch.randperm(self.data.shape[0])
         self.data = self.data[perm[:self.maximum]]
 
-def train(model, Nepochs, supervised, traindata, modelname, lr = 5e-4,decay = 0.001,save = True, saveSteps=10, feed=True):
+def train(model, Nepochs, supervised, buff, batchSize, modelname, lr = 5e-4,decay = 0.001,save = True, saveSteps=10, feed=True):
     LOSS=[]
-
-    x_data = Variable(traindata[:, 0:-1])
-
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr,  betas=(0.5, 0.9))
     if supervised:
-        y_data = Variable(traindata[:, -1])
         criterion = torch.nn.MSELoss(size_average=True)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr,  betas=(0.5, 0.9))
-
     for epoch in range(Nepochs):
+        traindata = buff.draw(batchSize)
+        x_data = Variable(traindata[:, 0:-1])
+
+        if supervised:
+            y_data = Variable(traindata[:, -1])
 
         logp = model.logProbability(x_data)
         if supervised:
@@ -71,7 +71,9 @@ def train(model, Nepochs, supervised, traindata, modelname, lr = 5e-4,decay = 0.
 
     return  x_data, model, LOSS
 
-def test(model, supervised, testdata):
+def test(model, supervised, buff, batchSize):
+
+    testdata = buff.draw(batchSize)
     x_data = Variable(testdata[:, 0:-1])
 
     if supervised:

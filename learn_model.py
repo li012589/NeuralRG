@@ -7,7 +7,7 @@ from torch.autograd import Variable
 import numpy as np
 
 from model import Gaussian,MLP,RealNVP
-from train import Ring2D, Ring5, Wave, Phi4, train
+from train import Ring2D, Ring5, Wave, Phi4, train, Buffer
 
 if __name__=="__main__":
     import h5py
@@ -64,6 +64,8 @@ if __name__=="__main__":
     if args.cuda:
         xy = xy.cuda()
 
+    buf = Buffer(int(xy.shape[0]),xy)
+
     sList = [MLP(Nvars//2, args.Hs) for i in range(args.Nlayers)]
     tList = [MLP(Nvars//2, args.Ht) for i in range(args.Nlayers)]
 
@@ -74,11 +76,11 @@ if __name__=="__main__":
         model = model.cuda()
 
     x_data, model, LOSS= train(model,
-                             args.Nepochs,
-                             args.supervised,
-                             xy,
-                             modelfolder,
-                             )
+                               args.Nepochs,
+                               args.supervised,
+                               buf,
+                               int(xy.shape[0]),
+                               modelfolder)
     #after training, generate some data from the network
     Ntest = 1000
     if args.cuda:

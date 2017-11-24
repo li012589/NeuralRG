@@ -18,11 +18,11 @@ def boot(batchSize,Ntherm,Nsamples,Nskips,prior,target,sampler = MCMC,double = T
     else:
         return torch.Tensor(data)
 
-def strap(model,nsteps,supervised,traindata,modelname,ifCuda,double,save=True,saveSteps=10):
-    _,_,_ = train(model,nsteps,supervised,traindata,modelname,save = save,saveSteps = saveSteps)
+def strap(model,nsteps,supervised,buff,batchSize,modelname,ifCuda,double,save=True,saveSteps=10):
+    _,_,_ = train(model,nsteps,supervised,buff,batchSize,modelname,save = save,saveSteps = saveSteps)
 
-def check(model,supervised,testdata):
-    loss = test(model,supervised,testdata)
+def check(model,supervised,buff,batchSize):
+    loss = test(model,supervised,buff,batchSize)
     print(loss)
 
 def main():
@@ -95,10 +95,9 @@ def main():
 
     for i in range(args.Nepochs):
 
-        traindata,testdata = buf.draw(args.trainSet,args.testSet)
-        strap(model,args.Nsteps,args.supervised,traindata,modelfolder,args.cuda,double)
+        strap(model,args.Nsteps,args.supervised,buf, args.trainSet,modelfolder,args.cuda,double)
 
-        check(model,args.supervised,testdata)
+        check(model,args.supervised,buf,args.testSet)
 
         data = boot(args.batchSize,args.Ntherm,args.Nsamples,args.Nskips,model,target)
         data = data.view(-1,nvars+1)
