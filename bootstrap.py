@@ -8,40 +8,22 @@ import numpy as np
 import subprocess
 
 from model import Gaussian,MLP,RealNVP
-from train import Ring2D, Ring5, Wave, Phi4, MCMC, HMCSampler, fit
+from train import Ring2D, Ring5, Wave, Phi4, MCMC, HMCSampler, train, test, Buffer
 
-class Buffer(object):
-    def __init__(self,maximum,data=None):
-        self.data = data
-        self.maximum = maximum
-    def draw(self,batchSize):
-        if batchSize >self.data.shape[0]:
-            batchSize = self.data.shape[0]
-        perm = np.random.permutation(self.data.shape[0])
-        return self.data[perm[:batchSize]]
-    def push(self,data):
-        if self.data is None:
-            self.data = data
-        else:
-            self.data = np.concatenate([self.data,data],axis=0)
-        if self.data.shape[0] > self.maximum:
-            self._maintain()
-    def kill(self,ratio):
-        pass
-    def _maintain(self):
-        perm = np.random.permutation(self.data.shape[0])
-        self.data = self.data[perm[:self.maximum]]
-
-def boot(batchSize,Ntherm,Nsamples,Nskips,prior,target,sampler = MCMC):
+def boot(batchSize,Ntherm,Nsamples,Nskips,prior,target,sampler = MCMC,double = True):
     sampler = sampler(target, prior, collectdata=True)
     data,_,_ = sampler.run(batchSize, Ntherm, Nsamples, Nskips)
-    return np.array(data)
+    if double:
+        return torch.Tensor(data).double()
+    else:
+        return torch.Tensor(data)
 
 def strap(model,nsteps,supervised,traindata,modelname,ifCuda,double,save=True,saveSteps=10):
-    _,_,_ = fit(model,nsteps,supervised,traindata,modelname,ifCuda,double,save = save,saveSteps = saveSteps)
+    _,_,_ = train(model,nsteps,supervised,traindata,modelname,save = save,saveSteps = saveSteps)
 
-def test():
-    pass
+def check(model,supervised,testdata):
+    loss = test(model,supervised,testdata)
+    print(loss)
 
 def main():
     #from utils.autoCorrelation import autoCorrelationTimewithErr
@@ -53,12 +35,13 @@ def main():
     parser.add_argument("-Dims",type=int,default=2,help="")
     parser.add_argument("-batchSize",type=int,default=16,help="")
     parser.add_argument("-trainSet",type=int,default=1000,help="")
+    parser.add_argument("-testSet",type=int,default=500,help="")
     parser.add_argument("-Ntherm",type=int,default=300,help="")
     parser.add_argument("-Nsamples",type=int,default=500,help="")
     parser.add_argument("-Nskips",type=int,default=1,help="")
     parser.add_argument("-kappa",type=float,default=0.20,help="")
     parser.add_argument("-lamb",type=float,default=1.145,help="")
-    parser.add_argument("-maximum",type=int,default=1000,help="")
+    parser.add_argument("-maximum",type=int,default=10000,help="")
     parser.add_argument("-Nepochs",type=int,default=100,help="")
     parser.add_argument("-Nsteps",type=int,default=500,help="")
 
@@ -104,7 +87,7 @@ def main():
 
     data = boot(args.batchSize,args.Ntherm,args.maximum//args.batchSize,args.Nskips,gaussian,target,sampler=HMCSampler)
 
-    data = np.reshape(data,[-1,nvars+1])
+    data = data.view(-1,nvars+1)
     buf.push(data)
     print("finish initialise buffer")
 
@@ -112,15 +95,14 @@ def main():
 
     for i in range(args.Nepochs):
 
-        traindata = torch.from_numpy(buf.draw(args.trainSet))
-        print(traindata.shape)
+        traindata,testdata = buf.draw(args.trainSet,args.testSet)
         strap(model,args.Nsteps,args.supervised,traindata,modelfolder,args.cuda,double)
 
+        check(model,args.supervised,testdata)
+
         data = boot(args.batchSize,args.Ntherm,args.Nsamples,args.Nskips,model,target)
-        data = np.reshape(data,[-1,nvars+1])
+        data = data.view(-1,nvars+1)
         #buf.push(data)
-        if i%args.testSteps == 0:
-            test()
 
 
 if __name__ == "__main__":
