@@ -43,6 +43,9 @@ class MLP(nn.Module):
         x = self.fc2(x)
         return x
 
+class FC(nn.Module):
+    def __init__(self,wList):
+        pass
 
 class CNN(nn.Module):
     """
