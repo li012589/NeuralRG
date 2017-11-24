@@ -33,7 +33,6 @@ def main():
     #from utils.acceptRate import acceptanceRate
     import argparse
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument("-Nlayers", type=int, default=8, help="")
     parser.add_argument("-L",type=int,default=4,help="")
     parser.add_argument("-Dims",type=int,default=2,help="")
     parser.add_argument("-batchSize",type=int,default=16,help="")
@@ -56,8 +55,9 @@ def main():
 
     parser.add_argument("-saveSteps",type=int,default=10,help="")
     parser.add_argument("-testSteps",type=int,default=100,help="")
-    parser.add_argument("-Hs", type=int, default=10, help="")
-    parser.add_argument("-Ht", type=int, default=10, help="")
+    parser.add_argument("-Nlayers", type=int, default=8, help="")
+    parser.add_argument("-Hs", type=int, default=400, help="")
+    parser.add_argument("-Ht", type=int, default=400, help="")
     parser.add_argument("-float", action='store_true', help="use float32")
     parser.add_argument("-cuda", action='store_true', help="use GPU")
     args = parser.parse_args()
