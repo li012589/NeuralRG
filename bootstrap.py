@@ -21,9 +21,12 @@ def boot(batchSize,Ntherm,Nsamples,Nskips,prior,target,sampler = MCMC,double = T
 def strap(model,nsteps,supervised,buff,batchSize,modelname,ifCuda,double,save=True,saveSteps=10):
     _,_,_ = train(model,nsteps,supervised,buff,batchSize,modelname,save = save,saveSteps = saveSteps)
 
-def check(model,supervised,buff,batchSize):
+def check(target,model,prior,Ntherm,Nsamples,supervised,buff,batchSize):
     loss = test(model,supervised,buff,batchSize)
-    print(loss)
+    sampler = MCMC(target, prior, collectdata=True)
+    _,_,accratio = sampler.run(batchSize, Ntherm, Nsamples, 1)
+    print(accratio)
+    return loss,accratio
 
 def main():
     #from utils.autoCorrelation import autoCorrelationTimewithErr
@@ -44,6 +47,8 @@ def main():
     parser.add_argument("-maximum",type=int,default=10000,help="")
     parser.add_argument("-Nepochs",type=int,default=100,help="")
     parser.add_argument("-Nsteps",type=int,default=500,help="")
+    parser.add_argument("-testNtherm",type=int,default=300,help="")
+    parser.add_argument("-testNsamples",type=int,default=500,help="")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-supervised", action='store_true', help="supervised")
@@ -97,11 +102,14 @@ def main():
 
         strap(model,args.Nsteps,args.supervised,buf, args.trainSet,modelfolder,args.cuda,double)
 
-        check(model,args.supervised,buf,args.testSet)
-
-        data = boot(args.batchSize,args.Ntherm,args.Nsamples,args.Nskips,model,target)
+        _,accratio = check(target,model,gaussian,args.testNtherm,args.testNsamples,args.supervised,buf,args.batchSize)
+        if(accratio>=0.25):
+            data = boot(args.batchSize,args.Ntherm,args.Nsamples,args.Nskips,model,target)
+        else:
+            print("use hmc to generate some samples")
+            data = boot(args.batchSize,args.Ntherm,maximum//args.batchSize,args.Nskips,gaussian,target)
         data = data.view(-1,nvars+1)
-        #buf.push(data)
+        buf.push(data)
 
 
 if __name__ == "__main__":
