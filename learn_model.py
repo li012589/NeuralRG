@@ -7,7 +7,7 @@ from torch.autograd import Variable
 import numpy as np
 
 from model import Gaussian,MLP,RealNVP
-from train import Ring2D, Ring5, Wave, Phi4, fit
+from train import Ring2D, Ring5, Wave, Phi4, train
 
 if __name__=="__main__":
     import h5py
@@ -73,13 +73,11 @@ if __name__=="__main__":
     if args.cuda:
         model = model.cuda()
 
-    x_data, model, LOSS= fit(model,
+    x_data, model, LOSS= train(model,
                              args.Nepochs,
                              args.supervised,
                              xy,
                              modelfolder,
-                             args.cuda,
-                             not args.float,
                              )
     #after training, generate some data from the network
     Ntest = 1000
