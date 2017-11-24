@@ -27,7 +27,7 @@ class Buffer(object):
         if self.data is None:
             self.data = data
         else:
-            self.data = np.concatenate([self.data,data],axis=0)
+            self.data = torch.cat([self.data,data],0)
         if self.data.shape[0] > self.maximum:
             self._maintain()
     def kill(self,ratio):
