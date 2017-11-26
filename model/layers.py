@@ -44,8 +44,22 @@ class MLP(nn.Module):
         return x
 
 class FC(nn.Module):
-    def __init__(self,wList):
-        pass
+    def __init__(self,dList):
+        super(FC,self).__init__()
+        fcList = []
+        for i, d in enumerate(dList):
+            if i == 0:
+                pass
+            else:
+                fcList.append(nn.Linear(dList[i-1],dList[i]))
+                if i < len(dList)-1:
+                    fcList.append(nn.ReLU())
+        self.fcList = torch.nn.ModuleList(fcList)
+    def forward(self,x):
+        tmp = x
+        for i in self.fcList:
+            tmp = i(tmp)
+        return tmp
 
 class CNN(nn.Module):
     """
