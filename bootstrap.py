@@ -7,7 +7,7 @@ from torch.autograd import Variable
 import numpy as np
 import subprocess
 
-from model import Gaussian,MLP,RealNVP
+from model import Gaussian,MLP,RealNVP,FC
 from train import Ring2D, Ring5, Wave, Phi4, MCMC, HMCSampler, train, test, Buffer
 
 def boot(batchSize,Ntherm,Nsamples,Nskips,prior,target,sampler = MCMC,double = True):
@@ -78,6 +78,9 @@ def main():
 
     sList = [MLP(nvars//2, args.Hs) for i in range(args.Nlayers)]
     tList = [MLP(nvars//2, args.Ht) for i in range(args.Nlayers)]
+
+    sList = [FC([nvars//2, 100,200,300,200,100,nvars//2]) for _ in range(args.Nlayers)]
+    tList = [FC([nvars//2, 100,200,300,200,100,nvars//2]) for _ in range(args.Nlayers)]
 
     gaussian = Gaussian([nvars])
 
