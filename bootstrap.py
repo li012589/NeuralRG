@@ -21,9 +21,9 @@ def boot(batchSize,Ntherm,Nsamples,Nskips,prior,target,sampler = MCMC,double = T
 def strap(model,nsteps,supervised,buff,batchSize,modelname,ifCuda,double,save=True,saveSteps=10):
     _,_,_ = train(model,nsteps,supervised,buff,batchSize,modelname,save = save,saveSteps = saveSteps)
 
-def check(target,model,prior,Ntherm,Nsamples,supervised,buff,batchSize):
+def check(target,model,Ntherm,Nsamples,supervised,buff,batchSize):
     loss = test(model,supervised,buff,batchSize)
-    sampler = MCMC(target, prior, collectdata=True)
+    sampler = MCMC(target, model, collectdata=True)
     _,_,accratio = sampler.run(batchSize, Ntherm, Nsamples, 1)
     print(accratio)
     return loss,accratio
@@ -105,7 +105,7 @@ def main():
 
         strap(model,args.Nsteps,args.supervised,buf, args.trainSet,modelfolder,args.cuda,double)
 
-        _,accratio = check(target,model,gaussian,args.testNtherm,args.testNsamples,args.supervised,buf,args.batchSize)
+        _,accratio = check(target,model,args.testNtherm,args.testNsamples,args.supervised,buf,args.batchSize)
         if(accratio>=0.25):
             data = boot(args.batchSize,args.Ntherm,args.Nsamples,args.Nskips,model,target)
         else:
