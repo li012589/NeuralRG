@@ -13,7 +13,7 @@ class MLP(nn.Module):
 
     """
 
-    def __init__(self, inNum, hideNum, name="mlp"):
+    def __init__(self, inNum, hideNum, name="mlp", activation = F.relu):
         """
 
         This mehtod initialise this class.
@@ -27,6 +27,7 @@ class MLP(nn.Module):
         self.fc1 = nn.Linear(inNum, hideNum)
         self.fc2 = nn.Linear(hideNum, inNum)
         self.name = name
+        self.activation = activation
 
     def forward(self, x):
         """
@@ -39,14 +40,16 @@ class MLP(nn.Module):
 
         """
         x = self.fc1(x)
-        x = F.relu(x)
+        x = self.activation(x)
         x = self.fc2(x)
         return x
 
 class FC(nn.Module):
-    def __init__(self,dList):
+    def __init__(self,dList, name="FC", activation =F.relu):
         super(FC,self).__init__()
         fcList = []
+        self.name = name
+        self.activation = activation
         for i, d in enumerate(dList):
             if i == 0:
                 pass
