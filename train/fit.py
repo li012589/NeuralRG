@@ -49,14 +49,14 @@ def train(model, Nepochs, supervised, buff, batchSize, modelname, lr = 5e-4,deca
         if supervised:
             y_data = Variable(traindata[:, -1])
 
-        logp = model.logProbability(x_data)
+        logp,z = model.logProbabilityWithInference(x_data)
         if supervised:
             loss = criterion(logp, y_data)
         else:
             loss = -logp.mean()
 
         if feed:
-            print (epoch, loss.data[0])
+            print ("epoch:",epoch, "loss:",loss.data[0], "z mean:",np.mean(z.data.numpy()),"z std:",np.std(z.data.numpy()))
         LOSS.append(loss.data[0])
 
         optimizer.zero_grad()
