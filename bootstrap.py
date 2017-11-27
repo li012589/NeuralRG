@@ -111,6 +111,7 @@ def main():
             data = boot(args.batchSize,args.Ntherm,args.Nsamples,args.Nskips,model,target)
         else:
             print("use hmc to generate some samples")
+            torch.manual_seed(i+100)
             data = boot(args.batchSize,args.Ntherm,args.maximum//args.batchSize,args.Nskips,gaussian,target,sampler=HMCSampler)
         data = data.view(-1,nvars+1)
         buf.push(data)
