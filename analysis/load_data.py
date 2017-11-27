@@ -5,13 +5,13 @@ import numpy as np
 def figure1(h5):
 
     logp_model_train = np.array(h5['results']['logp_model_train'])
-    logp_model_test= np.array(h5['results']['logp_model_test'])
+    #logp_model_test= np.array(h5['results']['logp_model_test'])
     logp_data_train = np.array(h5['results']['logp_data_train'])
-    logp_data_test = np.array(h5['results']['logp_data_test'])
+    #logp_data_test = np.array(h5['results']['logp_data_test'])
 
     plt.figure()
     plt.scatter(logp_model_train, logp_data_train, alpha=0.5, label='training samples')
-    plt.scatter(logp_model_test, logp_data_test, alpha=0.5, label='generated samples')
+    #plt.scatter(logp_model_test, logp_data_test, alpha=0.5, label='generated samples')
     plt.xlabel('$\log{P(model)}$')
     plt.ylabel('$\log{P(baseline)}$')
     plt.legend()

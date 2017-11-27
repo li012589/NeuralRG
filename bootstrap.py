@@ -41,7 +41,7 @@ def main():
     parser.add_argument("-Ntherm",type=int,default=300,help="")
     parser.add_argument("-Nsamples",type=int,default=500,help="")
     parser.add_argument("-Nskips",type=int,default=1,help="")
-    parser.add_argument("-kappa",type=float,default=0.20,help="")
+    parser.add_argument("-kappa",type=float,default=0.15,help="")
     parser.add_argument("-lamb",type=float,default=1.145,help="")
     parser.add_argument("-maximum",type=int,default=10000,help="")
     parser.add_argument("-Nepochs",type=int,default=100,help="")
