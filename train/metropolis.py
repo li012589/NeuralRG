@@ -79,7 +79,6 @@ class MCMC:
                 zpack.append(np.concatenate((z_, logp), axis=1))
             measure = self.measure(z)
             measurePack.append(measure)
-        print("accetped: ", accratio, " times ")
         accratio /= float(nmeasure * nskip)
 
         print ('#accratio:', accratio)
