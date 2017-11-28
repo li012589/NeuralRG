@@ -94,7 +94,7 @@ def main():
     cmd = ['mkdir', '-p', modelfolder]
     subprocess.check_call(cmd)
 
-    data = boot(args.batchSize,args.Ntherm,args.maximum//args.batchSize,args.Nskips,gaussian,target,sampler=HMCSampler)
+    data = boot(args.batchSize,args.Ntherm,buf.capacity//args.batchSize,args.Nskips,gaussian,target,sampler=HMCSampler)
 
     data = data.view(-1,nvars+1)
     buf.push(data)
@@ -112,7 +112,7 @@ def main():
         else:
             print("use hmc to generate some samples")
             torch.manual_seed(i*5+3)
-            data = boot(args.batchSize,args.Ntherm,args.maximum//args.batchSize,args.Nskips,gaussian,target,sampler=HMCSampler)
+            data = boot(args.batchSize,args.Ntherm,buf.capacity//args.batchSize,args.Nskips,gaussian,target,sampler=HMCSampler)
         data = data.view(-1,nvars+1)
         buf.push(data)
 
