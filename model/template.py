@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
+from utils import checkNan
 
 class RealNVPtemplate(torch.nn.Module):
     """
