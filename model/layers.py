@@ -13,7 +13,7 @@ class MLP(nn.Module):
 
     """
 
-    def __init__(self, inNum, hideNum, name="mlp", activation = F.relu):
+    def __init__(self, inNum, hideNum, name="mlp", activation = F.tanh):
         """
 
         This mehtod initialise this class.
@@ -45,8 +45,10 @@ class MLP(nn.Module):
         return x
 
 class FC(nn.Module):
-    def __init__(self,dList, name="FC", activation =F.relu):
+    def __init__(self,dList, name="FC", activation=None):
         super(FC,self).__init__()
+        if activation is None:
+            activation = [F.tanh for _ in range(len(dList)-1)]
         fcList = []
         self.name = name
         self.activation = activation
@@ -55,8 +57,7 @@ class FC(nn.Module):
                 pass
             else:
                 fcList.append(nn.Linear(dList[i-1],dList[i]))
-                if i < len(dList)-1:
-                    fcList.append(nn.ReLU())
+                fcList.append(activation[i])
         self.fcList = torch.nn.ModuleList(fcList)
     def forward(self,x):
         tmp = x
