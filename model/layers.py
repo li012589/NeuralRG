@@ -58,8 +58,10 @@ class FC(nn.Module):
     def __init__(self,dList, name="FC", activation=None):
         super(FC,self).__init__()
         if activation is None:
-            activation = [F.relu for _ in range(len(dList)-2)]
+            activation = [nn.ReLU for _ in range(len(dList)-1)]
             activation.append(F.tanh)
+        self.activation = activation
+        assert(len(dList) == len(activation))
         fcList = []
         self.name = name
         self.activation = activation
@@ -68,12 +70,12 @@ class FC(nn.Module):
                 pass
             else:
                 fcList.append(nn.Linear(dList[i-1],dList[i]))
-                fcList.append(activation[i])
         self.fcList = torch.nn.ModuleList(fcList)
     def forward(self,x):
         tmp = x
-        for i in self.fcList:
-            tmp = i(tmp)
+        for i,layer in enumerate(self.fcList):
+            tmp = layer(tmp)
+            tmp = self.activation[i](tmp)
         return tmp
 
 class CNN(nn.Module):
