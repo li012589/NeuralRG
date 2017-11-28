@@ -76,11 +76,11 @@ def main():
     #target = Ring2D()
     #nvars = 2
 
-    sList = [MLP(nvars//2, args.Hs) for i in range(args.Nlayers)]
-    tList = [MLP(nvars//2, args.Ht) for i in range(args.Nlayers)]
+    #sList = [MLP(nvars//2, args.Hs) for i in range(args.Nlayers)]
+    #tList = [MLP(nvars//2, args.Ht) for i in range(args.Nlayers)]
 
-    #sList = [FC([nvars//2, 100,200,300,200,100,nvars//2]) for _ in range(args.Nlayers)]
-    #tList = [FC([nvars//2, 100,200,300,200,100,nvars//2]) for _ in range(args.Nlayers)]
+    sList = [FC([nvars//2, 100,200,300,200,100,nvars//2]) for _ in range(args.Nlayers)]
+    tList = [FC([nvars//2, 100,200,300,200,100,nvars//2]) for _ in range(args.Nlayers)]
 
     gaussian = Gaussian([nvars])
 
