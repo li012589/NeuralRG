@@ -58,7 +58,8 @@ class FC(nn.Module):
     def __init__(self,dList, name="FC", activation=None):
         super(FC,self).__init__()
         if activation is None:
-            activation = [F.tanh for _ in range(len(dList)-1)]
+            activation = [F.relu for _ in range(len(dList)-2)]
+            activation.append(F.tanh)
         fcList = []
         self.name = name
         self.activation = activation
