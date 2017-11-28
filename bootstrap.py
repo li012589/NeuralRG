@@ -106,7 +106,7 @@ def main():
 
         strap(model,args.Nsteps,args.supervised,buf, args.trainSet,modelfolder,args.cuda,double)
 
-        _,accratio = check(target,model,args.testNtherm,args.testNsamples,args.supervised,buf,args.batchSize)
+        _,accratio = check(target,model,args.testNtherm,args.testNsamples,args.supervised,buf,args.testSet)
         if(accratio>=0.25):
             data = boot(args.batchSize,args.Ntherm,args.Nsamples,args.Nskips,model,target)
         else:
