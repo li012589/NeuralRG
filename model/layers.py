@@ -3,6 +3,15 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 
+class scalableTanh(nn.Module):
+    def __init__(self,inNum):
+        super(scalableTanh,self).__init__()
+        self.scale = nn.Parameter(torch.randn(inNum))
+    def forward(self,input):
+        input = F.tanh(input)
+        input = input*self.scale
+        return input
+
 class MLP(nn.Module):
     """
 
@@ -40,8 +49,9 @@ class MLP(nn.Module):
 
         """
         x = self.fc1(x)
-        x = self.activation(x)
+        x = F.relu(x)
         x = self.fc2(x)
+        x = self.activation(x)
         return x
 
 class FC(nn.Module):
