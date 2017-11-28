@@ -36,7 +36,6 @@ class Buffer(object):
         if testBatchSize>int(self.maximum*(self.testRatio)):
             testBatchSize = int(self.maximum*(self.testRatio))
         else:
-            print(testBatchSize)
             test = self.data[-testBatchSize:-1]
             return test
     def push(self,data):
