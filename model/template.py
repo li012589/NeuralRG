@@ -116,6 +116,7 @@ class RealNVPtemplate(torch.nn.Module):
                 y_ = mask * y
                 s = self.sList[i](y_) * mask_
                 t = self.tList[i](y_) * mask_
+                checkNan(s)
                 y = y_ + mask_ * (y * torch.exp(s) + t)
                 if ifLogjac:
                     for _ in self.shapeList:
@@ -125,6 +126,7 @@ class RealNVPtemplate(torch.nn.Module):
                 y_ = mask_ * y
                 s = self.sList[i](y_) * mask
                 t = self.tList[i](y_) * mask
+                checkNan(s)
                 y = y_ + mask * (y * torch.exp(s) + t)
                 if ifLogjac:
                     for _ in self.shapeList:
@@ -149,6 +151,7 @@ class RealNVPtemplate(torch.nn.Module):
             if (i % 2 == 0):
                 s = self.sList[i](y0)
                 t = self.tList[i](y0)
+                checkNan(s)
                 y1 = y1 * torch.exp(s) + t
                 if ifLogjac:
                     for _ in self.shapeList:
@@ -157,6 +160,7 @@ class RealNVPtemplate(torch.nn.Module):
             else:
                 s = self.sList[i](y1)
                 t = self.tList[i](y1)
+                checkNan(s)
                 y0 = y0 * torch.exp(s) + t
                 if ifLogjac:
                     for _ in self.shapeList:
@@ -285,6 +289,7 @@ class RealNVPtemplate(torch.nn.Module):
                 y_ = mask * y
                 s = self.sList[i](y_) * mask_
                 t = self.tList[i](y_) * mask_
+                checkNan(s)
                 y = mask_ * (y - t) * torch.exp(-s) + y_
                 if ifLogjac:
                     for _ in self.shapeList:
@@ -294,6 +299,7 @@ class RealNVPtemplate(torch.nn.Module):
                 y_ = mask_ * y
                 s = self.sList[i](y_) * mask
                 t = self.tList[i](y_) * mask
+                checkNan(s)
                 y = mask * (y - t) * torch.exp(-s) + y_
                 if ifLogjac:
                     for _ in self.shapeList:
@@ -318,6 +324,7 @@ class RealNVPtemplate(torch.nn.Module):
             if (i % 2 == 0):
                 s = self.sList[i](y0)
                 t = self.tList[i](y0)
+                checkNan(s)
                 y1 = (y1 - t) * torch.exp(-s)
                 if ifLogjac:
                     for _ in self.shapeList:
@@ -326,6 +333,7 @@ class RealNVPtemplate(torch.nn.Module):
             else:
                 s = self.sList[i](y1)
                 t = self.tList[i](y1)
+                checkNan(s)
                 y0 = (y0 - t) * torch.exp(-s)
                 if ifLogjac:
                     for _ in self.shapeList:
