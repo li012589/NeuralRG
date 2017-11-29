@@ -29,7 +29,9 @@ parser.add_argument("-Nlayers", type=int, default=8, help="")
 parser.add_argument("-Hs", type=int, default=400, help="")
 parser.add_argument("-Ht", type=int, default=400, help="")
 parser.add_argument("-modelname", default=None, help="")
+parser.add_argument("-generate", action = 'store_true', help="")
 args = parser.parse_args()
+
 
 nvars = args.L**args.Dims
 target = Phi4(args.L, args.Dims, args.kappa, args.lamb)
@@ -59,19 +61,28 @@ sampler = HMCSampler(target, gaussian, collectdata=True)
 data,_,_ = sampler.run(args.batchSize, args.Ntherm, args.Nsamples, args.Nskips)
 data = torch.Tensor(data).double()
 
+if args.generate:
+    test = model.sample(args.Nsamples*args.batchSize)
+    test = test.view(-1,nvars)
+
 data = data.view(-1,nvars+1)
 data = data[:,:-1]
 
-print(data.shape)
+#print(data.shape)
 
 logp_model_train = model.logProbability(Variable(data))
 logp_data_train = target(data)
+if args.generate:
+    logp_model_test = model.logProbability(test)
+    logp_data_test = target(test.data)
 
-print(type(logp_model_train))
-print(type(logp_data_train))
+#print(type(logp_model_train))
+#print(type(logp_data_train))
 
 plt.figure()
 plt.scatter(logp_model_train.data.numpy(), logp_data_train.numpy(), alpha=0.5, label='training samples')
+if args.generate:
+    plt.scatter(logp_model_test.data.numpy(), logp_data_test.numpy(), alpha=0.5, label='generated samples')
 plt.xlabel('$\log{P(model)}$')
 plt.ylabel('$\log{P(baseline)}$')
 plt.legend()
