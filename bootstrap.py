@@ -53,6 +53,7 @@ def main():
     group.add_argument("-supervised", action='store_true', help="supervised")
     group.add_argument("-unsupervised", action='store_true', help="unsupervised")
 
+    parser.add_argument("-boot",type=float,default=0.6,help="")
     parser.add_argument("-saveSteps",type=int,default=10,help="")
     parser.add_argument("-testSteps",type=int,default=100,help="")
     parser.add_argument("-Nlayers", type=int, default=8, help="")
@@ -76,11 +77,11 @@ def main():
     #target = Ring2D()
     #nvars = 2
 
-    #sList = [MLP(nvars//2, args.Hs) for i in range(args.Nlayers)]
-    #tList = [MLP(nvars//2, args.Ht) for i in range(args.Nlayers)]
+    sList = [MLP(nvars//2, args.Hs) for i in range(args.Nlayers)]
+    tList = [MLP(nvars//2, args.Ht) for i in range(args.Nlayers)]
 
-    sList = [FC([nvars//2, 100,200,300,200,100,nvars//2]) for _ in range(args.Nlayers)]
-    tList = [FC([nvars//2, 100,200,300,200,100,nvars//2]) for _ in range(args.Nlayers)]
+    #sList = [FC([nvars//2, 100,200,300,200,100,nvars//2]) for _ in range(args.Nlayers)]
+    #tList = [FC([nvars//2, 100,200,300,200,100,nvars//2]) for _ in range(args.Nlayers)]
 
     gaussian = Gaussian([nvars])
 
@@ -107,7 +108,7 @@ def main():
         strap(model,args.Nsteps,args.supervised,buf, args.trainSet,modelfolder,args.cuda,double)
 
         _,accratio = check(target,model,args.testNtherm,args.testNsamples,args.supervised,buf,args.testSet)
-        if(accratio>=0.25):
+        if(accratio>=args.boot):
             data = boot(args.batchSize,args.Ntherm,args.Nsamples,args.Nskips,model,target)
         else:
             print("use hmc to generate some samples")
