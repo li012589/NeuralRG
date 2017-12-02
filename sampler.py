@@ -9,7 +9,7 @@ from torch.autograd import Variable
 import numpy as np
 
 from model import Gaussian, MLP, RealNVP
-from train.objectives import Ring2D, Ring5, Wave, Phi4
+from train.objectives import Ring2D, Ring5, Wave, Phi4, Ising
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument("-target", default='ring2d',
@@ -43,6 +43,8 @@ elif args.target == 'wave':
     target = Wave()
 elif args.target == 'phi4':
     target = Phi4(4, 2, 0.15, 1.145)
+elif args.target == 'ising':
+    target = Ising()
 else:
     print('what target ?', args.target)
     sys.exit(1)
