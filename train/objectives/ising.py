@@ -3,15 +3,17 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import numpy as np
 from scipy.linalg import eigh 
+
 from .template import Target
+from .lattice import Hypercube
 
 class Ising(Target):
 
-    def __init__(self):
-        super(Ising, self).__init__(2,'Ising')
-        A = np.array([[0., 1.],
-                      [1., 0.]], 
-                      dtype=np.float64)
+    def __init__(self, L, d, K):
+        super(Ising, self).__init__(L**d,'Ising')
+
+        lattice = Hypercube(L, d)
+        A = lattice.Adj * K
     
         w, v = eigh(A)    
         self.d = 1-w.min()
@@ -21,7 +23,7 @@ class Ising(Target):
         #print (self.d)
         #print (v)
         #print (self.Lambda)
-        #print (self.VT)
+        print (self.VT)
 
     def energy(self, x): # actually logp
         return -0.5*(x**2/self.Lambda).sum(dim=1) \
@@ -35,7 +37,8 @@ class Ising(Target):
 
 if __name__=='__main__':
     torch.manual_seed(42)
-    ising = Ising() 
+    K = -1.0 
+    ising = Ising(K) 
     x = Variable(torch.randn(10, 2).double())
     print (x)
     print (ising.energy(x))

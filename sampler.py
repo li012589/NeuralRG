@@ -20,6 +20,11 @@ parser.add_argument("-folder", default='data/',
                     help="where to store results")
 parser.add_argument("-savename", default=None, help="")
 
+group = parser.add_argument_group('model parameters')
+group.add_argument("-L",type=int, default=2,help="linear size")
+group.add_argument("-d",type=int, default=1,help="dimension")
+group.add_argument("-K",type=float, default=1.0,help="K")
+
 group = parser.add_argument_group('mc parameters')
 group.add_argument("-sampler",default='metropolis',help="")
 group.add_argument("-Batchsize", type=int, default=16, help="")
@@ -44,7 +49,7 @@ elif args.target == 'wave':
 elif args.target == 'phi4':
     target = Phi4(4, 2, 0.15, 1.145)
 elif args.target == 'ising':
-    target = Ising()
+    target = Ising(args.L, args.d, args.K)
 else:
     print('what target ?', args.target)
     sys.exit(1)
