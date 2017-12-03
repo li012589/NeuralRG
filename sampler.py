@@ -31,6 +31,8 @@ group.add_argument("-Batchsize", type=int, default=16, help="")
 group.add_argument("-Ntherm", type=int, default=300, help="")
 group.add_argument("-Nsamples", type=int, default=1000, help="")
 group.add_argument("-Nskips", type=int, default=1, help="")
+group.add_argument("-stepSize", type=float, default=0.1, help="")
+group.add_argument("-interSteps", type=int, default=10, help="")
 
 group = parser.add_argument_group('network parameters')
 group.add_argument("-modelname", default=None, help="")
@@ -78,7 +80,7 @@ if args.sampler == 'metropolis':
     sampler = MCMC(target, model, collectdata=args.collectdata)
 elif args.sampler == 'hmc':
     print("using HMC as sampler")
-    sampler = HMCSampler(target, model, collectdata=args.collectdata)
+    sampler = HMCSampler(target, model, collectdata=args.collectdata, interSteps=args.interSteps)
 data,measurements,accratio = sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
 cmd = ['mkdir', '-p', args.folder]
 subprocess.check_call(cmd)

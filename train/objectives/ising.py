@@ -16,8 +16,8 @@ class Ising(Target):
         A = lattice.Adj * K
     
         w, v = eigh(A)    
-        self.d = 1.0-w.min()
-        self.Lambda = Variable(torch.from_numpy(w+self.d).view(-1,len(w)),  requires_grad=False)
+        d = 1.0-w.min()
+        self.Lambda = Variable(torch.from_numpy(w+d).view(-1,len(w)),  requires_grad=False)
         self.VT = Variable( torch.from_numpy(v.transpose()), requires_grad=False)
     
         #print (self.d)
@@ -32,10 +32,10 @@ class Ising(Target):
     def measure(self, x):
         p = torch.sigmoid(2.*torch.mm(Variable(x), self.VT)) 
         #sample spin
-        s = 2*torch.bernoulli(p).data.numpy()-1
+        #s = 2*torch.bernoulli(p).data.numpy()-1
         #return (s.mean(axis=1))**2
-        for i in range(s.shape[0]):
-            print (' '.join(map(str, s[i,:])))
+        #for i in range(s.shape[0]):
+        #    print (' '.join(map(str, s[i,:])))
  
         #improved estimato 
         s = 2.*p.data.numpy() - 1. 

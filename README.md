@@ -74,3 +74,10 @@ python ./sampler.py -target ring2d -modelname data/ring2d_Nl8_Hs10_Ht10_sl/epoch
 ```
 
 By providing `-collectdata` to the command, one will get new train data. Which can be used to improve the model. 
+
+Run it for Ising model:
+
+```python
+python sampler.py -target ising -Nsamples 1000  -Nskip 1 -Batchsize 10 -collectdata  -K 0.44068679350977147  -L 4 -d 2  -sampler hmc -interSteps 100 -stepSize 0.1 
+```
+
