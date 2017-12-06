@@ -96,21 +96,29 @@ class MCMC:
         accept = self._accept(
             self.target(x.data) - self.prior.logProbability(x).data,
             self.target(z) - self.prior.logProbability(Variable(z, volatile=True)).data)
-        accept = 1-accept.view(batchSize, -1)
 
-        x.data.masked_scatter_(accept, torch.masked_select(z, accept))
-
-        #print (self.target(x.data))
-        #print (self.prior.logProbability(x)) 
-        #print (self.target(z))
-        #print (self.prior.logProbability(Variable(z)))
+        #print ('pix', self.target(x.data))
+        #print ('px', self.prior.logProbability(x)) 
+        #print ('piz', self.target(z))
+        #print ('pz', self.prior.logProbability(Variable(z)))
 
         A =torch.exp(-F.relu(-Variable(self.target(x.data)) 
                              + self.prior.logProbability(x)  
                              + Variable(self.target(z))     
                              - self.prior.logProbability(Variable(z)) 
-                      ))
-        #print (A)
+            ))
+
+        #A =torch.exp(Variable(self.target(x.data)) 
+        #                     - self.prior.logProbability(x)  
+        #                     - Variable(self.target(z))     
+        #                     + self.prior.logProbability(Variable(z)) 
+        #    )
+
+        #print (accept.float().mean())
+        #print (A.mean())
+
+        accept = 1-accept.view(batchSize, -1)
+        x.data.masked_scatter_(accept, torch.masked_select(z, accept))
         return A,x.data
 
     def measure(self, x,measureFn=None):
