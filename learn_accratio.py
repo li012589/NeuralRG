@@ -10,7 +10,7 @@ from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, MCMC
 
 
-def learn_acc(target, model, Nepochs, Batchsize, modelname, lr = 5e-4,decay = 0.001,save = True, saveSteps=10):
+def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr = 5e-4,decay = 0.001,save = True, saveSteps=10):
     LOSS=[]
 
     sampler = MCMC(target, model)
@@ -18,10 +18,9 @@ def learn_acc(target, model, Nepochs, Batchsize, modelname, lr = 5e-4,decay = 0.
     optimizer = torch.optim.Adam(model.parameters(), lr=lr,  betas=(0.5, 0.9))
 
     for epoch in range(Nepochs):
-        _, _ ,accratio = sampler.run(Batchsize, 100, 100, 1)
+        _, _ ,accratio = sampler.run(Batchsize, 100, Nsamples, 1)
 
         #print (accratio, type(accratio)) 
-        #loss = -torch.log(accratio.mean())
         loss = -accratio.mean()
 
         print ("epoch:",epoch, "loss:",loss.data[0])
@@ -50,6 +49,7 @@ if __name__=="__main__":
     parser.add_argument("-Nepochs", type=int, default=500, help="")
     parser.add_argument("-target", default='ring2d', help="target distribution")
     parser.add_argument("-Batchsize", type=int, default=64, help="")
+    parser.add_argument("-Nsamples", type=int, default=100, help="")
     parser.add_argument("-cuda", action='store_true', help="use GPU")
     parser.add_argument("-float", action='store_true', help="use float32")
 
@@ -82,7 +82,7 @@ if __name__=="__main__":
     if args.cuda:
         model = model.cuda()
 
-    model, LOSS= learn_acc(target, model,args.Nepochs,args.Batchsize, 'learn_acc')
+    model, LOSS= learn_acc(target, model,args.Nepochs,args.Batchsize, args.Nsamples,'learn_acc')
 
     #after training, generate some data from the network
     Ntest = 1000
@@ -97,6 +97,7 @@ if __name__=="__main__":
     x = x.cpu().data.numpy()
     
     #get samples from the trained MCMC 
+    Ntest = Ntest//args.Batchsize
     sampler = MCMC(target, model, collectdata=True)
     samples, _ ,accratio = sampler.run(args.Batchsize, 100, Ntest, 1)
     samples = np.array(samples)

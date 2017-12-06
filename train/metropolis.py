@@ -102,11 +102,11 @@ class MCMC:
         #print ('piz', self.target(z))
         #print ('pz', self.prior.logProbability(Variable(z)))
 
-        A =torch.exp(-F.relu(-Variable(self.target(x.data)) 
+        A =-F.relu(-Variable(self.target(x.data)) 
                              + self.prior.logProbability(x)  
                              + Variable(self.target(z))     
                              - self.prior.logProbability(Variable(z)) 
-            ))
+            )
 
         #A = A*torch.exp(self.prior.logProbability(x))
 
@@ -116,7 +116,7 @@ class MCMC:
         #                     + self.prior.logProbability(Variable(z)) 
         #    )
 
-        #print (accept.float().mean())
+        #print ('#', accept.float().mean())
         #print (A.mean())
 
         accept = 1-accept.view(batchSize, -1)
