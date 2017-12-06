@@ -1,10 +1,11 @@
 import torch
 torch.manual_seed(42)
 from torch.autograd import Variable
+import torch.nn.functional as F 
 import numpy as np
 
 from model import Gaussian, MLP, RealNVP
-from train.objectives import Ring2D, Ring5, Wave
+from train.objectives import Ring2D, Ring5, Wave, Ising
 
 __all__ = ["MCMC"]
 
@@ -21,7 +22,7 @@ class MCMC:
         collectdata (bool): if to collect all data generated.
     """
 
-    def __init__(self, target, prior, collectdata):
+    def __init__(self, target, prior, collectdata=False):
         """
         Init MCMC class
         Args:
@@ -66,14 +67,17 @@ class MCMC:
 
         zpack = []
         measurePack = []
-        accratio = 0.0
+        accratio = Variable(torch.DoubleTensor(batchSize).zero_())
         for n in range(nmeasure):
             for i in range(nskip):
-                a,z = self.step(batchSize,z)
+                A,z = self.step(batchSize,z)
+                #print (a, type(a))
                 #zpack.append(z)
-                accratio += a
+                accratio += A
             if self.collectdata:
                 z_ = z.cpu().numpy()
+                #for i in range(z_.shape[0]):
+                #    print (' '.join(map(str, z_[i,:])))
                 logp = self.target(z).cpu().numpy()
                 logp.shape = (-1, 1)
                 zpack.append(np.concatenate((z_, logp), axis=1))
@@ -81,7 +85,7 @@ class MCMC:
             measurePack.append(measure)
         accratio /= float(nmeasure * nskip)
 
-        print ('#accratio:', accratio)
+        #print ('#accratio:', accratio)
         return zpack,measurePack,accratio
 
     def step(self,batchSize,z):
@@ -92,13 +96,22 @@ class MCMC:
         accept = self._accept(
             self.target(x.data) - self.prior.logProbability(x).data,
             self.target(z) - self.prior.logProbability(Variable(z, volatile=True)).data)
-
-        accratio = accept.float().mean()
         accept = 1-accept.view(batchSize, -1)
 
         x.data.masked_scatter_(accept, torch.masked_select(z, accept))
 
-        return accratio,x.data
+        #print (self.target(x.data))
+        #print (self.prior.logProbability(x)) 
+        #print (self.target(z))
+        #print (self.prior.logProbability(Variable(z)))
+
+        A =torch.exp(-F.relu(-Variable(self.target(x.data)) 
+                             + self.prior.logProbability(x)  
+                             + Variable(self.target(z))     
+                             - self.prior.logProbability(Variable(z)) 
+                      ))
+        #print (A)
+        return A,x.data
 
     def measure(self, x,measureFn=None):
         """
