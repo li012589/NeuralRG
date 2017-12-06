@@ -13,12 +13,12 @@ from train import Ring2D, Ring5, Wave, Phi4, MCMC
 def learn_acc(target, model, Nepochs, Batchsize, modelname, lr = 5e-4,decay = 0.001,save = True, saveSteps=10):
     LOSS=[]
 
-    sampler = MCMC(target, model, collectdata=True)
+    sampler = MCMC(target, model)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr,  betas=(0.5, 0.9))
 
     for epoch in range(Nepochs):
-        samples, _ ,accratio = sampler.run(Batchsize, 100, 10, 10)
+        _, _ ,accratio = sampler.run(Batchsize, 100, 100, 1)
 
         #print (accratio, type(accratio)) 
         #loss = -torch.log(accratio.mean())
@@ -37,7 +37,7 @@ def learn_acc(target, model, Nepochs, Batchsize, modelname, lr = 5e-4,decay = 0.
             saveDict = model.saveModel({})
             torch.save(saveDict, model.name+'/epoch'+str(epoch))
 
-    return samples, model, LOSS
+    return model, LOSS
 
 if __name__=="__main__":
     import h5py
@@ -82,7 +82,7 @@ if __name__=="__main__":
     if args.cuda:
         model = model.cuda()
 
-    samples, model, LOSS= learn_acc(target, model,args.Nepochs,args.Batchsize, 'learn_acc')
+    model, LOSS= learn_acc(target, model,args.Nepochs,args.Batchsize, 'learn_acc')
 
     #after training, generate some data from the network
     Ntest = 1000
@@ -93,10 +93,14 @@ if __name__=="__main__":
 
     if args.float:
         z=z.float()
-
     x = model.generate(z)
     x = x.cpu().data.numpy()
+    
+    #get samples from the trained MCMC 
+    sampler = MCMC(target, model, collectdata=True)
+    samples, _ ,accratio = sampler.run(args.Batchsize, 100, Ntest, 1)
     samples = np.array(samples)
+    samples.shape = (args.Batchsize*Ntest, -1)
     
     import matplotlib.pyplot as plt 
     plt.figure()

@@ -108,6 +108,8 @@ class MCMC:
                              - self.prior.logProbability(Variable(z)) 
             ))
 
+        #A = A*torch.exp(self.prior.logProbability(x))
+
         #A =torch.exp(Variable(self.target(x.data)) 
         #                     - self.prior.logProbability(x)  
         #                     - Variable(self.target(z))     
