@@ -75,10 +75,10 @@ class MCMC:
                 #zpack.append(z)
                 accratio += A
             if self.collectdata:
-                z_ = z.cpu().numpy()
+                z_ = z.data.cpu().numpy()
                 #for i in range(z_.shape[0]):
                 #    print (' '.join(map(str, z_[i,:])))
-                logp = self.target(z).cpu().numpy()
+                logp = self.target(z).data.cpu().numpy()
                 logp.shape = (-1, 1)
                 zpack.append(np.concatenate((z_, logp), axis=1))
             measure = self.measure(z)
