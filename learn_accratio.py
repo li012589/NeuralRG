@@ -5,19 +5,19 @@ import torch
 torch.manual_seed(42)
 from torch.autograd import Variable
 import numpy as np
+import matplotlib.pyplot as plt
 
 from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, MCMC
 
-
 def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr =1e-3, decay = 0.001,save = True, saveSteps=10):
     LOSS=[]
 
-    sampler = MCMC(target, model)
+    sampler = MCMC(target, model, collectdata=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     for epoch in range(Nepochs):
-        _, _ ,accratio,res = sampler.run(Batchsize, 0, Nsamples, 1)
+        samples, _ ,accratio,res = sampler.run(Batchsize, 0, Nsamples, 1)
 
         #print (accratio, type(accratio)) 
         loss = -res.mean()
@@ -32,6 +32,21 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr =1e-3, 
         if save and epoch%saveSteps==0:
             saveDict = model.saveModel({})
             torch.save(saveDict, model.name+'/epoch'+str(epoch))
+
+            samples = np.array(samples)
+            samples.shape = (Batchsize*Nsamples, -1)
+            x = model.sample(Batchsize*Nsamples)
+            x = x.cpu().data.numpy()
+  
+            plt.figure()
+            plt.scatter(x[:,0], x[:,1], alpha=0.5, label='proposals')
+            plt.scatter(samples[:,0], samples[:,1], alpha=0.5, label='samples')
+            plt.xlim([-5, 5])
+            plt.ylim([-5, 5])
+            plt.xlabel('$x_1$')
+            plt.ylabel('$x_2$')
+            plt.legend()
+            plt.savefig(model.name+'/epoch%g.png'%(epoch)) 
 
     return model, LOSS
 
@@ -81,25 +96,6 @@ if __name__=="__main__":
 
     model, LOSS= learn_acc(target, model, args.Nepochs,args.Batchsize, args.Nsamples,'learn_acc')
 
-    #after training, generate some data from the network
-    Ntest = 1000
-    if args.cuda:
-        z = model.prior(Ntest, volatile=True).cuda()# prior
-    else:
-        z = model.prior(Ntest, volatile=True)# prior
-
-    if args.float:
-        z=z.float()
-    x = model.generate(z)
-    x = x.cpu().data.numpy()
-    
-    #get samples from the trained MCMC 
-    Ntest = Ntest//args.Batchsize
-    sampler = MCMC(target, model, collectdata=True)
-    samples, _, _, _ = sampler.run(args.Batchsize, 100, Ntest, 1)
-    samples = np.array(samples)
-    samples.shape = (args.Batchsize*Ntest, -1)
-    
     import matplotlib.pyplot as plt 
     plt.figure()
     LOSS = np.array(LOSS)
@@ -108,14 +104,5 @@ if __name__=="__main__":
     plt.subplot(212)
     plt.plot(LOSS[:, 1], label='acc')
     plt.xlabel('iterations')
-
-    plt.figure()
-    plt.scatter(x[:,0], x[:,1], alpha=0.5, label='proposals')
-    plt.scatter(samples[:,0], samples[:,1], alpha=0.5, label='samples')
-    plt.xlim([-5, 5])
-    plt.ylim([-5, 5])
-    plt.xlabel('$x_1$')
-    plt.ylabel('$x_2$')
-    plt.legend()
 
     plt.show()
