@@ -20,7 +20,7 @@ parser.add_argument("-folder", default='data/',
                     help="where to store results")
 parser.add_argument("-savename", default=None, help="")
 
-group = parser.add_argument_group('model parameters')
+group = parser.add_argument_group('target parameters')
 group.add_argument("-L",type=int, default=2,help="linear size")
 group.add_argument("-d",type=int, default=1,help="dimension")
 group.add_argument("-K",type=float, default=1.0,help="K")

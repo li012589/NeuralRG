@@ -52,17 +52,19 @@ class MCMC:
         z = self.model.prior.sample(batchSize)
 
         for n in range(ntherm):
-            _,_,z = self.step(batchSize,z)
+            _,_,z,_ = self.step(batchSize,z)
 
         zpack = []
         measurePack = []
         accratio = 0.0
         res = Variable(torch.DoubleTensor(batchSize).zero_())
+        sjd = Variable(torch.DoubleTensor(batchSize).zero_())
         for n in range(nmeasure):
             for i in range(nskip):
-                a,r,z = self.step(batchSize,z)
+                a,r,z,squared_jumped_distance = self.step(batchSize,z)
                 accratio += a
                 res += r
+                sjd += squared_jumped_distance 
             if self.collectdata:
                 z_ = z.data.cpu().numpy()
                 #for i in range(z_.shape[0]):
@@ -74,9 +76,10 @@ class MCMC:
             measurePack.append(measure)
         accratio /= float(nmeasure * nskip)
         res /= float(nmeasure * nskip)
+        sjd /= float(nmeasure * nskip)
 
         #print ('#accratio:', accratio)
-        return zpack,measurePack,accratio,res 
+        return zpack,measurePack,accratio,res,sjd
 
     def step(self,batchSize,z):
         """
@@ -109,11 +112,20 @@ class MCMC:
         #print ('#', accept.float().mean())
         #print (A.mean())
 
-        accept = accept.view(batchSize, -1)
         #x.masked_scatter_(accept,torch.masked_select(z,accept))
         accept.data = accept.data.double()
+        squared_jumped_distance = accept * ((x-z)**2).sum(dim=1)
+
+        #print ('accept:', accept)
+        #print ('x:', x)
+        #print ('z:', z)
+        #print ('(x-z)^2:',  ((x-z)**2).sum(dim=1))
+        #print (squared_jumped_distance)
+
+        accept = accept.view(batchSize, -1)
         x = accept * x + (1.-accept)*z  # this is not inplace 
-        return a,r,x
+
+        return a,r,x, squared_jumped_distance
 
     def measure(self, x,measureFn=None):
         """

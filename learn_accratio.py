@@ -11,17 +11,17 @@ from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, Mog2
 from train import MCMC
 
-def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr =1e-3, weight_decay = 0.001,save = True, saveSteps=10):
+def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, alpha=1e-3, lr =1e-3, weight_decay = 0.001,save = True, saveSteps=10):
     LOSS=[]
 
     sampler = MCMC(target, model, collectdata=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     for epoch in range(Nepochs):
-        samples, _ ,accratio,res = sampler.run(Batchsize, 0, Nsamples, 1)
+        samples, _ ,accratio,res, sjd = sampler.run(Batchsize, 0, Nsamples, 1)
 
         #print (accratio, type(accratio)) 
-        loss = -res.mean()
+        loss = -res.mean() - alpha * sjd.mean() 
 
         print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio)
         LOSS.append([loss.data[0], accratio])
@@ -66,6 +66,10 @@ if __name__=="__main__":
     parser.add_argument("-Nsamples", type=int, default=100, help="")
     parser.add_argument("-cuda", action='store_true', help="use GPU")
     parser.add_argument("-float", action='store_true', help="use float32")
+    parser.add_argument("-alpha", type=float, default=1e-3, help="sjd term")
+
+    group = parser.add_argument_group('target parameters')
+    group.add_argument("-offset",type=float, default=2.0,help="offset of mog2")
 
     args = parser.parse_args()
 
@@ -76,7 +80,7 @@ if __name__=="__main__":
     elif args.target == 'wave':
         target = Wave()
     elif args.target == 'mog2':
-        target = Mog2()
+        target = Mog2(args.offset)
     elif args.target == 'phi4':
         target = Phi4(4,2,0.15,1.145)
     else:
@@ -98,7 +102,7 @@ if __name__=="__main__":
     if args.cuda:
         model = model.cuda()
 
-    model, LOSS= learn_acc(target, model, args.Nepochs,args.Batchsize, args.Nsamples,'learn_acc')
+    model, LOSS= learn_acc(target, model, args.Nepochs,args.Batchsize, args.Nsamples,'learn_acc', alpha=args.alpha)
 
     import matplotlib.pyplot as plt 
     plt.figure()
