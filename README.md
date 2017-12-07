@@ -83,5 +83,5 @@ python sampler.py -target ising -Nsamples 1000  -Nskip 1 -Batchsize 10 -collectd
 
 Learn by maximazing the acceptance rate
 ```python
-python learn_accratio.py -Batchsize 16 -Nepoch 20 -Nlayers 1 -Ht 8 -Hs 8 -Nsamples 500  
+python learn_accratio.py -Batchsize 64 -Nepoch 20 -Nlayers 4 -Ht 10 -Hs 10 -Nsamples 100  
 ```

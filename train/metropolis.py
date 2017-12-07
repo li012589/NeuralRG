@@ -110,8 +110,8 @@ class MCMC:
         #print (A.mean())
 
         accept = accept.view(batchSize, -1)
+        #x.masked_scatter_(accept,torch.masked_select(z,accept))
         accept.data = accept.data.double()
-        #x.masked_scatter_(reject, torch.masked_select(z, reject))
         x = accept * x + (1.-accept)*z  # this is not inplace 
         return a,r,x
 
