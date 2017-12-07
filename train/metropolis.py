@@ -51,7 +51,7 @@ class MCMC:
             ifUpdate (bool): if update x.
         """
         diff = e1 - e2
-        return diff.exp() - Variable(torch.rand(diff.data.shape[0]).double()) < 0.0
+        return diff.exp() < Variable(torch.rand(diff.data.shape[0]).double())
 
     def run(self, batchSize,ntherm, nmeasure, nskip):
         """
@@ -123,7 +123,9 @@ class MCMC:
         #print (A.mean())
 
         reject = reject.view(batchSize, -1)
-        x.data.masked_scatter_(reject.data, torch.masked_select(z.data, reject.data))
+        reject.data = reject.data.double()
+        #x.masked_scatter_(reject, torch.masked_select(z, reject))
+        x = (1.-reject) * x + reject*z  # this is not inplace 
         return a,r,x
 
     def measure(self, x,measureFn=None):
