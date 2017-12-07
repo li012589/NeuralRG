@@ -8,17 +8,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from model import Gaussian,MLP,RealNVP
-from train import Ring2D, Ring5, Wave, Phi4, Mog2
+from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC
 
-def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, alpha=1e-3, lr =1e-3, weight_decay = 0.001,save = True, saveSteps=10):
+def learn_acc(target, model, Nepochs, Batchsize, Nsteps, modelname, alpha=1e-3, lr =1e-3, weight_decay = 0.001,save = True, saveSteps=10):
     LOSS=[]
 
     sampler = MCMC(target, model, collectdata=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     for epoch in range(Nepochs):
-        samples, _ ,accratio,res, sjd = sampler.run(Batchsize, 0, Nsamples, 1)
+        samples, _,accratio,res, sjd = sampler.run(Batchsize, 0, Nsteps, 1)
 
         #print (accratio, type(accratio)) 
         loss = -res.mean() - alpha * sjd.mean() 
@@ -35,7 +35,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, alpha=1e-3
             torch.save(saveDict, model.name+'/epoch'+str(epoch))
 
             samples = np.array(samples)
-            samples.shape = (Batchsize*Nsamples, -1)
+            samples.shape = (Batchsize*Nsteps, -1)
             x = model.sample(1000)
             x = x.cpu().data.numpy()
   
@@ -63,13 +63,25 @@ if __name__=="__main__":
     parser.add_argument("-Nepochs", type=int, default=500, help="")
     parser.add_argument("-target", default='ring2d', help="target distribution")
     parser.add_argument("-Batchsize", type=int, default=64, help="")
-    parser.add_argument("-Nsamples", type=int, default=100, help="")
+    parser.add_argument("-Nsteps", type=int, default=10, help="")
     parser.add_argument("-cuda", action='store_true', help="use GPU")
     parser.add_argument("-float", action='store_true', help="use float32")
     parser.add_argument("-alpha", type=float, default=1e-3, help="sjd term")
+    parser.add_argument("-folder", default='data/',
+                    help="where to store results")
+
+    group = parser.add_argument_group('mc parameters')
+    group.add_argument("-Ntherm", type=int, default=300, help="")
+    group.add_argument("-Nsamples", type=int, default=1000, help="")
+    group.add_argument("-Nskips", type=int, default=1, help="")
 
     group = parser.add_argument_group('target parameters')
+    #Mog2 
     group.add_argument("-offset",type=float, default=2.0,help="offset of mog2")
+    #Ising
+    group.add_argument("-L",type=int, default=2,help="linear size")
+    group.add_argument("-d",type=int, default=1,help="dimension")
+    group.add_argument("-K",type=float, default=1.0,help="K")
 
     args = parser.parse_args()
 
@@ -83,6 +95,8 @@ if __name__=="__main__":
         target = Mog2(args.offset)
     elif args.target == 'phi4':
         target = Phi4(4,2,0.15,1.145)
+    elif args.target == 'ising':
+        target = Ising(args.L, args.d, args.K)
     else:
         print ('what target ?', args.target)
         sys.exit(1)
@@ -91,7 +105,7 @@ if __name__=="__main__":
     cmd = ['mkdir', '-p', modelfolder]
     subprocess.check_call(cmd)
 
-    Nvars = 2 
+    Nvars = target.nvars 
 
     sList = [MLP(Nvars//2, args.Hs) for i in range(args.Nlayers)]
     tList = [MLP(Nvars//2, args.Ht) for i in range(args.Nlayers)]
@@ -102,7 +116,33 @@ if __name__=="__main__":
     if args.cuda:
         model = model.cuda()
 
-    model, LOSS= learn_acc(target, model, args.Nepochs,args.Batchsize, args.Nsamples,'learn_acc', alpha=args.alpha)
+    model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, args.Nsteps,'learn_acc', alpha=args.alpha)
+
+
+    sampler = MCMC(target, model, collectdata=True)
+    _, measurements, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
+
+    cmd = ['mkdir', '-p', args.folder]
+    subprocess.check_call(cmd)
+    key = args.folder \
+          + args.target \
+          + '_Nl' + str(args.Nlayers) \
+          + '_Hs' + str(args.Hs) \
+          + '_Ht' + str(args.Ht)
+    h5filename = key + '_mc.h5'
+    print("save at: " + h5filename)
+    h5 = h5py.File(h5filename, 'w')
+    params = h5.create_group('params')
+    params.create_dataset("Nvars", data=target.nvars)
+    params.create_dataset("Nlayers", data=args.Nlayers)
+    params.create_dataset("Hs", data=args.Hs)
+    params.create_dataset("Ht", data=args.Ht)
+    params.create_dataset("target", data=args.target)
+    params.create_dataset("model", data=model.name)
+    results = h5.create_group('results')
+    results.create_dataset("obs", data=np.array(measurements))
+    results.create_dataset("loss", data=np.array(LOSS))
+    h5.close()
 
     import matplotlib.pyplot as plt 
     plt.figure()
@@ -114,3 +154,4 @@ if __name__=="__main__":
     plt.xlabel('iterations')
 
     plt.show()
+

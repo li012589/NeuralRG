@@ -30,7 +30,7 @@ class Ising(Target):
         + torch.log(torch.cosh(torch.mm(x, self.VT))).sum(dim=1)
     
     def measure(self, x):
-        p = torch.sigmoid(2.*torch.mm(Variable(x), self.VT)) 
+        p = torch.sigmoid(2.*torch.mm(x, self.VT)) 
         #sample spin
         #s = 2*torch.bernoulli(p).data.numpy()-1
         #return (s.mean(axis=1))**2
