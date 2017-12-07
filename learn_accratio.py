@@ -8,7 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from model import Gaussian,MLP,RealNVP
-from train import Ring2D, Ring5, Wave, Phi4, MCMC
+from train import Ring2D, Ring5, Wave, Phi4, Mog2
+from train import MCMC
 
 def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr =1e-3, weight_decay = 0.001,save = True, saveSteps=10):
     LOSS=[]
@@ -74,6 +75,8 @@ if __name__=="__main__":
         target = Ring5()
     elif args.target == 'wave':
         target = Wave()
+    elif args.target == 'mog2':
+        target = Mog2()
     elif args.target == 'phi4':
         target = Phi4(4,2,0.15,1.145)
     else:

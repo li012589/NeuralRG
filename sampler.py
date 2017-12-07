@@ -9,7 +9,7 @@ from torch.autograd import Variable
 import numpy as np
 
 from model import Gaussian, MLP, RealNVP
-from train.objectives import Ring2D, Ring5, Wave, Phi4, Ising
+from train.objectives import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument("-target", default='ring2d',
@@ -48,6 +48,8 @@ elif args.target == 'ring5':
     target = Ring5()
 elif args.target == 'wave':
     target = Wave()
+elif args.target == 'mog2':
+    target = Mog2()
 elif args.target == 'phi4':
     target = Phi4(4, 2, 0.15, 1.145)
 elif args.target == 'ising':
@@ -81,7 +83,7 @@ if args.sampler == 'metropolis':
 elif args.sampler == 'hmc':
     print("using HMC as sampler")
     sampler = HMCSampler(target, model, collectdata=args.collectdata, interSteps=args.interSteps)
-data,measurements,accratio = sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
+data,measurements,accratio,_ = sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
 cmd = ['mkdir', '-p', args.folder]
 subprocess.check_call(cmd)
 if args.savename is None:
