@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, MCMC
 
-def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr =1e-3, decay = 0.001,save = True, saveSteps=10):
+def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr =1e-3, weight_decay = 0.001,save = True, saveSteps=10):
     LOSS=[]
 
     sampler = MCMC(target, model, collectdata=True)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     for epoch in range(Nepochs):
         samples, _ ,accratio,res = sampler.run(Batchsize, 0, Nsamples, 1)
@@ -35,7 +35,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr =1e-3, 
 
             samples = np.array(samples)
             samples.shape = (Batchsize*Nsamples, -1)
-            x = model.sample(Batchsize*Nsamples)
+            x = model.sample(1000)
             x = x.cpu().data.numpy()
   
             plt.figure()
@@ -47,6 +47,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr =1e-3, 
             plt.ylabel('$x_2$')
             plt.legend()
             plt.savefig(model.name+'/epoch%g.png'%(epoch)) 
+            plt.close() 
 
     return model, LOSS
 
