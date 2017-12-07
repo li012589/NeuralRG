@@ -63,17 +63,17 @@ class MCMC:
         """
         z = self.prior.sample(batchSize)
         for n in range(ntherm):
-            _,z = self.step(batchSize,z)
+            _,_,z = self.step(batchSize,z)
 
         zpack = []
         measurePack = []
-        accratio = Variable(torch.DoubleTensor(batchSize).zero_())
+        accratio = 0.0
+        res = Variable(torch.DoubleTensor(batchSize).zero_())
         for n in range(nmeasure):
             for i in range(nskip):
-                A,z = self.step(batchSize,z)
-                #print (a, type(a))
-                #zpack.append(z)
-                accratio += A
+                a,r,z = self.step(batchSize,z)
+                accratio += a
+                res += r
             if self.collectdata:
                 z_ = z.data.cpu().numpy()
                 #for i in range(z_.shape[0]):
@@ -84,9 +84,10 @@ class MCMC:
             measure = self.measure(z)
             measurePack.append(measure)
         accratio /= float(nmeasure * nskip)
+        res /= float(nmeasure * nskip)
 
         #print ('#accratio:', accratio)
-        return zpack,measurePack,accratio
+        return zpack,measurePack,accratio,res 
 
     def step(self,batchSize,z):
         """
@@ -108,8 +109,10 @@ class MCMC:
         accept = self._accept(
             (self.target(x)).data - (self.prior.logProbability(x)).data,
             (self.target(z)).data - (self.prior.logProbability(z)).data)
+        
+        a = accept.float().mean()
 
-        A =-F.relu( - self.target(x)
+        r =-F.relu( - self.target(x)
                     + self.prior.logProbability(x)  
                     + self.target(z)
                     - self.prior.logProbability(z) 
@@ -128,7 +131,7 @@ class MCMC:
 
         accept = 1-accept.view(batchSize, -1)
         x.data.masked_scatter_(accept, torch.masked_select(z.data, accept))
-        return A,x
+        return a,r,x
 
     def measure(self, x,measureFn=None):
         """
