@@ -20,11 +20,10 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
     dbeta = (1.-beta)/Nepochs
 
     for epoch in range(Nepochs):
-        samples, _,accratio,res, sjd = sampler.run(Batchsize, 0, Nsteps, Nskips)
+        samples, proposals ,_, accratio, res, sjd = sampler.run(Batchsize, 0, Nsteps, Nskips)
         beta += dbeta
         sampler.set_beta(beta)
 
-        #print (accratio, type(accratio)) 
         loss = -res.mean() - alpha * sjd.mean() 
         alpha *= 0.98 
 
@@ -41,11 +40,12 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
 
             samples = np.array(samples)
             samples.shape = (Batchsize*Nsteps, -1)
-            x = model.sample(1000)
-            x = x.cpu().data.numpy()
+
+            proposals = np.array(proposals)
+            proposals.shape = (Batchsize*Nsteps, -1)
   
             plt.figure()
-            plt.scatter(x[:,0], x[:,-1], alpha=0.5, label='proposals')
+            plt.scatter(proposals[:,0], proposals[:,-2], alpha=0.5, label='proposals')
             plt.scatter(samples[:,0], samples[:,-2], alpha=0.5, label='samples')
             plt.xlim([-5, 5])
             plt.ylim([-5, 5])

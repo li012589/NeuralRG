@@ -56,37 +56,46 @@ class MCMC:
         z = self.model.prior.sample(batchSize)
 
         for n in range(ntherm):
-            _,_,z,_ = self.step(batchSize,z)
+            _,_,_,z,_ = self.step(batchSize,z)
 
-        zpack = []
-        measurePack = []
+        zpack = [] # samples 
+        xpack = [] # proposals
+        measurepack = []
         accratio = 0.0
         res = Variable(torch.DoubleTensor(batchSize).zero_())
         sjd = Variable(torch.DoubleTensor(batchSize).zero_())
         for n in range(nmeasure):
             for i in range(nskip):
-                self.step(batchSize,z)
+                _,_,_,z,_ = self.step(batchSize,z)
 
-            a,r,z,squared_jumped_distance = self.step(batchSize,z)
-            accratio += a
-            res += r
+            a,r,x,z,squared_jumped_distance = self.step(batchSize,z)
+            accratio += a # mean acceptance ratio 
+            res += r      # log(A)
             sjd += squared_jumped_distance 
 
             if self.collectdata:
+                #collect samples
                 z_ = z.data.cpu().numpy()
                 #for i in range(z_.shape[0]):
                 #    print (' '.join(map(str, z_[i,:])))
                 logp = self.target(z).data.cpu().numpy()
                 logp.shape = (-1, 1)
                 zpack.append(np.concatenate((z_, logp), axis=1))
+                
+                #collect proposals 
+                x_ = x.data.cpu().numpy()
+                logp = self.target(x).data.cpu().numpy()
+                logp.shape = (-1, 1)
+                xpack.append(np.concatenate((x_, logp), axis=1))
+
             measure = self.measure(z)
-            measurePack.append(measure)
+            measurepack.append(measure)
         accratio /= float(nmeasure)
         res /= float(nmeasure)
         sjd /= float(nmeasure)
 
         #print ('#accratio:', accratio)
-        return zpack,measurePack,accratio,res,sjd
+        return zpack,xpack,measurepack,accratio,res,sjd
 
     def step(self,batchSize,z):
         """
@@ -130,9 +139,8 @@ class MCMC:
         #print (squared_jumped_distance)
 
         accept = accept.view(batchSize, -1)
-        x = accept * x + (1.-accept)*z  # this is not inplace 
 
-        return a,r,x, squared_jumped_distance
+        return a,r,x,accept * x + (1.-accept)*z, squared_jumped_distance
 
     def measure(self, x,measureFn=None):
         """
