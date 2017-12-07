@@ -11,19 +11,24 @@ from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC
 
-def learn_acc(target, model, Nepochs, Batchsize, Nsteps, modelname, alpha=1e-3, lr =1e-3, weight_decay = 0.001,save = True, saveSteps=10):
+def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alpha=0.0, beta=1.0, lr =1e-3, weight_decay = 0.001,save = True, saveSteps=10):
     LOSS=[]
 
     sampler = MCMC(target, model, collectdata=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
+    dbeta = (1.-beta)/Nepochs
+
     for epoch in range(Nepochs):
-        samples, _,accratio,res, sjd = sampler.run(Batchsize, 0, Nsteps, 1)
+        samples, _,accratio,res, sjd = sampler.run(Batchsize, 0, Nsteps, Nskips)
+        beta += dbeta
+        sampler.set_beta(beta)
 
         #print (accratio, type(accratio)) 
         loss = -res.mean() - alpha * sjd.mean() 
+        alpha *= 0.98 
 
-        print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio)
+        print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, "beta:", beta)
         LOSS.append([loss.data[0], accratio])
 
         optimizer.zero_grad()
@@ -40,8 +45,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, modelname, alpha=1e-3, 
             x = x.cpu().data.numpy()
   
             plt.figure()
-            plt.scatter(x[:,0], x[:,1], alpha=0.5, label='proposals')
-            plt.scatter(samples[:,0], samples[:,1], alpha=0.5, label='samples')
+            plt.scatter(x[:,0], x[:,-1], alpha=0.5, label='proposals')
+            plt.scatter(samples[:,0], samples[:,-2], alpha=0.5, label='samples')
             plt.xlim([-5, 5])
             plt.ylim([-5, 5])
             plt.xlabel('$x_1$')
@@ -63,17 +68,18 @@ if __name__=="__main__":
     parser.add_argument("-Nepochs", type=int, default=500, help="")
     parser.add_argument("-target", default='ring2d', help="target distribution")
     parser.add_argument("-Batchsize", type=int, default=64, help="")
-    parser.add_argument("-Nsteps", type=int, default=10, help="")
     parser.add_argument("-cuda", action='store_true', help="use GPU")
     parser.add_argument("-float", action='store_true', help="use float32")
-    parser.add_argument("-alpha", type=float, default=1e-3, help="sjd term")
+    parser.add_argument("-alpha", type=float, default=0.0, help="sjd term")
+    parser.add_argument("-beta", type=float, default=1.0, help="temperature term")
     parser.add_argument("-folder", default='data/',
                     help="where to store results")
 
     group = parser.add_argument_group('mc parameters')
-    group.add_argument("-Ntherm", type=int, default=300, help="")
-    group.add_argument("-Nsamples", type=int, default=1000, help="")
-    group.add_argument("-Nskips", type=int, default=1, help="")
+    group.add_argument("-Ntherm", type=int, default=100, help="")
+    group.add_argument("-Nsamples", type=int, default=100, help="")
+    group.add_argument("-Nsteps", type=int, default=10, help="steps used in training")
+    group.add_argument("-Nskips", type=int, default=10, help="")
 
     group = parser.add_argument_group('target parameters')
     #Mog2 
@@ -116,8 +122,9 @@ if __name__=="__main__":
     if args.cuda:
         model = model.cuda()
 
-    model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, args.Nsteps,'learn_acc', alpha=args.alpha)
-
+    model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
+                            args.Nsteps, args.Nskips,
+                            'learn_acc', alpha=args.alpha, beta=args.beta)
 
     sampler = MCMC(target, model, collectdata=True)
     _, measurements, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
@@ -144,7 +151,6 @@ if __name__=="__main__":
     results.create_dataset("loss", data=np.array(LOSS))
     h5.close()
 
-    import matplotlib.pyplot as plt 
     plt.figure()
     LOSS = np.array(LOSS)
     plt.subplot(211)

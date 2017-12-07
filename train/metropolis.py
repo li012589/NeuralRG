@@ -22,7 +22,7 @@ class MCMC:
         collectdata (bool): if to collect all data generated.
     """
 
-    def __init__(self, target, model, collectdata=False):
+    def __init__(self, target, model, collectdata=False, beta=1.0):
         """
         Init MCMC class
         Args:
@@ -34,11 +34,15 @@ class MCMC:
         self.target = target
         self.model= model 
         self.collectdata = collectdata
+        self.beta = beta
 
         self.measurements = []
 
         if self.collectdata:
             self.data = []
+
+    def set_beta(self, beta):
+        self.beta = beta 
     
     def run(self, batchSize,ntherm, nmeasure, nskip):
         """
@@ -61,10 +65,13 @@ class MCMC:
         sjd = Variable(torch.DoubleTensor(batchSize).zero_())
         for n in range(nmeasure):
             for i in range(nskip):
-                a,r,z,squared_jumped_distance = self.step(batchSize,z)
-                accratio += a
-                res += r
-                sjd += squared_jumped_distance 
+                self.step(batchSize,z)
+
+            a,r,z,squared_jumped_distance = self.step(batchSize,z)
+            accratio += a
+            res += r
+            sjd += squared_jumped_distance 
+
             if self.collectdata:
                 z_ = z.data.cpu().numpy()
                 #for i in range(z_.shape[0]):
@@ -74,9 +81,9 @@ class MCMC:
                 zpack.append(np.concatenate((z_, logp), axis=1))
             measure = self.measure(z)
             measurePack.append(measure)
-        accratio /= float(nmeasure * nskip)
-        res /= float(nmeasure * nskip)
-        sjd /= float(nmeasure * nskip)
+        accratio /= float(nmeasure)
+        res /= float(nmeasure)
+        sjd /= float(nmeasure)
 
         #print ('#accratio:', accratio)
         return zpack,measurePack,accratio,res,sjd
@@ -103,7 +110,7 @@ class MCMC:
         pi_z = self.target(z)
         p_z = self.model.logProbability(z)
 
-        diff = pi_x-pi_z -p_x + p_z
+        diff = self.beta*(pi_x-pi_z -p_x + p_z)
         accept = (diff.exp() >= Variable(torch.rand(diff.data.shape[0]).double()))
 
         a = accept.data.double().mean()
