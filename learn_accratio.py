@@ -17,7 +17,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr =1e-3, 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     for epoch in range(Nepochs):
-        _, _ ,accratio,res = sampler.run(Batchsize, 100, Nsamples, 1)
+        _, _ ,accratio,res = sampler.run(Batchsize, 0, Nsamples, 1)
 
         #print (accratio, type(accratio)) 
         loss = -res.mean()

@@ -18,21 +18,21 @@ class MCMC:
         nvars (int): number of variables.
         batchsize (int): batch size.
         target (Target): target log-probability.
-        prior (nn.Module): sampler.
+        model (nn.Module): sampler.
         collectdata (bool): if to collect all data generated.
     """
 
-    def __init__(self, target, prior, collectdata=False):
+    def __init__(self, target, model, collectdata=False):
         """
         Init MCMC class
         Args:
             batchSize (int): batch size.
             target (Target): target log-probability.
-            prior (sampler): sampler.
+            model(sampler): sampler.
             collectdata (bool): if to collect all data generated.
         """
         self.target = target
-        self.prior = prior
+        self.model= model 
         self.collectdata = collectdata
 
         self.measurements = []
@@ -48,7 +48,9 @@ class MCMC:
             nmeasure (int): number of steps used in measure.
             nskip (int): number of steps skiped in measure.
         """
-        z = self.prior.sample(batchSize)
+        #z = self.model.sample(batchSize)
+        z = self.model.prior.sample(batchSize)
+
         for n in range(ntherm):
             _,_,z = self.step(batchSize,z)
 
@@ -80,23 +82,23 @@ class MCMC:
         """
         This method run a step of sampling.
         """
-        x = self.prior.sample(batchSize)
+        x = self.model.sample(batchSize)
         
         #print (type(x), type(z))
         #print ('pix', type(self.target(x)))
-        #print ('px', type(self.prior.logProbability(x))) 
+        #print ('px', type(self.model.logProbability(x))) 
         #print ('piz', type(self.target(z)))
-        #print ('pz', type(self.prior.logProbability(z)))
+        #print ('pz', type(self.model.logProbability(z)))
 
         #print ('pix', self.target(x).data)
-        #print ('px', self.prior.logProbability(x).data) 
+        #print ('px', self.model.logProbability(x).data) 
         #print ('piz', self.target(z).data)
-        #print ('pz', self.prior.logProbability(z).data)
+        #print ('pz', self.model.logProbability(z).data)
 
         pi_x = self.target(x)
-        p_x = self.prior.logProbability(x)
+        p_x = self.model.logProbability(x)
         pi_z = self.target(z)
-        p_z = self.prior.logProbability(z)
+        p_z = self.model.logProbability(z)
 
         diff = pi_x-pi_z -p_x + p_z
         accept = (diff.exp() >= Variable(torch.rand(diff.data.shape[0]).double()))
