@@ -14,7 +14,6 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr = 5e-4,
     LOSS=[]
 
     sampler = MCMC(target, model)
-
     optimizer = torch.optim.Adam(model.parameters(), lr=lr,  betas=(0.5, 0.9))
 
     for epoch in range(Nepochs):
@@ -24,7 +23,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr = 5e-4,
         loss = -res.mean()
 
         print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio)
-        LOSS.append(loss.data[0])
+        LOSS.append([loss.data[0], accratio])
 
         optimizer.zero_grad()
         loss.backward()
@@ -82,7 +81,7 @@ if __name__=="__main__":
     if args.cuda:
         model = model.cuda()
 
-    model, LOSS= learn_acc(target, model,args.Nepochs,args.Batchsize, args.Nsamples,'learn_acc')
+    model, LOSS= learn_acc(target, model, args.Nepochs,args.Batchsize, args.Nsamples,'learn_acc')
 
     #after training, generate some data from the network
     Ntest = 1000
@@ -99,15 +98,18 @@ if __name__=="__main__":
     #get samples from the trained MCMC 
     Ntest = Ntest//args.Batchsize
     sampler = MCMC(target, model, collectdata=True)
-    samples, _ ,accratio = sampler.run(args.Batchsize, 100, Ntest, 1)
+    samples, _, _, _ = sampler.run(args.Batchsize, 100, Ntest, 1)
     samples = np.array(samples)
     samples.shape = (args.Batchsize*Ntest, -1)
     
     import matplotlib.pyplot as plt 
     plt.figure()
-    plt.plot(LOSS)
+    LOSS = np.array(LOSS)
+    plt.subplot(211)
+    plt.plot(LOSS[:, 0], label='loss')
+    plt.subplot(212)
+    plt.plot(LOSS[:, 1], label='acc')
     plt.xlabel('iterations')
-    plt.ylabel('loss')
 
     plt.figure()
     plt.scatter(x[:,0], x[:,1], alpha=0.5, label='proposals')

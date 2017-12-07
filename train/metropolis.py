@@ -39,9 +39,9 @@ class MCMC:
 
         if self.collectdata:
             self.data = []
-
+    
     @staticmethod
-    def _accept(e1, e2):
+    def _reject(e1, e2):
         """
         This method gives if or not update x.
         Args:
@@ -51,7 +51,7 @@ class MCMC:
             ifUpdate (bool): if update x.
         """
         diff = e1 - e2
-        return diff.exp() - diff.uniform_() >= 0.0
+        return diff.exp() - Variable(torch.rand(diff.data.shape[0]).double()) < 0.0
 
     def run(self, batchSize,ntherm, nmeasure, nskip):
         """
@@ -106,11 +106,12 @@ class MCMC:
         #print ('piz', self.target(z).data)
         #print ('pz', self.prior.logProbability(z).data)
 
-        accept = self._accept(
-            (self.target(x)).data - (self.prior.logProbability(x)).data,
-            (self.target(z)).data - (self.prior.logProbability(z)).data)
-        
-        a = accept.float().mean()
+        reject = self._reject(
+                        (self.target(x)) - (self.prior.logProbability(x)),
+                        (self.target(z)) - (self.prior.logProbability(z))
+                    )
+
+        a = 1.-reject.data.double().mean()
 
         r =-F.relu( - self.target(x)
                     + self.prior.logProbability(x)  
@@ -118,19 +119,11 @@ class MCMC:
                     - self.prior.logProbability(z) 
             )
 
-        #A = A*torch.exp(self.prior.logProbability(x))
-
-        #A =torch.exp(Variable(self.target(x.data)) 
-        #                     - self.prior.logProbability(x)  
-        #                     - Variable(self.target(z))     
-        #                     + self.prior.logProbability(Variable(z)) 
-        #    )
-
         #print ('#', accept.float().mean())
         #print (A.mean())
 
-        accept = 1-accept.view(batchSize, -1)
-        x.data.masked_scatter_(accept, torch.masked_select(z.data, accept))
+        reject = reject.view(batchSize, -1)
+        x.data.masked_scatter_(reject.data, torch.masked_select(z.data, reject.data))
         return a,r,x
 
     def measure(self, x,measureFn=None):

@@ -81,3 +81,7 @@ Run it for Ising model:
 python sampler.py -target ising -Nsamples 1000  -Nskip 1 -Batchsize 10 -collectdata  -K 0.44068679350977147  -L 4 -d 2  -sampler hmc -interSteps 100 -stepSize 0.1 
 ```
 
+Learn by maximazing the acceptance rate
+```python
+python learn_accratio.py -Batchsize 16 -Nepoch 20 -Nlayers 1 -Ht 8 -Hs 8 -Nsamples 500  
+```
