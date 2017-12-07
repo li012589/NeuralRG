@@ -105,6 +105,11 @@ if __name__=="__main__":
     
     import matplotlib.pyplot as plt 
     plt.figure()
+    plt.plot(LOSS)
+    plt.xlabel('iterations')
+    plt.ylabel('loss')
+
+    plt.figure()
     plt.scatter(x[:,0], x[:,1], alpha=0.5, label='proposals')
     plt.scatter(samples[:,0], samples[:,1], alpha=0.5, label='samples')
     plt.xlim([-5, 5])

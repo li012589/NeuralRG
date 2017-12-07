@@ -61,7 +61,7 @@ class MCMC:
             nmeasure (int): number of steps used in measure.
             nskip (int): number of steps skiped in measure.
         """
-        z = self.prior.sample(batchSize).data
+        z = self.prior.sample(batchSize)
         for n in range(ntherm):
             _,z = self.step(batchSize,z)
 
@@ -93,19 +93,26 @@ class MCMC:
         This method run a step of sampling.
         """
         x = self.prior.sample(batchSize)
+        
+        #print (type(x), type(z))
+        #print ('pix', type(self.target(x)))
+        #print ('px', type(self.prior.logProbability(x))) 
+        #print ('piz', type(self.target(z)))
+        #print ('pz', type(self.prior.logProbability(z)))
+
+        #print ('pix', self.target(x).data)
+        #print ('px', self.prior.logProbability(x).data) 
+        #print ('piz', self.target(z).data)
+        #print ('pz', self.prior.logProbability(z).data)
+
         accept = self._accept(
-            self.target(x.data) - self.prior.logProbability(x).data,
-            self.target(z) - self.prior.logProbability(Variable(z, volatile=True)).data)
+            (self.target(x)).data - (self.prior.logProbability(x)).data,
+            (self.target(z)).data - (self.prior.logProbability(z)).data)
 
-        #print ('pix', self.target(x.data))
-        #print ('px', self.prior.logProbability(x)) 
-        #print ('piz', self.target(z))
-        #print ('pz', self.prior.logProbability(Variable(z)))
-
-        A =-F.relu(-Variable(self.target(x.data)) 
-                             + self.prior.logProbability(x)  
-                             + Variable(self.target(z))     
-                             - self.prior.logProbability(Variable(z)) 
+        A =-F.relu( - self.target(x)
+                    + self.prior.logProbability(x)  
+                    + self.target(z)
+                    - self.prior.logProbability(z) 
             )
 
         #A = A*torch.exp(self.prior.logProbability(x))
@@ -120,8 +127,8 @@ class MCMC:
         #print (A.mean())
 
         accept = 1-accept.view(batchSize, -1)
-        x.data.masked_scatter_(accept, torch.masked_select(z, accept))
-        return A,x.data
+        x.data.masked_scatter_(accept, torch.masked_select(z.data, accept))
+        return A,x
 
     def measure(self, x,measureFn=None):
         """

@@ -11,8 +11,7 @@ class Target(object):
         self.name = name
 
     def __call__(self, x):
-        z = Variable(x,requires_grad=True)
-        return self.energy(z).data
+        return self.energy(x)
 
     def energy(self,z):
         raise NotImplementedError(str(type(self)))
@@ -28,4 +27,4 @@ class Target(object):
         return z.grad.data
 
     def measure(self, x):
-        return (x**2).sum(dim=1).cpu().numpy()
+        return (x.data**2).sum(dim=1).cpu().numpy()
