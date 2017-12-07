@@ -10,11 +10,11 @@ from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, MCMC
 
 
-def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr = 5e-4,decay = 0.001,save = True, saveSteps=10):
+def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr =1e-3, decay = 0.001,save = True, saveSteps=10):
     LOSS=[]
 
     sampler = MCMC(target, model)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr,  betas=(0.5, 0.9))
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     for epoch in range(Nepochs):
         _, _ ,accratio,res = sampler.run(Batchsize, 100, Nsamples, 1)
@@ -30,8 +30,6 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsamples, modelname, lr = 5e-4,
         optimizer.step()
 
         if save and epoch%saveSteps==0:
-            #saveD = {}
-            #saveD["epoch"] = epoch
             saveDict = model.saveModel({})
             torch.save(saveDict, model.name+'/epoch'+str(epoch))
 

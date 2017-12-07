@@ -40,19 +40,6 @@ class MCMC:
         if self.collectdata:
             self.data = []
     
-    @staticmethod
-    def _reject(e1, e2):
-        """
-        This method gives if or not update x.
-        Args:
-            e1 (torch.Tensor): energy of original x.
-            e2 (torch.Tensor): energy of proposed x.
-        Return:
-            ifUpdate (bool): if update x.
-        """
-        diff = e1 - e2
-        return diff.exp() < Variable(torch.rand(diff.data.shape[0]).double())
-
     def run(self, batchSize,ntherm, nmeasure, nskip):
         """
         This method start sampling.
@@ -106,26 +93,24 @@ class MCMC:
         #print ('piz', self.target(z).data)
         #print ('pz', self.prior.logProbability(z).data)
 
-        reject = self._reject(
-                        (self.target(x)) - (self.prior.logProbability(x)),
-                        (self.target(z)) - (self.prior.logProbability(z))
-                    )
+        pi_x = self.target(x)
+        p_x = self.prior.logProbability(x)
+        pi_z = self.target(z)
+        p_z = self.prior.logProbability(z)
 
-        a = 1.-reject.data.double().mean()
+        diff = pi_x-pi_z -p_x + p_z
+        accept = (diff.exp() >= Variable(torch.rand(diff.data.shape[0]).double()))
 
-        r =-F.relu( - self.target(x)
-                    + self.prior.logProbability(x)  
-                    + self.target(z)
-                    - self.prior.logProbability(z) 
-            )
+        a = accept.data.double().mean()
+        r = -F.relu(-diff)
 
         #print ('#', accept.float().mean())
         #print (A.mean())
 
-        reject = reject.view(batchSize, -1)
-        reject.data = reject.data.double()
+        accept = accept.view(batchSize, -1)
+        accept.data = accept.data.double()
         #x.masked_scatter_(reject, torch.masked_select(z, reject))
-        x = (1.-reject) * x + reject*z  # this is not inplace 
+        x = accept * x + (1.-accept)*z  # this is not inplace 
         return a,r,x
 
     def measure(self, x,measureFn=None):
