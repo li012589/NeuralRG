@@ -4,10 +4,11 @@ sys.path.append(os.getcwd())
 import torch
 torch.manual_seed(42)
 from torch.autograd import Variable
+import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import Gaussian,MLP,RealNVP
+from model import Gaussian,MLP,RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer 
 
@@ -56,10 +57,9 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
     fig2 = plt.figure()
     ax21 = fig2.add_subplot(211)
     l3, = ax21.plot([], [], label='loss')
-    ax21.set_xlim([0, Nepochs])
     ax21.legend()
 
-    ax22 = fig2.add_subplot(212)
+    ax22 = fig2.add_subplot(212, sharex=ax21)
     l4, = ax22.plot([], [], label='acc')
     ax22.set_xlim([0, Nepochs])
     ax22.legend()
@@ -192,8 +192,10 @@ if __name__=="__main__":
 
     Nvars = target.nvars 
 
-    sList = [MLP(Nvars//2, args.Hs) for i in range(args.Nlayers)]
-    tList = [MLP(Nvars//2, args.Ht) for i in range(args.Nlayers)]
+    sList = [MLP(Nvars//2, args.Hs, F.relu) for i in range(args.Nlayers-1)] \
+          + [MLP(Nvars//2, args.Hs, ScalableTanh(((args.Batchsize, Nvars//2))))]
+    tList = [MLP(Nvars//2, args.Ht, F.relu) for i in range(args.Nlayers-1)] \
+          + [MLP(Nvars//2, args.Hs, F.linear)]
 
     gaussian = Gaussian([Nvars])
 
