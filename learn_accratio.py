@@ -11,23 +11,53 @@ from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC
 
-def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alpha=0.0, beta=1.0, lr =1e-3, weight_decay = 0.001,save = True, saveSteps=10):
+class Offset(torch.nn.Module):
+    '''
+    offset a scalar 
+    '''
+    def __init__(self):
+        super(Offset, self).__init__()
+        self.offset = torch.nn.Parameter(torch.DoubleTensor([0]))    
+    def forward(self, x):
+        return x + self.offset
+
+def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alpha=0.0, beta=1.0, gamma=0.0, lr =1e-3, weight_decay = 0.001,save = True, saveSteps=10):
     LOSS=[]
 
     sampler = MCMC(target, model, collectdata=True)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    
+    offset = Offset()
+
+    if (gamma>0):
+        params = list(model.parameters()) + list(offset.parameters())
+    else:
+        params = model.parameters()
+    optimizer = torch.optim.Adam(params, lr=lr, weight_decay=weight_decay)
 
     dbeta = (1.-beta)/Nepochs
 
     for epoch in range(Nepochs):
         samples, proposals ,_, accratio, res, sjd = sampler.run(Batchsize, 0, Nsteps, Nskips)
+
+        ######################################################
+        #mes loss on the proposals
+        xy = np.array(proposals)
+        xy.shape = (Batchsize*Nsteps, -1)
+        x_data = xy[:, :-1]
+        y_data = xy[:, -1]
+        x_data = Variable(torch.from_numpy(x_data))
+        y_data = Variable(torch.from_numpy(y_data))
+        y_pred = model.logProbability(x_data)
+        mse = (offset(y_pred) - y_data).pow(2)
+        ######################################################
+ 
+        loss = -res.mean() - alpha * sjd.mean() + gamma * mse.mean()
+
+        alpha *= 0.98 
         beta += dbeta
         sampler.set_beta(beta)
-
-        loss = -res.mean() - alpha * sjd.mean() 
-        alpha *= 0.98 
-
-        print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, "beta:", beta)
+        
+        print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, "beta:", beta, "offset:", offset.offset.data[0])
         LOSS.append([loss.data[0], accratio])
 
         optimizer.zero_grad()
@@ -70,8 +100,10 @@ if __name__=="__main__":
     parser.add_argument("-Batchsize", type=int, default=64, help="")
     parser.add_argument("-cuda", action='store_true', help="use GPU")
     parser.add_argument("-float", action='store_true', help="use float32")
+
     parser.add_argument("-alpha", type=float, default=0.0, help="sjd term")
     parser.add_argument("-beta", type=float, default=1.0, help="temperature term")
+    parser.add_argument("-gamma", type=float, default=0.0, help="weight to the mse loss")
     parser.add_argument("-folder", default='data/',
                     help="where to store results")
 
@@ -124,10 +156,10 @@ if __name__=="__main__":
 
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Nsteps, args.Nskips,
-                            'learn_acc', alpha=args.alpha, beta=args.beta)
+                            'learn_acc', alpha=args.alpha, beta=args.beta, gamma =args.gamma)
 
     sampler = MCMC(target, model, collectdata=True)
-    _, measurements, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
+    _, _, measurements, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
 
     cmd = ['mkdir', '-p', args.folder]
     subprocess.check_call(cmd)
