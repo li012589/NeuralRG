@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
-from train import MCMC
+from train import MCMC, Buffer 
 
 class Offset(torch.nn.Module):
     '''
@@ -27,6 +27,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
     sampler = MCMC(target, model, collectdata=True)
     
     offset = Offset()
+    buff = Buffer(10000)
 
     if (gamma>0):
         params = list(model.parameters()) + list(offset.parameters())
@@ -34,7 +35,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
         params = model.parameters()
     optimizer = torch.optim.Adam(params, lr=lr, weight_decay=weight_decay)
 
-    dbeta = (1.-beta)/Nepochs
+    Nanneal = Nepochs//2
+    dbeta = (1.-beta)/Nanneal
 
     for epoch in range(Nepochs):
         samples, proposals ,_, accratio, res, sjd = sampler.run(Batchsize, 0, Nsteps, Nskips)
@@ -43,18 +45,21 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
         #mes loss on the proposals
         xy = np.array(proposals)
         xy.shape = (Batchsize*Nsteps, -1)
-        x_data = xy[:, :-1]
-        y_data = xy[:, -1]
-        x_data = Variable(torch.from_numpy(x_data))
-        y_data = Variable(torch.from_numpy(y_data))
+        xy = torch.from_numpy(xy)
+        buff.push(xy)
+
+        traindata = buff.draw(Batchsize)
+        x_data = Variable(traindata[:, :-1])
+        y_data = Variable(traindata[:, -1])
         y_pred = model.logProbability(x_data)
         mse = (offset(y_pred) - y_data).pow(2)
         ######################################################
- 
+
         loss = -res.mean() - alpha * sjd.mean() + gamma * mse.mean()
 
         alpha *= 0.98 
-        beta += dbeta
+        if (epoch < Nanneal):
+            beta += dbeta
         sampler.set_beta(beta)
         
         print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, "beta:", beta, "offset:", offset.offset.data[0])
