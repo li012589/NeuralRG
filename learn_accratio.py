@@ -129,9 +129,9 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
             ax22.autoscale_view() 
 
             fig2.canvas.draw()
-
             plt.pause(0.001)
 
+    fig2.save(model.name + '/loss.png')
     return model, LOSS
 
 if __name__=="__main__":
@@ -192,10 +192,8 @@ if __name__=="__main__":
 
     Nvars = target.nvars 
 
-    sList = [MLP(Nvars//2, args.Hs, F.relu) for i in range(args.Nlayers-1)] \
-          + [MLP(Nvars//2, args.Hs, ScalableTanh(((args.Batchsize, Nvars//2))))]
-    tList = [MLP(Nvars//2, args.Ht, F.relu) for i in range(args.Nlayers-1)] \
-          + [MLP(Nvars//2, args.Hs, F.linear)]
+    sList = [MLP(Nvars//2, args.Hs, ScalableTanh(((args.Batchsize, Nvars//2)))) for i in range(args.Nlayers)]
+    tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)] 
 
     gaussian = Gaussian([Nvars])
 

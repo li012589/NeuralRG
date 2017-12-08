@@ -6,7 +6,7 @@ import torch.nn.functional as F
 class ScalableTanh(nn.Module):
     def __init__(self,inNum):
         super(ScalableTanh,self).__init__()
-        self.scale = nn.Parameter(torch.randn(inNum))
+        self.scale = nn.Parameter(torch.zeros(inNum))
     def forward(self,x):
         return self.scale * F.tanh(x)
 
