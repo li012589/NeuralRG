@@ -39,19 +39,32 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
     dbeta = (1.-beta)/Nanneal
     
     plt.ion() 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+    fig1 = plt.figure()
+    ax1 = fig1.add_subplot(111)
 
-    l1, = ax.plot([], [],'o', alpha=0.5, label='proposals')
-    l2, = ax.plot([], [],'*', alpha=0.5, label='samples')
+    l1, = ax1.plot([], [],'o', alpha=0.5, label='proposals')
+    l2, = ax1.plot([], [],'*', alpha=0.5, label='samples')
 
     plt.xlim([-5, 5])
     plt.ylim([-5, 5])
     plt.xlabel('$x_1$')
     plt.ylabel('$x_2$')
     plt.legend()
+    fig1.canvas.draw()
 
-    fig.canvas.draw()
+
+    fig2 = plt.figure()
+    ax21 = fig2.add_subplot(211)
+    l3, = ax21.plot([], [], label='loss')
+    ax21.set_xlim([0, Nepochs])
+    ax21.legend()
+
+    ax22 = fig2.add_subplot(212)
+    l4, = ax22.plot([], [], label='acc')
+    ax22.set_xlim([0, Nepochs])
+    ax22.legend()
+    plt.xlabel('epochs')
+    fig2.canvas.draw()
 
     for epoch in range(Nepochs):
         samples, proposals ,_, accratio, res, sjd = sampler.run(Batchsize, 0, Nsteps, Nskips)
@@ -99,10 +112,25 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
 
             l2.set_xdata(samples[:,0])
             l2.set_ydata(samples[:,1])
+            ax1.set_title('epoch=%g'%(epoch))
 
-            fig.canvas.draw()
+            fig1.canvas.draw()
+            fig1.savefig(model.name+'/epoch%g.png'%(epoch)) 
+
+            loss4plot = np.array(LOSS)
+        
+            l3.set_xdata(range(len(LOSS)))
+            l4.set_xdata(range(len(LOSS)))
+            l3.set_ydata(loss4plot[:,0])
+            l4.set_ydata(loss4plot[:,1])
+            ax21.relim()
+            ax21.autoscale_view() 
+            ax22.relim()
+            ax22.autoscale_view() 
+
+            fig2.canvas.draw()
+
             plt.pause(0.001)
-            plt.savefig(model.name+'/epoch%g.png'%(epoch)) 
 
     return model, LOSS
 
@@ -202,13 +230,4 @@ if __name__=="__main__":
     results.create_dataset("loss", data=np.array(LOSS))
     h5.close()
 
-    plt.figure()
-    LOSS = np.array(LOSS)
-    plt.subplot(211)
-    plt.plot(LOSS[:, 0], label='loss')
-    plt.subplot(212)
-    plt.plot(LOSS[:, 1], label='acc')
-    plt.xlabel('iterations')
-
-    plt.show()
 
