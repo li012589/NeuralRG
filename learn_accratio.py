@@ -131,7 +131,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
             fig2.canvas.draw()
             plt.pause(0.001)
 
-    fig2.save(model.name + '/loss.png')
+    fig2.savefig(model.name + '/loss.png')
     return model, LOSS
 
 if __name__=="__main__":
