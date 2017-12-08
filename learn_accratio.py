@@ -37,6 +37,21 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
 
     Nanneal = Nepochs//2
     dbeta = (1.-beta)/Nanneal
+    
+    plt.ion() 
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    l1, = ax.plot([], [],'o', alpha=0.5, label='proposals')
+    l2, = ax.plot([], [],'*', alpha=0.5, label='samples')
+
+    plt.xlim([-5, 5])
+    plt.ylim([-5, 5])
+    plt.xlabel('$x_1$')
+    plt.ylabel('$x_2$')
+    plt.legend()
+
+    fig.canvas.draw()
 
     for epoch in range(Nepochs):
         samples, proposals ,_, accratio, res, sjd = sampler.run(Batchsize, 0, Nsteps, Nskips)
@@ -78,17 +93,16 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
 
             proposals = np.array(proposals)
             proposals.shape = (Batchsize*Nsteps, -1)
-  
-            plt.figure()
-            plt.scatter(proposals[:,0], proposals[:,-2], alpha=0.5, label='proposals')
-            plt.scatter(samples[:,0], samples[:,-2], alpha=0.5, label='samples')
-            plt.xlim([-5, 5])
-            plt.ylim([-5, 5])
-            plt.xlabel('$x_1$')
-            plt.ylabel('$x_2$')
-            plt.legend()
+            
+            l1.set_xdata(proposals[:,0])
+            l1.set_ydata(proposals[:,1])
+
+            l2.set_xdata(samples[:,0])
+            l2.set_ydata(samples[:,1])
+
+            fig.canvas.draw()
+            plt.pause(0.001)
             plt.savefig(model.name+'/epoch%g.png'%(epoch)) 
-            plt.close() 
 
     return model, LOSS
 
