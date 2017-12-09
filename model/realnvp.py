@@ -5,6 +5,66 @@ import torch.nn.functional as F
 
 from model import RealNVPtemplate, PriorTemplate
 
+class Cauchy(PriorTemplate):
+    """
+
+    This is a class for Cauchy prior distribution.
+    Args:
+        name (PriorTemplate): name of this prior.
+        shapeList (int list): shape of sampled variables.
+
+    """
+
+    def __init__(self, shapeList, name="gaussian"):
+        """
+
+        This method initialise this class.
+        Args:
+            shapeList (int list): shape of sampled variables.
+            name (PriorTemplate): name of this prior.
+
+        """
+        super(Cauchy, self).__init__(name)
+        self.shapeList = shapeList
+
+    def sample(self, batchSize, volatile=False, ifCuda=False, double=True):
+        """
+
+        This method gives variables sampled from prior distribution.
+        Args:
+            batchSize (int): size of batch of variables to sample.
+            volatile (bool): if only want forward, flag volatile to True to disable computation graph.
+        Return:
+            Samples (torch.autograd.Variable): sampled variables.
+
+        """
+        size = [batchSize] + self.shapeList
+        if ifCuda:
+            if double:
+                return Variable(torch.DoubleTensor(*size).cauchy_().pin_memory(),volatile=volatile)
+            else:
+                return Variable(torch.FloatTensor(*size).cauchy_().pin_memory(),volatile=volatile)
+        else:
+            if double:
+                return Variable(torch.DoubleTensor(*size).cauchy_(), volatile=volatile)
+            else:
+                return Variable(torch.FloatTensor(*size).cauchy_(), volatile=volatile)
+    def __call__(self,*args,**kwargs):
+        return self.sample(*args,**kwargs)
+
+    def logProbability(self, z):
+        """
+
+        This method gives the log probability of z in prior distribution.
+        Args:
+            z (torch.autograd.Variable): variables to get log probability of.
+        Return:
+            logProbability (torch.autograd.Variable): log probability of input variables.
+
+        """
+        tmp = -torch.log((z**2)+1.)
+        return tmp.view(z.data.shape[0],-1).sum(dim=1)  # sum all but the batch dimension
+
 
 class Gaussian(PriorTemplate):
     """

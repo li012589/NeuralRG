@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import Gaussian,MLP,RealNVP, ScalableTanh
+from model import Gaussian, Cauchy, MLP,RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer 
 
@@ -144,6 +144,7 @@ if __name__=="__main__":
     parser.add_argument("-Ht", type=int, default=10, help="")
     parser.add_argument("-Nepochs", type=int, default=500, help="")
     parser.add_argument("-target", default='ring2d', help="target distribution")
+    parser.add_argument("-prior", default='gaussian', help="prior distribution")
     parser.add_argument("-Batchsize", type=int, default=64, help="")
     parser.add_argument("-cuda", action='store_true', help="use GPU")
     parser.add_argument("-float", action='store_true', help="use float32")
@@ -170,6 +171,10 @@ if __name__=="__main__":
 
     args = parser.parse_args()
 
+    modelfolder = 'data/learn_acc'
+    cmd = ['mkdir', '-p', modelfolder]
+    subprocess.check_call(cmd)
+
     if args.target == 'ring2d':
         target = Ring2D()
     elif args.target == 'ring5':
@@ -186,18 +191,21 @@ if __name__=="__main__":
         print ('what target ?', args.target)
         sys.exit(1)
 
-    modelfolder = 'data/learn_acc'
-    cmd = ['mkdir', '-p', modelfolder]
-    subprocess.check_call(cmd)
-
     Nvars = target.nvars 
+
+    if args.prior == 'gaussian':
+        prior = Gaussian([Nvars])
+    elif args.prior == 'cauchy':
+        prior = Cauchy([Nvars])
+    else:
+        print ('what prior?', args.prior)
+        sys.exit(1)
+
 
     sList = [MLP(Nvars//2, args.Hs, ScalableTanh(((args.Batchsize, Nvars//2)))) for i in range(args.Nlayers)]
     tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)] 
 
-    gaussian = Gaussian([Nvars])
-
-    model = RealNVP([Nvars], sList, tList, gaussian, maskTpye="channel",name = modelfolder,double=not args.float)
+    model = RealNVP([Nvars], sList, tList, prior, maskTpye="channel",name = modelfolder,double=not args.float)
     if args.cuda:
         model = model.cuda()
 
