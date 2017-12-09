@@ -22,7 +22,7 @@ class Offset(torch.nn.Module):
     def forward(self, x):
         return x + self.offset
 
-def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alpha=0.0, beta=1.0, gamma=0.0, lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10):
+def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, alpha=0.0, beta=1.0, gamma=0.0, lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10):
     LOSS=[]
 
     sampler = MCMC(target, model, collectdata=True)
@@ -146,23 +146,26 @@ if __name__=="__main__":
     import subprocess
     import argparse
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument("-Nlayers", type=int, default=8, help="")
-    parser.add_argument("-Hs", type=int, default=10, help="")
-    parser.add_argument("-Ht", type=int, default=10, help="")
-    parser.add_argument("-Nepochs", type=int, default=500, help="")
-    parser.add_argument("-target", default='ring2d', help="target distribution")
-    parser.add_argument("-prior", default='gaussian', help="prior distribution")
-    parser.add_argument("-Batchsize", type=int, default=64, help="")
-    parser.add_argument("-cuda", action='store_true', help="use GPU")
-    parser.add_argument("-float", action='store_true', help="use float32")
 
-    parser.add_argument("-train_prior", action='store_true', help="if we train the prior")
-
-    parser.add_argument("-alpha", type=float, default=0.0, help="sjd term")
-    parser.add_argument("-beta", type=float, default=1.0, help="temperature term")
-    parser.add_argument("-gamma", type=float, default=0.0, help="weight to the mse loss")
-    parser.add_argument("-folder", default='data/',
+    parser.add_argument("-folder", default='data/learn_acc/',
                     help="where to store results")
+
+    group = parser.add_argument_group('learning  parameters')
+    group.add_argument("-Nepochs", type=int, default=500, help="")
+    group.add_argument("-Batchsize", type=int, default=64, help="")
+    group.add_argument("-cuda", action='store_true', help="use GPU")
+    group.add_argument("-float", action='store_true', help="use float32")
+    group.add_argument("-alpha", type=float, default=0.0, help="sjd term")
+    group.add_argument("-beta", type=float, default=1.0, help="temperature term")
+    group.add_argument("-gamma", type=float, default=0.0, help="weight to the mse loss")
+
+    group = parser.add_argument_group('network parameters')
+    group.add_argument("-modelname", default=None, help="")
+    group.add_argument("-prior", default='gaussian', help="prior distribution")
+    group.add_argument("-Nlayers", type=int, default=8, help="")
+    group.add_argument("-Hs", type=int, default=10, help="")
+    group.add_argument("-Ht", type=int, default=10, help="")
+    group.add_argument("-train_prior", action='store_true', help="if we train the prior")
 
     group = parser.add_argument_group('mc parameters')
     group.add_argument("-Ntherm", type=int, default=100, help="")
@@ -171,6 +174,7 @@ if __name__=="__main__":
     group.add_argument("-Nskips", type=int, default=10, help="")
 
     group = parser.add_argument_group('target parameters')
+    group.add_argument("-target", default='ring2d', help="target distribution")
     #Mog2 
     group.add_argument("-offset",type=float, default=2.0,help="offset of mog2")
     #Ising
@@ -179,10 +183,6 @@ if __name__=="__main__":
     group.add_argument("-K",type=float, default=1.0,help="K")
 
     args = parser.parse_args()
-
-    modelfolder = 'data/learn_acc'
-    cmd = ['mkdir', '-p', modelfolder]
-    subprocess.check_call(cmd)
 
     if args.target == 'ring2d':
         target = Ring2D()
@@ -210,27 +210,44 @@ if __name__=="__main__":
         print ('what prior?', args.prior)
         sys.exit(1)
 
-    sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
-    tList = [MLP(Nvars//2, args.Ht, F.tanh) for i in range(args.Nlayers)] 
-
-    model = RealNVP([Nvars], sList, tList, prior, maskTpye="channel",name = modelfolder,double=not args.float)
-    if args.cuda:
-        model = model.cuda()
-
-    model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
-                            args.Nsteps, args.Nskips,
-                            'learn_acc', alpha=args.alpha, beta=args.beta, gamma =args.gamma)
-
-    sampler = MCMC(target, model, collectdata=True)
-    _, _, measurements, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
-
-    cmd = ['mkdir', '-p', args.folder]
-    subprocess.check_call(cmd)
     key = args.folder \
           + args.target \
           + '_Nl' + str(args.Nlayers) \
           + '_Hs' + str(args.Hs) \
-          + '_Ht' + str(args.Ht)
+          + '_Ht' + str(args.Ht) \
+          + '_alpha' + str(args.alpha) \
+          + '_beta' + str(args.beta) \
+          + '_gamma' + str(args.gamma) \
+          + '_Batchsize' + str(args.Batchsize) \
+          + '_Nsteps' + str(args.Nsteps) \
+
+    cmd = ['mkdir', '-p', key]
+    subprocess.check_call(cmd)
+
+    sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
+    tList = [MLP(Nvars//2, args.Ht, F.tanh) for i in range(args.Nlayers)] 
+
+    model = RealNVP([Nvars], sList, tList, prior, maskTpye="channel",name = key, double=not args.float)
+
+    if args.modelname is not None:
+        try:
+            model.loadModel(torch.load(args.modelname))
+            print('#load model', args.modelname)
+        except FileNotFoundError:
+            print('model file not found:', args.modelname)
+        print("using model", args.modelname)
+
+    if args.cuda:
+        model = model.cuda()
+        print("moving model to GPU")
+
+    model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
+                            args.Nsteps, args.Nskips,
+                            alpha=args.alpha, beta=args.beta, gamma =args.gamma)
+
+    sampler = MCMC(target, model, collectdata=True)
+    _, _, measurements, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
+    
     h5filename = key + '_mc.h5'
     print("save at: " + h5filename)
     h5 = h5py.File(h5filename, 'w')
@@ -245,5 +262,3 @@ if __name__=="__main__":
     results.create_dataset("obs", data=np.array(measurements))
     results.create_dataset("loss", data=np.array(LOSS))
     h5.close()
-
-
