@@ -202,7 +202,7 @@ if __name__=="__main__":
         sys.exit(1)
 
 
-    sList = [MLP(Nvars//2, args.Hs, ScalableTanh(((args.Batchsize, Nvars//2)))) for i in range(args.Nlayers)]
+    sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
     tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)] 
 
     model = RealNVP([Nvars], sList, tList, prior, maskTpye="channel",name = modelfolder,double=not args.float)

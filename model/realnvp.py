@@ -15,7 +15,7 @@ class Cauchy(PriorTemplate):
 
     """
 
-    def __init__(self, shapeList, name="gaussian"):
+    def __init__(self, shapeList, name="cauchy"):
         """
 
         This method initialise this class.

@@ -4,9 +4,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class ScalableTanh(nn.Module):
-    def __init__(self,inNum):
+    def __init__(self,nvars):
         super(ScalableTanh,self).__init__()
-        self.scale = nn.Parameter(torch.zeros(inNum))
+        self.scale = nn.Parameter(torch.zeros(nvars))
     def forward(self,x):
         return self.scale * F.tanh(x)
 
