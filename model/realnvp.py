@@ -15,7 +15,7 @@ class Cauchy(PriorTemplate):
 
     """
 
-    def __init__(self, shapeList, name="cauchy"):
+    def __init__(self, shapeList, sigma=1, name="cauchy"):
         """
 
         This method initialise this class.
@@ -26,6 +26,7 @@ class Cauchy(PriorTemplate):
         """
         super(Cauchy, self).__init__(name)
         self.shapeList = shapeList
+        self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]))    
 
     def sample(self, batchSize, volatile=False, ifCuda=False, double=True):
         """
@@ -41,14 +42,14 @@ class Cauchy(PriorTemplate):
         size = [batchSize] + self.shapeList
         if ifCuda:
             if double:
-                return Variable(torch.DoubleTensor(*size).cauchy_().pin_memory(),volatile=volatile)
+                return Variable(torch.DoubleTensor(*size).cauchy_(sigma=self.sigma).pin_memory(),volatile=volatile)
             else:
-                return Variable(torch.FloatTensor(*size).cauchy_().pin_memory(),volatile=volatile)
+                return Variable(torch.FloatTensor(*size).cauchy_(sigma=self.sigma).pin_memory(),volatile=volatile)
         else:
             if double:
-                return Variable(torch.DoubleTensor(*size).cauchy_(), volatile=volatile)
+                return Variable(torch.DoubleTensor(*size).cauchy_(sigma=self.sigma), volatile=volatile)
             else:
-                return Variable(torch.FloatTensor(*size).cauchy_(), volatile=volatile)
+                return Variable(torch.FloatTensor(*size).cauchy_(sigma=self.sigma), volatile=volatile)
     def __call__(self,*args,**kwargs):
         return self.sample(*args,**kwargs)
 
@@ -62,7 +63,7 @@ class Cauchy(PriorTemplate):
             logProbability (torch.autograd.Variable): log probability of input variables.
 
         """
-        tmp = -torch.log((z**2)+1.)
+        tmp = -torch.log(z**2+self.sigma**2)
         return tmp.view(z.data.shape[0],-1).sum(dim=1)  # sum all but the batch dimension
 
 
@@ -76,7 +77,7 @@ class Gaussian(PriorTemplate):
 
     """
 
-    def __init__(self, shapeList, name="gaussian"):
+    def __init__(self, shapeList, sigma=1,name="gaussian"):
         """
 
         This method initialise this class.
@@ -87,6 +88,7 @@ class Gaussian(PriorTemplate):
         """
         super(Gaussian, self).__init__(name)
         self.shapeList = shapeList
+        self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]))    
 
     def sample(self, batchSize, volatile=False, ifCuda=False, double=True):
         """
@@ -102,14 +104,15 @@ class Gaussian(PriorTemplate):
         size = [batchSize] + self.shapeList
         if ifCuda:
             if double:
-                return Variable(torch.randn(size).double().pin_memory(),volatile=volatile)
+                return Variable(torch.randn(size).double().pin_memory(),volatile=volatile) * self.sigma
             else:
-                return Variable(torch.randn(size).pin_memory(),volatile=volatile)
+                return Variable(torch.randn(size).pin_memory(),volatile=volatile) * self.sigma
         else:
             if double:
-                return Variable(torch.randn(size).double(), volatile=volatile)
+                return Variable(torch.randn(size).double(), volatile=volatile) * self.sigma 
             else:
-                return Variable(torch.randn(size), volatile=volatile)
+                return Variable(torch.randn(size), volatile=volatile) * self.sigma
+
     def __call__(self,*args,**kwargs):
         return self.sample(*args,**kwargs)
 
@@ -123,10 +126,8 @@ class Gaussian(PriorTemplate):
             logProbability (torch.autograd.Variable): log probability of input variables.
 
         """
-        tmp = -0.5 * (z**2)
-        for i in self.shapeList:
-            tmp = tmp.sum(dim=-1)
-        return tmp
+        tmp = -0.5 * (z/self.sigma)**2 
+        return tmp.view(z.data.shape[0],-1).sum(dim=1)  # sum all but the batch dimension
 
 class RealNVP(RealNVPtemplate):
     """

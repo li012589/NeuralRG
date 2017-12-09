@@ -508,7 +508,7 @@ class RealNVPtemplate(torch.nn.Module):
         return getattr(self,self.pointer)(*args,**kwargs)
 
 
-class PriorTemplate():
+class PriorTemplate(torch.nn.Module):
     """
 
     This is the template class for prior, which will be used in realNVP class.
@@ -518,6 +518,8 @@ class PriorTemplate():
     """
 
     def __init__(self, name="prior"):
+        super(PriorTemplate, self).__init__()
+
         """
 
         This method initialise this class.

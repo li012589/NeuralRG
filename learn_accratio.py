@@ -22,7 +22,7 @@ class Offset(torch.nn.Module):
     def forward(self, x):
         return x + self.offset
 
-def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alpha=0.0, beta=1.0, gamma=0.0, lr =1e-3, weight_decay = 0.001,save = True, saveSteps=10):
+def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alpha=0.0, beta=1.0, gamma=0.0, lr =1e-3, weight_decay = 0.001, train_prior=False, save = True, saveSteps=10):
     LOSS=[]
 
     sampler = MCMC(target, model, collectdata=True)
@@ -30,10 +30,13 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
     offset = Offset()
     buff = Buffer(10000)
 
+    params = list(model.parameters()) 
+    if (train_prior):
+        params += list(model.prior.parameters())
     if (gamma>0):
-        params = list(model.parameters()) + list(offset.parameters())
-    else:
-        params = model.parameters()
+        params += list(offset.parameters())
+    print ('total nubmer of trainable parameters:', len(params))
+
     optimizer = torch.optim.Adam(params, lr=lr, weight_decay=weight_decay)
 
     Nanneal = Nepochs//2
@@ -149,6 +152,8 @@ if __name__=="__main__":
     parser.add_argument("-cuda", action='store_true', help="use GPU")
     parser.add_argument("-float", action='store_true', help="use float32")
 
+    parser.add_argument("-train_prior", action='store_true', help="if we train the prior")
+
     parser.add_argument("-alpha", type=float, default=0.0, help="sjd term")
     parser.add_argument("-beta", type=float, default=1.0, help="temperature term")
     parser.add_argument("-gamma", type=float, default=0.0, help="weight to the mse loss")
@@ -211,7 +216,8 @@ if __name__=="__main__":
 
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Nsteps, args.Nskips,
-                            'learn_acc', alpha=args.alpha, beta=args.beta, gamma =args.gamma)
+                            'learn_acc', alpha=args.alpha, beta=args.beta, gamma =args.gamma, 
+                            train_prior = args.train_prior)
 
     sampler = MCMC(target, model, collectdata=True)
     _, _, measurements, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
