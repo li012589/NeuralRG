@@ -15,7 +15,7 @@ class Cauchy(PriorTemplate):
 
     """
 
-    def __init__(self, shapeList, sigma=1, name="cauchy"):
+    def __init__(self, shapeList, sigma=1, requires_grad=False, name="cauchy"):
         """
 
         This method initialise this class.
@@ -26,7 +26,7 @@ class Cauchy(PriorTemplate):
         """
         super(Cauchy, self).__init__(name)
         self.shapeList = shapeList
-        self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]))    
+        self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]), requires_grad= requires_grad)    
 
     def sample(self, batchSize, volatile=False, ifCuda=False, double=True):
         """
@@ -77,7 +77,7 @@ class Gaussian(PriorTemplate):
 
     """
 
-    def __init__(self, shapeList, sigma=1,name="gaussian"):
+    def __init__(self, shapeList, sigma=1, requires_grad=False, name="gaussian"):
         """
 
         This method initialise this class.
@@ -88,7 +88,7 @@ class Gaussian(PriorTemplate):
         """
         super(Gaussian, self).__init__(name)
         self.shapeList = shapeList
-        self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]))    
+        self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]), requires_grad=requires_grad)    
 
     def sample(self, batchSize, volatile=False, ifCuda=False, double=True):
         """

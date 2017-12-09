@@ -22,7 +22,7 @@ class Offset(torch.nn.Module):
     def forward(self, x):
         return x + self.offset
 
-def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alpha=0.0, beta=1.0, gamma=0.0, lr =1e-3, weight_decay = 0.001, train_prior=False, save = True, saveSteps=10):
+def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alpha=0.0, beta=1.0, gamma=0.0, lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10):
     LOSS=[]
 
     sampler = MCMC(target, model, collectdata=True)
@@ -31,11 +31,13 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
     buff = Buffer(10000)
 
     params = list(model.parameters()) 
-    if (train_prior):
-        params += list(model.prior.parameters())
     if (gamma>0):
         params += list(offset.parameters())
-    print ('total nubmer of trainable parameters:', len(params))
+    
+    #filter out those we do not want to train
+    params = list(filter(lambda p: p.requires_grad, params))
+    nparams = sum([np.prod(p.size()) for p in params])
+    print ('total nubmer of trainable parameters:', nparams)
 
     optimizer = torch.optim.Adam(params, lr=lr, weight_decay=weight_decay)
 
@@ -95,7 +97,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
         
         print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, 
                "alpha:", alpha, "beta:", beta, 
-               "offset:", offset.offset.data[0], "sigma", model.prior.sigma)
+               "offset:", offset.offset.data[0], "sigma", model.prior.sigma.data[0])
         LOSS.append([loss.data[0], accratio])
 
         optimizer.zero_grad()
@@ -201,16 +203,15 @@ if __name__=="__main__":
     Nvars = target.nvars 
 
     if args.prior == 'gaussian':
-        prior = Gaussian([Nvars])
+        prior = Gaussian([Nvars], requires_grad = args.train_prior)
     elif args.prior == 'cauchy':
-        prior = Cauchy([Nvars])
+        prior = Cauchy([Nvars], requires_grad = args.train_prior)
     else:
         print ('what prior?', args.prior)
         sys.exit(1)
 
-
     sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
-    tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)] 
+    tList = [MLP(Nvars//2, args.Ht, F.tanh) for i in range(args.Nlayers)] 
 
     model = RealNVP([Nvars], sList, tList, prior, maskTpye="channel",name = modelfolder,double=not args.float)
     if args.cuda:
@@ -218,8 +219,7 @@ if __name__=="__main__":
 
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Nsteps, args.Nskips,
-                            'learn_acc', alpha=args.alpha, beta=args.beta, gamma =args.gamma, 
-                            train_prior = args.train_prior)
+                            'learn_acc', alpha=args.alpha, beta=args.beta, gamma =args.gamma)
 
     sampler = MCMC(target, model, collectdata=True)
     _, _, measurements, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
