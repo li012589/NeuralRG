@@ -90,14 +90,15 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, alpha=0.0, beta
 
         loss = -res.mean() - alpha * sjd.mean() + gamma * mse.mean()
 
-        alpha *= 0.98 
         if (epoch < Nanneal):
             beta += dbeta
         sampler.set_beta(beta)
         
         print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, 
-               "alpha:", alpha, "beta:", beta, 
-               "offset:", offset.offset.data[0], "sigma", model.prior.sigma.data[0])
+               "beta:", beta, 
+               "offset:", offset.offset.data[0], 
+               "sigma", model.prior.sigma.data[0])
+
         LOSS.append([loss.data[0], accratio])
 
         optimizer.zero_grad()
@@ -160,7 +161,7 @@ if __name__=="__main__":
     group.add_argument("-gamma", type=float, default=0.0, help="weight to the mse loss")
 
     group = parser.add_argument_group('network parameters')
-    group.add_argument("-modelname", default=None, help="")
+    group.add_argument("-modelname", default=None, help="load model")
     group.add_argument("-prior", default='gaussian', help="prior distribution")
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
@@ -235,7 +236,7 @@ if __name__=="__main__":
             print('#load model', args.modelname)
         except FileNotFoundError:
             print('model file not found:', args.modelname)
-        print("using model", args.modelname)
+        print("train model", key)
 
     if args.cuda:
         model = model.cuda()
