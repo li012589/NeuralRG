@@ -27,6 +27,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips,
         lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10):
 
     LOSS=[]
+    OBS = []
 
     sampler = MCMC(target, model, collectdata=True)
     
@@ -54,29 +55,32 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips,
 
     l1, = ax1.plot([], [],'o', alpha=0.5, label='proposals')
     l2, = ax1.plot([], [],'*', alpha=0.5, label='samples')
-
-    plt.xlim([-5, 5])
-    plt.ylim([-5, 5])
     plt.xlabel('$x_1$')
     plt.ylabel('$x_2$')
     plt.legend()
     fig1.canvas.draw()
 
 
-    fig2 = plt.figure()
-    ax21 = fig2.add_subplot(211)
+    fig2 = plt.figure(figsize=(8, 10))
+    ax21 = fig2.add_subplot(311)
     l3, = ax21.plot([], [], label='loss')
     ax21.legend()
 
-    ax22 = fig2.add_subplot(212, sharex=ax21)
+    ax22 = fig2.add_subplot(312, sharex=ax21)
     l4, = ax22.plot([], [], label='acc')
     ax22.set_xlim([0, Nepochs])
     ax22.legend()
+
+    ax23 = fig2.add_subplot(313, sharex=ax21)
+    l5, = ax23.plot([], [], label='obs')
+    ax23.set_xlim([0, Nepochs])
+    ax23.legend()
+
     plt.xlabel('epochs')
     fig2.canvas.draw()
 
     for epoch in range(Nepochs):
-        samples, proposals ,_, accratio, res, sjd = sampler.run(Batchsize, 0, Nsteps, Nskips)
+        samples, proposals, measurements, accratio, res, sjd = sampler.run(Batchsize, 0, Nsteps, Nskips)
 
         ######################################################
         #mes loss on the proposals
@@ -113,9 +117,12 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips,
         print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, 
                "beta:", beta, 
                "offset:", offset.offset.data[0], 
-               "sigma", model.prior.sigma.data[0])
+               "sigma", model.prior.sigma.data[0],
+               "obs", np.array(measurements).mean() 
+               )
 
         LOSS.append([loss.data[0], accratio])
+        OBS.append(np.array(measurements).mean())
 
         optimizer.zero_grad()
         loss.backward()
@@ -132,25 +139,33 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips,
             proposals.shape = (Batchsize*Nsteps, -1)
             
             l1.set_xdata(proposals[:,0])
-            l1.set_ydata(proposals[:,1])
+            l1.set_ydata(proposals[:,-2])
 
             l2.set_xdata(samples[:,0])
-            l2.set_ydata(samples[:,1])
+            l2.set_ydata(samples[:,-2])
             ax1.set_title('epoch=%g'%(epoch))
+
+            ax1.relim()
+            ax1.autoscale_view() 
 
             fig1.canvas.draw()
             fig1.savefig(model.name+'/epoch%g.png'%(epoch)) 
 
             loss4plot = np.array(LOSS)
+            obs4plot = np.array(OBS)
         
             l3.set_xdata(range(len(LOSS)))
             l4.set_xdata(range(len(LOSS)))
+            l5.set_xdata(range(len(OBS)))
             l3.set_ydata(loss4plot[:,0])
             l4.set_ydata(loss4plot[:,1])
+            l5.set_ydata(obs4plot)
             ax21.relim()
             ax21.autoscale_view() 
             ax22.relim()
             ax22.autoscale_view() 
+            ax23.relim()
+            ax23.autoscale_view() 
 
             fig2.canvas.draw()
             plt.pause(0.001)
