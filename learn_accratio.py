@@ -22,13 +22,17 @@ class Offset(torch.nn.Module):
     def forward(self, x):
         return x + self.offset
 
-def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, alpha=0.0, beta=1.0, gamma=0.0, lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10):
+def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, 
+        alpha=0.0, beta=1.0, gamma=0.0, delta=0.0, 
+        lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10):
+
     LOSS=[]
 
     sampler = MCMC(target, model, collectdata=True)
     
     offset = Offset()
-    buff = Buffer(10000)
+    buff_proposals = Buffer(10000)
+    buff_samples = Buffer(10000)
 
     params = list(model.parameters()) 
     if (gamma>0):
@@ -79,16 +83,28 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, alpha=0.0, beta
         xy = np.array(proposals)
         xy.shape = (Batchsize*Nsteps, -1)
         xy = torch.from_numpy(xy)
-        buff.push(xy)
+        buff_proposals.push(xy)
 
-        traindata = buff.draw(Batchsize)
+        traindata = buff_proposals.draw(Batchsize*Nsteps)
         x_data = Variable(traindata[:, :-1])
         y_data = Variable(traindata[:, -1])
         y_pred = model.logProbability(x_data)
         mse = (offset(y_pred) - y_data).pow(2)
         ######################################################
 
-        loss = -res.mean() - alpha * sjd.mean() + gamma * mse.mean()
+        ######################################################
+        #nll loss on the samples
+        xy = np.array(samples)
+        xy.shape = (Batchsize*Nsteps, -1)
+        xy = torch.from_numpy(xy)
+        buff_samples.push(xy)
+
+        traindata = buff_samples.draw(Batchsize*Nsteps)
+        x_data = Variable(traindata[:, :-1])
+        nll = -model.logProbability(x_data)
+        ######################################################
+
+        loss = -res.mean() - alpha * sjd.mean() + gamma * mse.mean() + delta*nll.mean() 
 
         if (epoch < Nanneal):
             beta += dbeta
@@ -159,6 +175,7 @@ if __name__=="__main__":
     group.add_argument("-alpha", type=float, default=0.0, help="sjd term")
     group.add_argument("-beta", type=float, default=1.0, help="temperature term")
     group.add_argument("-gamma", type=float, default=0.0, help="weight to the mse loss")
+    group.add_argument("-delta", type=float, default=0.0, help="weight to the nll loss")
 
     group = parser.add_argument_group('network parameters')
     group.add_argument("-modelname", default=None, help="load model")
@@ -219,6 +236,7 @@ if __name__=="__main__":
           + '_alpha' + str(args.alpha) \
           + '_beta' + str(args.beta) \
           + '_gamma' + str(args.gamma) \
+          + '_delta' + str(args.delta) \
           + '_Batchsize' + str(args.Batchsize) \
           + '_Nsteps' + str(args.Nsteps) \
 
@@ -244,7 +262,8 @@ if __name__=="__main__":
 
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Nsteps, args.Nskips,
-                            alpha=args.alpha, beta=args.beta, gamma =args.gamma)
+                            alpha=args.alpha, beta=args.beta, 
+                            gamma =args.gamma, delta=args.delta)
 
     sampler = MCMC(target, model, collectdata=True)
     _, _, measurements, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
