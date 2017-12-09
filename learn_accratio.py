@@ -93,7 +93,9 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, modelname, alph
             beta += dbeta
         sampler.set_beta(beta)
         
-        print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, "beta:", beta, "offset:", offset.offset.data[0])
+        print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, 
+               "alpha:", alpha, "beta:", beta, 
+               "offset:", offset.offset.data[0], "sigma", model.prior.sigma)
         LOSS.append([loss.data[0], accratio])
 
         optimizer.zero_grad()
