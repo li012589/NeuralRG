@@ -44,6 +44,7 @@ class HMCSampler:
     @staticmethod
     def hmcUpdate(z,v,model,stepSize,interSteps):
         force = -model.backward(z)
+        print (type(force))
         vp = v - 0.5*stepSize*force
         zp  = z + stepSize*vp
         for i in range(interSteps):
@@ -65,10 +66,10 @@ class HMCSampler:
         else:
             v = torch.randn(z.size())
         '''
-        if isinstance(z,torch.DoubleTensor):
-            v = torch.randn(z.size()).double()
+        if isinstance(z.data,torch.DoubleTensor):
+            v = Variable(torch.randn(z.size()).double())
         else:
-            v = torch.randn(z.size())
+            v = Variable(torch.randn(z.size()))
         #x = z.clone()
         zp,vp = self.hmcUpdate(z,v,self.model,self.stepSize,self.interSteps)
         accept = metropolis(self.hamiltonian(self.model(z),v),self.hamiltonian(self.model(zp),vp))
@@ -77,7 +78,8 @@ class HMCSampler:
         #print(type(accept.numpy()))
         accept = np.array([accept.numpy()]*self.model.nvars).transpose()
         mask = 1-accept
-        x = torch.from_numpy(z.numpy()*mask +zp.numpy()*accept)
+        x = Variable(torch.from_numpy(z.numpy()*mask +zp.numpy()*accept).double()) 
+        print (x)
         accratio = accept.mean()
         #accept = accept.view(-1,1)
         #x.masked_scatter_(accept, torch.masked_select(z, accept))
@@ -85,7 +87,10 @@ class HMCSampler:
         return accratio,x
 
     def run(self,batchSize,ntherm,nmeasure,nskip):
-        z = self.prior(batchSize).data
+        #z = self.prior(batchSize)
+        z = Variable(torch.randn(batchSize, 16).double(), requires_grad=True)
+        print ('###', z.requires_grad)
+
         for _ in range(ntherm):
             _,z = self.step(z)
 
