@@ -44,16 +44,21 @@ class MCMC:
     def set_beta(self, beta):
         self.beta = beta 
     
-    def run(self, batchSize,ntherm, nmeasure, nskip):
+    def run(self, batchSize,ntherm, nmeasure, nskip, z=None):
         """
         This method start sampling.
         Args:
             ntherm (int): number of steps used in thermalize.
             nmeasure (int): number of steps used in measure.
             nskip (int): number of steps skiped in measure.
+            z (): initial state 
         """
-        #z = self.model.sample(batchSize)
-        z = self.model.prior.sample(batchSize)
+
+        if z is None:
+            #z = self.model.sample(batchSize)      # sample from model
+            z = self.model.prior.sample(batchSize) # sample from prior 
+        else:
+            z = Variable(z)                        # sample from data 
 
         zpack = [] # samples 
         xpack = [] # proposals

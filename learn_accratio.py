@@ -80,7 +80,19 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
     fig2.canvas.draw()
 
     for epoch in range(Nepochs):
-        samples, proposals, measurements, accratio, res, sjd = sampler.run(Batchsize, Ntherm, Nsteps, Nskips)
+
+        if buff_samples.maximum > Batchsize:
+            # draw starting state from the sampler buffer 
+            zinit = buff_samples.draw(Batchsize)[:, :-1]
+        else:
+            zinit = None
+
+        samples, proposals, measurements, accratio, res, sjd = sampler.run(Batchsize, 
+                                                                           Ntherm, 
+                                                                           Nsteps, 
+                                                                           Nskips,
+                                                                           zinit 
+                                                                           )
 
         ######################################################
         #mes loss on the proposals
@@ -100,6 +112,13 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         #nll loss on the samples
         xy = np.array(samples)
         xy.shape = (Batchsize*(Ntherm+Nsteps), -1)
+        
+        #data argumentation using invertion symmetry 
+        xy_invert = xy.copy()
+        xy_invert[:, :-1] = -xy_invert[:, :-1] 
+        xy = np.vstack([xy, xy_invert])
+        #print (xy) 
+
         xy = torch.from_numpy(xy)
         buff_samples.push(xy)
 
