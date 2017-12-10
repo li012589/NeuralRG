@@ -44,7 +44,7 @@ class HMCSampler:
     @staticmethod
     def hmcUpdate(z,v,model,stepSize,interSteps):
         force = -model.backward(z)
-        print (type(force))
+        #print (type(force))
         vp = v - 0.5*stepSize*force
         zp  = z + stepSize*vp
         for i in range(interSteps):
@@ -79,7 +79,7 @@ class HMCSampler:
         accept = np.array([accept.numpy()]*self.model.nvars).transpose()
         mask = 1-accept
         x = Variable(torch.from_numpy(z.data.numpy()*mask +zp.data.numpy()*accept).double()) 
-        print (x)
+        #print (x)
         accratio = accept.mean()
         #accept = accept.view(-1,1)
         #x.masked_scatter_(accept, torch.masked_select(z, accept))
@@ -87,9 +87,7 @@ class HMCSampler:
         return accratio,x
 
     def run(self,batchSize,ntherm,nmeasure,nskip):
-        #z = self.prior(batchSize)
-        z = Variable(torch.randn(batchSize, 16).double(), requires_grad=True)
-        print ('###', z.requires_grad)
+        z = self.prior(batchSize)
 
         for _ in range(ntherm):
             _,z = self.step(z)
@@ -102,8 +100,8 @@ class HMCSampler:
                 a,z = self.step(z)
                 accratio += a
             if self.collectdata:
-                z_ = z.cpu().numpy()
-                logp = self.model(z).cpu().numpy()
+                z_ = z.data.cpu().numpy()
+                logp = self.model(z).data.cpu().numpy()
                 logp.shape = (-1, 1)
                 zpack.append(np.concatenate((z_, logp), axis=1))
                 #zpack.append(z_)
@@ -111,7 +109,7 @@ class HMCSampler:
             measurePack.append(measure)
         accratio /= float(nmeasure * nskip)
         print ('#accratio:', accratio)
-        return zpack,measurePack,accratio
+        return zpack,None,measurePack,accratio, None, None
 
     def measure(self, x,measureFn=None):
         """
