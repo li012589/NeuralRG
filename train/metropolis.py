@@ -55,16 +55,13 @@ class MCMC:
         #z = self.model.sample(batchSize)
         z = self.model.prior.sample(batchSize)
 
-        for n in range(ntherm):
-            _,_,_,z,_ = self.step(batchSize,z)
-
         zpack = [] # samples 
         xpack = [] # proposals
         measurepack = []
         accratio = 0.0
         res = Variable(torch.DoubleTensor(batchSize).zero_())
         sjd = Variable(torch.DoubleTensor(batchSize).zero_())
-        for n in range(nmeasure):
+        for n in range(ntherm+nmeasure):
             for i in range(nskip):
                 _,_,_,z,_ = self.step(batchSize,z)
 
@@ -87,12 +84,13 @@ class MCMC:
                 logp = self.target(x).data.cpu().numpy()
                 logp.shape = (-1, 1)
                 xpack.append(np.concatenate((x_, logp), axis=1))
+            
+            if n>=ntherm:
+                measurepack.append(self.measure(z))
 
-            measurepack.append(self.measure(z))
-
-        accratio /= float(nmeasure)
-        res /= float(nmeasure)
-        sjd /= float(nmeasure)
+        accratio /= float(ntherm+nmeasure)
+        res /= float(ntherm+nmeasure)
+        sjd /= float(ntherm+nmeasure)
 
         #print ('#accratio:', accratio)
         return zpack,xpack,measurepack,accratio,res,sjd

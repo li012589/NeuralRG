@@ -22,7 +22,7 @@ class Offset(torch.nn.Module):
     def forward(self, x):
         return x + self.offset
 
-def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips, 
+def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, 
         alpha=0.0, beta=1.0, gamma=0.0, delta=0.0, 
         lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10):
 
@@ -80,16 +80,16 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips,
     fig2.canvas.draw()
 
     for epoch in range(Nepochs):
-        samples, proposals, measurements, accratio, res, sjd = sampler.run(Batchsize, 0, Nsteps, Nskips)
+        samples, proposals, measurements, accratio, res, sjd = sampler.run(Batchsize, Ntherm, Nsteps, Nskips)
 
         ######################################################
         #mes loss on the proposals
         xy = np.array(proposals)
-        xy.shape = (Batchsize*Nsteps, -1)
+        xy.shape = (Batchsize*(Ntherm+Nsteps), -1)
         xy = torch.from_numpy(xy)
         buff_proposals.push(xy)
 
-        traindata = buff_proposals.draw(Batchsize*Nsteps)
+        traindata = buff_proposals.draw(Batchsize*(Ntherm+Nsteps))
         x_data = Variable(traindata[:, :-1])
         y_data = Variable(traindata[:, -1])
         y_pred = model.logProbability(x_data)
@@ -99,11 +99,11 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips,
         ######################################################
         #nll loss on the samples
         xy = np.array(samples)
-        xy.shape = (Batchsize*Nsteps, -1)
+        xy.shape = (Batchsize*(Ntherm+Nsteps), -1)
         xy = torch.from_numpy(xy)
         buff_samples.push(xy)
 
-        traindata = buff_samples.draw(Batchsize*Nsteps)
+        traindata = buff_samples.draw(Batchsize*(Ntherm+Nsteps))
         x_data = Variable(traindata[:, :-1])
         nll = -model.logProbability(x_data)
         ######################################################
@@ -133,10 +133,10 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips,
             torch.save(saveDict, model.name+'/epoch'+str(epoch))
 
             samples = np.array(samples)
-            samples.shape = (Batchsize*Nsteps, -1)
+            samples.shape = (Batchsize*(Ntherm+Nsteps), -1)
 
             proposals = np.array(proposals)
-            proposals.shape = (Batchsize*Nsteps, -1)
+            proposals.shape = (Batchsize*(Ntherm+Nsteps), -1)
             
             l1.set_xdata(proposals[:,0])
             l1.set_ydata(proposals[:,-2])
@@ -201,10 +201,10 @@ if __name__=="__main__":
     group.add_argument("-train_prior", action='store_true', help="if we train the prior")
 
     group = parser.add_argument_group('mc parameters')
-    group.add_argument("-Ntherm", type=int, default=100, help="")
-    group.add_argument("-Nsamples", type=int, default=100, help="")
+    group.add_argument("-Ntherm", type=int, default=10, help="")
     group.add_argument("-Nsteps", type=int, default=10, help="steps used in training")
     group.add_argument("-Nskips", type=int, default=10, help="")
+    group.add_argument("-Nsamples", type=int, default=100, help="")
 
     group = parser.add_argument_group('target parameters')
     group.add_argument("-target", default='ring2d', help="target distribution")
@@ -253,7 +253,9 @@ if __name__=="__main__":
           + '_gamma' + str(args.gamma) \
           + '_delta' + str(args.delta) \
           + '_Batchsize' + str(args.Batchsize) \
+          + '_Ntherm' + str(args.Ntherm) \
           + '_Nsteps' + str(args.Nsteps) \
+          + '_Nskips' + str(args.Nskips)
 
     cmd = ['mkdir', '-p', key]
     subprocess.check_call(cmd)
@@ -276,7 +278,7 @@ if __name__=="__main__":
         print("moving model to GPU")
 
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
-                            args.Nsteps, args.Nskips,
+                            args.Ntherm, args.Nsteps, args.Nskips,
                             alpha=args.alpha, beta=args.beta, 
                             gamma =args.gamma, delta=args.delta)
 
