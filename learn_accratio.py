@@ -280,7 +280,7 @@ if __name__=="__main__":
     subprocess.check_call(cmd)
 
     sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
-    tList = [MLP(Nvars//2, args.Ht, F.tanh) for i in range(args.Nlayers)] 
+    tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)] 
 
     model = RealNVP([Nvars], sList, tList, prior, maskTpye="channel",name = key, double=not args.float)
 
