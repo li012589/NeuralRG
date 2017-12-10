@@ -14,7 +14,7 @@ __all__ = ['HMCSampler']
 
 def metropolis(e1,e2):
     diff = e1-e2
-    return diff.exp()-diff.uniform_()>=0.0
+    return diff.data.exp()-diff.data.uniform_()>=0.0
 
 class HMCSampler:
     def __init__(self,model,prior,collectdata,stepSize=0.1,interSteps=10,targetAcceptRate=0.65,stepSizeMin=0.001,stepSizeMax=1000,stepSizeChangeRatio=0.03,dynamicStepSize=False):
@@ -78,7 +78,7 @@ class HMCSampler:
         #print(type(accept.numpy()))
         accept = np.array([accept.numpy()]*self.model.nvars).transpose()
         mask = 1-accept
-        x = Variable(torch.from_numpy(z.numpy()*mask +zp.numpy()*accept).double()) 
+        x = Variable(torch.from_numpy(z.data.numpy()*mask +zp.data.numpy()*accept).double()) 
         print (x)
         accratio = accept.mean()
         #accept = accept.view(-1,1)
