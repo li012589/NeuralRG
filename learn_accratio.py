@@ -61,7 +61,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Nsteps, Nskips,
     fig1.canvas.draw()
 
 
-    fig2 = plt.figure(figsize=(8, 10))
+    fig2 = plt.figure(figsize=(8, 8))
     ax21 = fig2.add_subplot(311)
     l3, = ax21.plot([], [], label='loss')
     ax21.legend()
@@ -213,7 +213,7 @@ if __name__=="__main__":
     #Ising
     group.add_argument("-L",type=int, default=2,help="linear size")
     group.add_argument("-d",type=int, default=1,help="dimension")
-    group.add_argument("-K",type=float, default=1.0,help="K")
+    group.add_argument("-K",type=float, default=0.44068679350977147 ,help="K")
 
     args = parser.parse_args()
 
