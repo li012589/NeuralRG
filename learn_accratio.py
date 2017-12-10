@@ -271,7 +271,7 @@ if __name__=="__main__":
             print('#load model', args.modelname)
         except FileNotFoundError:
             print('model file not found:', args.modelname)
-        print("train model", key)
+    print("train model", key)
 
     if args.cuda:
         model = model.cuda()
