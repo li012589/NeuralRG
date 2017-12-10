@@ -23,7 +23,7 @@ class Offset(torch.nn.Module):
         return x + self.offset
 
 def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, 
-        alpha=0.0, beta=1.0, gamma=0.0, delta=0.0, 
+        epsilon = 1.0, alpha=0.0, beta=1.0, gamma=0.0, delta=0.0, omega=0.0, 
         lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10):
 
     LOSS=[]
@@ -95,21 +95,27 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
                                                                            )
 
         ######################################################
-        #mes loss on the proposals
+        #put proposal data to buffer 
         xy = np.array(proposals)
         xy.shape = (Batchsize*(Ntherm+Nsteps), -1)
         xy = torch.from_numpy(xy)
         buff_proposals.push(xy)
 
+        #mes loss on the proposals
         traindata = buff_proposals.draw(Batchsize*(Ntherm+Nsteps))
         x_data = Variable(traindata[:, :-1])
         y_data = Variable(traindata[:, -1])
         y_pred = model.logProbability(x_data)
         mse = (offset(y_pred) - y_data).pow(2)
+
+        #nll loss on the proposals
+        traindata = buff_proposals.draw(Batchsize*(Ntherm+Nsteps))
+        x_data = Variable(traindata[:, :-1])
+        nll_proposals = -target(x_data) #API change: shoule be -target.logProbability(x_data) 
         ######################################################
 
         ######################################################
-        #nll loss on the samples
+        #put sampled data to buffer 
         xy = np.array(samples)
         xy.shape = (Batchsize*(Ntherm+Nsteps), -1)
         
@@ -122,12 +128,14 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         xy = torch.from_numpy(xy)
         buff_samples.push(xy)
 
+        #nll loss on the samples
         traindata = buff_samples.draw(Batchsize*(Ntherm+Nsteps))
         x_data = Variable(traindata[:, :-1])
-        nll = -model.logProbability(x_data)
+        nll_samples = -model.logProbability(x_data)
         ######################################################
 
-        loss = -res.mean() - alpha * sjd.mean() + gamma * mse.mean() + delta*nll.mean() 
+        loss = -epsilon*res.mean() - alpha * sjd.mean() + gamma * mse.mean() \
+               + delta*nll_samples.mean()  + omega * nll_proposals.mean() 
 
         if (epoch < Nanneal):
             beta += dbeta
@@ -206,10 +214,13 @@ if __name__=="__main__":
     group.add_argument("-Batchsize", type=int, default=64, help="")
     group.add_argument("-cuda", action='store_true', help="use GPU")
     group.add_argument("-float", action='store_true', help="use float32")
+
+    group.add_argument("-epsilon", type=float, default=1.0, help="acc term")
     group.add_argument("-alpha", type=float, default=0.0, help="sjd term")
     group.add_argument("-beta", type=float, default=1.0, help="temperature term")
     group.add_argument("-gamma", type=float, default=0.0, help="weight to the mse loss")
-    group.add_argument("-delta", type=float, default=0.0, help="weight to the nll loss")
+    group.add_argument("-delta", type=float, default=0.0, help="weight to the nll loss on data")
+    group.add_argument("-omega", type=float, default=0.0, help="weight to the nll loss on model")
 
     group = parser.add_argument_group('network parameters')
     group.add_argument("-modelname", default=None, help="load model")
@@ -267,10 +278,12 @@ if __name__=="__main__":
           + '_Nl' + str(args.Nlayers) \
           + '_Hs' + str(args.Hs) \
           + '_Ht' + str(args.Ht) \
+          + '_epsilon' + str(args.epsilon) \
           + '_alpha' + str(args.alpha) \
           + '_beta' + str(args.beta) \
           + '_gamma' + str(args.gamma) \
           + '_delta' + str(args.delta) \
+          + '_omega' + str(args.omega) \
           + '_Batchsize' + str(args.Batchsize) \
           + '_Ntherm' + str(args.Ntherm) \
           + '_Nsteps' + str(args.Nsteps) \
@@ -298,8 +311,8 @@ if __name__=="__main__":
 
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Ntherm, args.Nsteps, args.Nskips,
-                            alpha=args.alpha, beta=args.beta, 
-                            gamma =args.gamma, delta=args.delta)
+                            epsilon=args.epsilon,alpha=args.alpha, beta=args.beta, 
+                            gamma =args.gamma, delta=args.delta, omega=args.omega)
 
     sampler = MCMC(target, model, collectdata=True)
     _, _, measurements, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)

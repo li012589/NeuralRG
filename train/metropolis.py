@@ -117,7 +117,7 @@ class MCMC:
         #print ('piz', self.target(z).data)
         #print ('pz', self.model.logProbability(z).data)
 
-        pi_x = self.target(x)
+        pi_x = self.target(x) # API change: should be self.target.logProbability()
         p_x = self.model.logProbability(x)
         pi_z = self.target(z)
         p_z = self.model.logProbability(z)
