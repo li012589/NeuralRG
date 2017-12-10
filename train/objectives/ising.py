@@ -13,9 +13,9 @@ class Ising(Target):
         super(Ising, self).__init__(L**d,'Ising')
 
         lattice = Hypercube(L, d)
-        A = lattice.Adj * K
+        self.K = lattice.Adj * K
     
-        w, v = eigh(A)    
+        w, v = eigh(self.K)    
         d = 1.0-w.min()
         self.Lambda = Variable(torch.from_numpy(w+d).view(-1,len(w)),  requires_grad=False)
         self.VT = Variable( torch.from_numpy(v.transpose()), requires_grad=False)
@@ -37,9 +37,11 @@ class Ising(Target):
         #for i in range(s.shape[0]):
         #    print (' '.join(map(str, s[i,:])))
  
-        #improved estimato 
+        #improved estimator
         s = 2.*p.data.numpy() - 1. 
-        return (s.mean(axis=1))**2 - (s**2).sum(axis=1)/self.nvars**2  +1./self.nvars 
+        #en = -(np.dot(s, self.K) * s).mean(axis= 1) # energy
+        sf = (s.mean(axis=1))**2 - (s**2).sum(axis=1)/self.nvars**2  +1./self.nvars #structure factor
+        return  sf 
 
 if __name__=='__main__':
     torch.manual_seed(42)

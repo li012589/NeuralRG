@@ -88,8 +88,8 @@ class MCMC:
                 logp.shape = (-1, 1)
                 xpack.append(np.concatenate((x_, logp), axis=1))
 
-            measure = self.measure(z)
-            measurepack.append(measure)
+            measurepack.append(self.measure(z))
+
         accratio /= float(nmeasure)
         res /= float(nmeasure)
         sjd /= float(nmeasure)
