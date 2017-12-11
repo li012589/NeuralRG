@@ -9,7 +9,7 @@ from .lattice import Hypercube
 
 class Ising(Target):
 
-    def __init__(self, L, d, K):
+    def __init__(self, L, d, K, cuda):
         super(Ising, self).__init__(L**d,'Ising')
 
         lattice = Hypercube(L, d)
@@ -19,7 +19,9 @@ class Ising(Target):
         d = 1.0-w.min()
         self.Lambda = Variable(torch.from_numpy(w+d).view(-1,len(w)),  requires_grad=False)
         self.VT = Variable( torch.from_numpy(v.transpose()), requires_grad=False)
-    
+        if cuda is not None:
+            self.Lambda = self.Lambda.cuda(cuda)
+            self.VT = self.VT.cuda(cuda)
         #print (self.d)
         #print (v)
         #print (self.Lambda)

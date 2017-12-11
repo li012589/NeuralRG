@@ -241,6 +241,9 @@ if __name__=="__main__":
     group.add_argument("-K",type=float, default=0.44068679350977147 ,help="K")
 
     args = parser.parse_args()
+    cuda = None
+    if args.cuda:
+        cuda = 0
 
     if args.target == 'ring2d':
         target = Ring2D()
@@ -253,7 +256,7 @@ if __name__=="__main__":
     elif args.target == 'phi4':
         target = Phi4(4,2,0.15,1.145)
     elif args.target == 'ising':
-        target = Ising(args.L, args.d, args.K)
+        target = Ising(args.L, args.d, args.K, cuda)
     else:
         print ('what target ?', args.target)
         sys.exit(1)
@@ -300,10 +303,8 @@ if __name__=="__main__":
             print('model file not found:', args.modelname)
     print("train model", key)
 
-    cuda = None
     if args.cuda:
         model = model.cuda()
-        cuda = 0
         print("moving model to GPU")
 
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
