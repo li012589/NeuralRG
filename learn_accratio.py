@@ -94,8 +94,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
                                                                                           Ntherm, 
                                                                                           Nsteps, 
                                                                                           Nskips,
-                                                                                          zinit 
-                                                                                          )
+                                                                                          zinit,
+                                                                                          cuda=cuda)
 
         ######################################################
         #mes loss on the proposals
@@ -313,7 +313,8 @@ if __name__=="__main__":
                             cuda = cuda)
 
     sampler = MCMC(target, model, collectdata=True)
-    _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
+    
+    _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda)
     
     h5filename = key + '_mc.h5'
     print("save at: " + h5filename)

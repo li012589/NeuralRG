@@ -53,7 +53,6 @@ class MCMC:
             nskip (int): number of steps skiped in measure.
             z (): initial state 
         """
-
         if z is None:
             #z = self.model.sample(batchSize)      # sample from model
             z = self.model.prior.sample(batchSize) # sample from prior 
