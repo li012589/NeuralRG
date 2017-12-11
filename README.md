@@ -84,9 +84,9 @@ python sampler.py -target ising -Nsamples 1000  -Nskip 1 -Batchsize 10 -collectd
 Learn by maximazing the acceptance rate
 ```python
 #ring2D
-python learn_accratio.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 4 -Nlayers 4 -Hs 10 -Ht 10 -target ring2d -epsilon 0.0 -alpha 0.0 -beta 1.0 -delta 1.0 -omega 1.0 -Nepoch 5000 
+python learn_accratio.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 4 -Nlayers 4 -Hs 10 -Ht 10 -target ring2d -epsilon 1.0 -alpha 0.0 -beta 1.0 -delta 1.0 -omega 1.0 -Nepoch 5000 
 
 #Ising
-python learn_accratio.py -Batch 64 -Ntherm 10 -Nsteps 20 -Nskip 4 -Nlayers 4 -Hs 40 -Ht 40 -target ising -K 0.44068679350977147 -L 4 -d 1 -alpha 0.0 -beta 1.0  -delta 0.5  -Nepoch 5000
+python learn_accratio.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 10 -Nlayers 4 -Hs 40 -Ht 40 -target ising -K 0.44068679350977147 -L 4 -d 2 -epsilon 1.0 -alpha 0.0 -beta 1.0  -delta 1.0 -omega 1.0 -Nepoch 5000 
 ```
 
