@@ -38,7 +38,7 @@ class Ising(Target):
         #    print (' '.join(map(str, s[i,:])))
  
         #improved estimator
-        s = 2.*p.data.numpy() - 1. 
+        s = 2.*p.data.cpu().numpy() - 1. 
         #en = -(np.dot(s, self.K) * s).mean(axis= 1) # energy
         sf = (s.mean(axis=1))**2 - (s**2).sum(axis=1)/self.nvars**2  +1./self.nvars #structure factor
         return  sf 
