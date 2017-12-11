@@ -87,12 +87,12 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         else:
             zinit = None
 
-        samples, proposals, measurements, accratio, res, sjd = sampler.run(Batchsize, 
-                                                                           Ntherm, 
-                                                                           Nsteps, 
-                                                                           Nskips,
-                                                                           zinit 
-                                                                           )
+        samples, proposals, measurements, accratio, res, sjd, nll_proposals = sampler.run(Batchsize, 
+                                                                                          Ntherm, 
+                                                                                          Nsteps, 
+                                                                                          Nskips,
+                                                                                          zinit 
+                                                                                          )
 
         ######################################################
         #put proposal data to buffer 
@@ -107,11 +107,6 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         y_data = Variable(traindata[:, -1])
         y_pred = model.logProbability(x_data)
         mse = (offset(y_pred) - y_data).pow(2)
-
-        #nll loss on the proposals
-        traindata = buff_proposals.draw(Batchsize*(Ntherm+Nsteps))
-        x_data = Variable(traindata[:, :-1])
-        nll_proposals = -target(x_data) #API change: shoule be -target.logProbability(x_data) 
         ######################################################
 
         ######################################################
@@ -315,7 +310,7 @@ if __name__=="__main__":
                             gamma =args.gamma, delta=args.delta, omega=args.omega)
 
     sampler = MCMC(target, model, collectdata=True)
-    _, _, measurements, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
+    _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
     
     h5filename = key + '_mc.h5'
     print("save at: " + h5filename)

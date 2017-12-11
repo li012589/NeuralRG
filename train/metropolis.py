@@ -66,14 +66,17 @@ class MCMC:
         accratio = 0.0
         res = Variable(torch.DoubleTensor(batchSize).zero_())
         sjd = Variable(torch.DoubleTensor(batchSize).zero_())
+        nll = Variable(torch.DoubleTensor(batchSize).zero_())
         for n in range(ntherm+nmeasure):
             for i in range(nskip):
                 _,_,_,z,_ = self.step(batchSize,z)
 
             a,r,x,z,squared_jumped_distance = self.step(batchSize,z)
+
             accratio += a # mean acceptance ratio 
             res += r      # log(A)
             sjd += squared_jumped_distance 
+            nll += self.target(x)  # NLL on proposals
 
             if self.collectdata:
                 #collect samples
@@ -96,9 +99,10 @@ class MCMC:
         accratio /= float(ntherm+nmeasure)
         res /= float(ntherm+nmeasure)
         sjd /= float(ntherm+nmeasure)
+        nll /= float(ntherm+nmeasure)
 
         #print ('#accratio:', accratio)
-        return zpack,xpack,measurepack,accratio,res,sjd
+        return zpack,xpack,measurepack,accratio,res,sjd,nll
 
     def step(self,batchSize,z):
         """
