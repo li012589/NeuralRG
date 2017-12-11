@@ -109,7 +109,7 @@ class HMCSampler:
             measurePack.append(measure)
         accratio /= float(nmeasure * nskip)
         print ('#accratio:', accratio)
-        return zpack,None,measurePack,accratio, None, None
+        return zpack,None,measurePack,accratio, None, None, None
 
     def measure(self, x,measureFn=None):
         """
