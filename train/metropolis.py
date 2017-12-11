@@ -44,7 +44,7 @@ class MCMC:
     def set_beta(self, beta):
         self.beta = beta 
     
-    def run(self, batchSize,ntherm, nmeasure, nskip, z=None):
+    def run(self, batchSize,ntherm, nmeasure, nskip, z=None, ifCuda = False):
         """
         This method start sampling.
         Args:
@@ -60,6 +60,8 @@ class MCMC:
         else:
             z = Variable(z)                        # sample from data 
 
+        if ifCuda:
+            z = z.cuda()
         zpack = [] # samples 
         xpack = [] # proposals
         measurepack = []
@@ -77,18 +79,18 @@ class MCMC:
 
             if self.collectdata:
                 #collect samples
-                z_ = z.data.cpu().numpy()
+                z_ = z.data
                 #for i in range(z_.shape[0]):
                 #    print (' '.join(map(str, z_[i,:])))
-                logp = self.target(z).data.cpu().numpy()
-                logp.shape = (-1, 1)
-                zpack.append(np.concatenate((z_, logp), axis=1))
+                logp = self.target(z).data
+                logp = logp.view(-1,1)
+                zpack.append(torch.cat((z_, logp), 1))
                 
                 #collect proposals 
-                x_ = x.data.cpu().numpy()
-                logp = self.target(x).data.cpu().numpy()
-                logp.shape = (-1, 1)
-                xpack.append(np.concatenate((x_, logp), axis=1))
+                x_ = x.data
+                logp = self.target(x).data
+                logp = logp.view(-1, 1)
+                xpack.append(torch.cat((x_, logp), 1))
             
             if n>=ntherm:
                 measurepack.append(self.measure(z))
@@ -96,6 +98,8 @@ class MCMC:
         accratio /= float(ntherm+nmeasure)
         res /= float(ntherm+nmeasure)
         sjd /= float(ntherm+nmeasure)
+        zpack = torch.stack(zpack,0)
+        xpack = torch.stack(xpack,0)
 
         #print ('#accratio:', accratio)
         return zpack,xpack,measurepack,accratio,res,sjd
