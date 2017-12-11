@@ -76,7 +76,7 @@ class MCMC:
             accratio += a # mean acceptance ratio 
             res += r      # log(A)
             sjd += squared_jumped_distance 
-            nll += self.target(x)  # NLL on proposals
+            nll += -self.target(x)  # NLL on proposals
 
             if self.collectdata:
                 #collect samples
