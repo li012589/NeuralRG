@@ -68,14 +68,17 @@ class MCMC:
         accratio = 0.0
         res = Variable(torch.DoubleTensor(batchSize).zero_())
         sjd = Variable(torch.DoubleTensor(batchSize).zero_())
+        kld = Variable(torch.DoubleTensor(batchSize).zero_())
         for n in range(ntherm+nmeasure):
             for i in range(nskip):
                 _,_,_,z,_ = self.step(batchSize,z)
 
             a,r,x,z,squared_jumped_distance = self.step(batchSize,z)
+
             accratio += a # mean acceptance ratio 
             res += r      # log(A)
             sjd += squared_jumped_distance 
+            kld += self.model.logProbability(x)-self.target(x) # KL(p||\pi)
 
             if self.collectdata:
                 #collect samples
@@ -100,9 +103,10 @@ class MCMC:
         sjd /= float(ntherm+nmeasure)
         zpack = torch.stack(zpack,0)
         xpack = torch.stack(xpack,0)
+        kld /= float(ntherm+nmeasure)
 
         #print ('#accratio:', accratio)
-        return zpack,xpack,measurepack,accratio,res,sjd
+        return zpack,xpack,measurepack,accratio,res,sjd,kld
 
     def step(self,batchSize,z):
         """
@@ -121,7 +125,7 @@ class MCMC:
         #print ('piz', self.target(z).data)
         #print ('pz', self.model.logProbability(z).data)
 
-        pi_x = self.target(x)
+        pi_x = self.target(x) # API change: should be self.target.logProbability()
         p_x = self.model.logProbability(x)
         pi_z = self.target(z)
         p_z = self.model.logProbability(z)

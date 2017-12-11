@@ -83,7 +83,7 @@ if args.sampler == 'metropolis':
 elif args.sampler == 'hmc':
     print("using HMC as sampler")
     sampler = HMCSampler(target, model, collectdata=args.collectdata, interSteps=args.interSteps)
-data,_,measurements,accratio,_,_ = sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
+data,_,measurements,accratio,_,_,_ = sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
 cmd = ['mkdir', '-p', args.folder]
 subprocess.check_call(cmd)
 if args.savename is None:
