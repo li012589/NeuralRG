@@ -10,11 +10,12 @@ from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, MCMC
 
 class Buffer(object):
-    def __init__(self,maximum,data=None,testRatio=0.3):
+    def __init__(self,maximum,data=None,testRatio=0.3,cuda = None):
         testSize = int(testRatio*maximum)
         self.testRatio = testRatio
         self.capacity = int(maximum*(1+self.testRatio))
         self.data = data
+        self.cuda = cuda
         if data is None:
             self.maximum = 0
         else:
@@ -23,7 +24,10 @@ class Buffer(object):
         maximum = int(self.maximum*(1.0-self.testRatio))
         if batchSize > maximum:
             batchSize = maximum
-        perm = torch.randperm(self.maximum)
+        if self.cuda is None:
+            perm = torch.randperm(self.maximum)
+        else:
+            perm = torch.randperm(self.maximum).cuda(self.cuda)
         if testBatchSize is None:
             return self.data[perm[:batchSize]]
         else:
@@ -41,16 +45,24 @@ class Buffer(object):
     def push(self,data):
         if self.data is None:
             self.data = data
+            try:
+                cuda = self.data.get_device()
+            except AttributeError:
+                cuda = None
+            self.cuda = cuda
         else:
             self.data = torch.cat([self.data,data],0)
         if self.data.shape[0] > self.capacity:
             self._maintain()
         self.maximum = len(self.data)
     def _maintain(self):
-        perm = torch.randperm(self.data.shape[0])
+        if self.cuda is None:
+            perm = torch.randperm(self.data.shape[0])
+        else:
+            perm = torch.randperm(self.data.shape[0]).cuda(self.cuda)
         self.data = self.data[perm[:self.capacity]]
 
-def train(model, Nepochs, supervised, buff, batchSize, modelname, lr = 5e-4,decay = 0.001,save = True, saveSteps=10, feed=True):
+def train(model, Nepochs, supervised, buff, batchSize,  modelname, lr = 5e-4,decay = 0.001,save = True, saveSteps=10, feed=True):
     LOSS=[]
     optimizer = torch.optim.Adam(model.parameters(), lr=lr,  betas=(0.5, 0.9))
     if supervised:

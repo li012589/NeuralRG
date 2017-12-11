@@ -25,7 +25,7 @@ class Offset(torch.nn.Module):
 
 def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, 
         epsilon = 1.0, alpha=0.0, beta=1.0, gamma=0.0, delta=0.0, omega=0.0, 
-        lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10):
+              lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None):
 
     LOSS=[]
     OBS = []
@@ -33,6 +33,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
     sampler = MCMC(target, model, collectdata=True)
     
     offset = Offset()
+    if cuda is not None:
+        offset = offset.cuda(cuda)
     buff_proposals = Buffer(10000)
     buff_samples = Buffer(10000)
 
@@ -92,8 +94,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
                                                                                           Ntherm, 
                                                                                           Nsteps, 
                                                                                           Nskips,
-                                                                                          zinit 
-                                                                                          )
+                                                                                          zinit,
+                                                                                          cuda=cuda)
 
         ######################################################
         #mes loss on the proposals
@@ -239,6 +241,9 @@ if __name__=="__main__":
     group.add_argument("-K",type=float, default=0.44068679350977147 ,help="K")
 
     args = parser.parse_args()
+    cuda = None
+    if args.cuda:
+        cuda = 0
 
     if args.target == 'ring2d':
         target = Ring2D()
@@ -251,7 +256,7 @@ if __name__=="__main__":
     elif args.target == 'phi4':
         target = Phi4(4,2,0.15,1.145)
     elif args.target == 'ising':
-        target = Ising(args.L, args.d, args.K)
+        target = Ising(args.L, args.d, args.K, cuda)
     else:
         print ('what target ?', args.target)
         sys.exit(1)
@@ -305,10 +310,12 @@ if __name__=="__main__":
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Ntherm, args.Nsteps, args.Nskips,
                             epsilon=args.epsilon,alpha=args.alpha, beta=args.beta, 
-                            gamma =args.gamma, delta=args.delta, omega=args.omega)
+                            gamma =args.gamma, delta=args.delta, omega=args.omega,
+                            cuda = cuda)
 
     sampler = MCMC(target, model, collectdata=True)
-    _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
+    
+    _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda)
     
     h5filename = key + '_mc.h5'
     print("save at: " + h5filename)
