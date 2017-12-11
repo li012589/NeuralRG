@@ -102,16 +102,17 @@ class Gaussian(PriorTemplate):
 
         """
         size = [batchSize] + self.shapeList
+        sigma = self.sigma.cpu()
         if ifCuda:
             if double:
-                return Variable(torch.randn(size).double().pin_memory(),volatile=volatile) * self.sigma
+                return Variable(torch.randn(size).double().pin_memory(),volatile=volatile) * sigma
             else:
-                return Variable(torch.randn(size).pin_memory(),volatile=volatile) * self.sigma
+                return Variable(torch.randn(size).pin_memory(),volatile=volatile) * sigma.half()
         else:
             if double:
-                return Variable(torch.randn(size).double(), volatile=volatile) * self.sigma 
+                return Variable(torch.randn(size).double(), volatile=volatile) * sigma 
             else:
-                return Variable(torch.randn(size), volatile=volatile) * self.sigma
+                return Variable(torch.randn(size), volatile=volatile) * sigma.half()
 
     def __call__(self,*args,**kwargs):
         return self.sample(*args,**kwargs)

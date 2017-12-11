@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 
 from model import Gaussian, Cauchy, MLP,RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
-from train import MCMC, Buffer 
+from train import MCMC, Buffer
+from copy import deepcopy
 
 class Offset(torch.nn.Module):
     '''
@@ -95,11 +96,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
                                                                                           )
 
         ######################################################
-        #put proposal data to buffer 
-        xy = np.array(proposals)
-        xy.shape = (Batchsize*(Ntherm+Nsteps), -1)
-        xy = torch.from_numpy(xy)
-        buff_proposals.push(xy)
+        #mes loss on the proposals
+        buff_proposals.push(proposals.view(Batchsize*(Ntherm+Nsteps),-1))
 
         #mes loss on the proposals
         traindata = buff_proposals.draw(Batchsize*(Ntherm+Nsteps))
@@ -110,22 +108,22 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         ######################################################
 
         ######################################################
-        #put sampled data to buffer 
-        xy = np.array(samples)
-        xy.shape = (Batchsize*(Ntherm+Nsteps), -1)
-        
-        #data argumentation using invertion symmetry 
-        xy_invert = xy.copy()
+        #nll loss on the samples
+        xy = samples.view(Batchsize*(Ntherm+Nsteps),-1)
+
+        #data argumentation using invertion symmetry
+        xy_invert = deepcopy(xy)
         xy_invert[:, :-1] = -xy_invert[:, :-1] 
-        xy = np.vstack([xy, xy_invert])
+        xy = torch.stack([xy, xy_invert],0).view(Batchsize*(Ntherm+Nsteps)*2,-1)
         #print (xy) 
 
-        xy = torch.from_numpy(xy)
         buff_samples.push(xy)
 
         #nll loss on the samples
         traindata = buff_samples.draw(Batchsize*(Ntherm+Nsteps))
         x_data = Variable(traindata[:, :-1])
+        #import pdb
+        #pdb.set_trace()
         nll_samples = -model.logProbability(x_data)
         ######################################################
 
@@ -154,10 +152,10 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
             saveDict = model.saveModel({})
             torch.save(saveDict, model.name+'/epoch'+str(epoch))
 
-            samples = np.array(samples)
+            samples = samples.cpu().numpy()
             samples.shape = (Batchsize*(Ntherm+Nsteps), -1)
 
-            proposals = np.array(proposals)
+            proposals = proposals.cpu().numpy()
             proposals.shape = (Batchsize*(Ntherm+Nsteps), -1)
             
             l1.set_xdata(proposals[:,0])
