@@ -87,7 +87,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         else:
             zinit = None
 
-        samples, proposals, measurements, accratio, res, sjd, nll_proposals = sampler.run(Batchsize, 
+        samples, proposals, measurements, accratio, res, sjd, kld  = sampler.run(Batchsize, 
                                                                                           Ntherm, 
                                                                                           Nsteps, 
                                                                                           Nskips,
@@ -130,7 +130,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         ######################################################
 
         loss = -epsilon*res.mean() - alpha * sjd.mean() + gamma * mse.mean() \
-               + delta*nll_samples.mean()  + omega * nll_proposals.mean() 
+               + delta*nll_samples.mean()  + omega * kld.mean() 
 
         if (epoch < Nanneal):
             beta += dbeta
@@ -215,7 +215,7 @@ if __name__=="__main__":
     group.add_argument("-beta", type=float, default=1.0, help="temperature term")
     group.add_argument("-gamma", type=float, default=0.0, help="weight to the mse loss")
     group.add_argument("-delta", type=float, default=0.0, help="weight to the nll loss on data")
-    group.add_argument("-omega", type=float, default=0.0, help="weight to the nll loss on model")
+    group.add_argument("-omega", type=float, default=0.0, help="weight to the KL(model|data)")
 
     group = parser.add_argument_group('network parameters')
     group.add_argument("-modelname", default=None, help="load model")
