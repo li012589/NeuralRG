@@ -25,7 +25,7 @@ class Offset(torch.nn.Module):
 
 def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, 
         epsilon = 1.0, alpha=0.0, beta=1.0, gamma=0.0, delta=0.0, omega=0.0, 
-        lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10):
+              lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None):
 
     LOSS=[]
     OBS = []
@@ -33,6 +33,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
     sampler = MCMC(target, model, collectdata=True)
     
     offset = Offset()
+    if cuda is not None:
+        offset = offset.cuda(cuda)
     buff_proposals = Buffer(10000)
     buff_samples = Buffer(10000)
 
@@ -298,15 +300,17 @@ if __name__=="__main__":
             print('model file not found:', args.modelname)
     print("train model", key)
 
+    cuda = None
     if args.cuda:
         model = model.cuda()
-        offset = offset.cuda()
+        cuda = 0
         print("moving model to GPU")
 
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Ntherm, args.Nsteps, args.Nskips,
                             epsilon=args.epsilon,alpha=args.alpha, beta=args.beta, 
-                            gamma =args.gamma, delta=args.delta, omega=args.omega)
+                            gamma =args.gamma, delta=args.delta, omega=args.omega,
+                            cuda = cuda)
 
     sampler = MCMC(target, model, collectdata=True)
     _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips)
