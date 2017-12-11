@@ -300,6 +300,7 @@ if __name__=="__main__":
 
     if args.cuda:
         model = model.cuda()
+        offset = offset.cuda()
         print("moving model to GPU")
 
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
