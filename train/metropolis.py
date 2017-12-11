@@ -44,7 +44,7 @@ class MCMC:
     def set_beta(self, beta):
         self.beta = beta 
     
-    def run(self, batchSize,ntherm, nmeasure, nskip, z=None, ifCuda = False):
+    def run(self, batchSize,ntherm, nmeasure, nskip, z=None, cuda = None):
         """
         This method start sampling.
         Args:
@@ -58,17 +58,21 @@ class MCMC:
             #z = self.model.sample(batchSize)      # sample from model
             z = self.model.prior.sample(batchSize) # sample from prior 
         else:
-            z = Variable(z)                        # sample from data 
+            z = Variable(z)                        # sample from data
 
-        if ifCuda:
-            z = z.cuda()
+        if cuda is not None:
+            z = z.cuda(cuda)
+            kld = Variable(torch.DoubleTensor(batchSize).zero_()).cuda(cuda)
+            res = Variable(torch.DoubleTensor(batchSize).zero_()).cuda(cuda)
+            sjd = Variable(torch.DoubleTensor(batchSize).zero_()).cuda(cuda)
+        else:
+            kld = Variable(torch.DoubleTensor(batchSize).zero_())
+            res = Variable(torch.DoubleTensor(batchSize).zero_())
+            sjd = Variable(torch.DoubleTensor(batchSize).zero_())
         zpack = [] # samples 
         xpack = [] # proposals
         measurepack = []
         accratio = 0.0
-        res = Variable(torch.DoubleTensor(batchSize).zero_())
-        sjd = Variable(torch.DoubleTensor(batchSize).zero_())
-        kld = Variable(torch.DoubleTensor(batchSize).zero_())
         for n in range(ntherm+nmeasure):
             for i in range(nskip):
                 _,_,_,z,_ = self.step(batchSize,z)
@@ -131,10 +135,10 @@ class MCMC:
         p_z = self.model.logProbability(z)
 
         diff = self.beta*(pi_x-pi_z -p_x + p_z)
-        accept = (diff.exp() >= Variable(torch.rand(diff.data.shape[0]).double()))
+        r = -F.relu(-diff)
+        accept = Variable(diff.data.exp() >= diff.data.uniform_())
 
         a = accept.data.double().mean()
-        r = -F.relu(-diff)
 
         #print ('#', accept.float().mean())
         #print (A.mean())
