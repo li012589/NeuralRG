@@ -177,21 +177,32 @@ class RealNVP(RealNVPtemplate):
         self.maskType = maskType
         size = self.shapeList.copy()
         if maskType == "channel":
-            size[0] = size[0] // 2
+            print (size)
+            #0000...1111 mask 
+            #size[0] = size[0] // 2
+            #if double:
+            #    maskOne = torch.ones(size).double()
+            #    maskZero = torch.zeros(size).double()
+            #else:
+            #    maskOne = torch.ones(size)
+            #    maskZero = torch.zeros(size)
+            #mask = torch.cat([maskOne, maskZero], 0)
+            
+            #0101...0101 mask 
             if double:
-                maskOne = torch.ones(size).double()
-                maskZero = torch.zeros(size).double()
+                unit = torch.DoubleTensor([0, 1])
             else:
-                maskOne = torch.ones(size)
-                maskZero = torch.zeros(size)
-            mask = torch.cat([maskOne, maskZero], 0)
+                unit = torch.FloatTensor([0, 1])
+            mask = (unit.repeat(size[0]//2))
+            #print (mask)
+
         elif maskType == "checkerboard":
             assert (size[1] % 2 == 0)
             assert (size[2] % 2 == 0)
             if double:
-                unit = torch.FloatTensor([[1, 0], [0, 1]])
-            else:
                 unit = torch.DoubleTensor([[1, 0], [0, 1]])
+            else:
+                unit = torch.FloatTensor([[1, 0], [0, 1]])
             mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
         else:
