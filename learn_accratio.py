@@ -134,7 +134,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
         if (epoch < Nanneal):
             beta += dbeta
-        sampler.set_beta(beta)
+        target.set_beta(beta)
         
         print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, 
                "beta:", beta, 
@@ -272,8 +272,14 @@ if __name__=="__main__":
         sys.exit(1)
 
     key = args.folder \
-          + args.target \
-          + '_Nl' + str(args.Nlayers) \
+          + args.target 
+
+    if (args.target=='ising'):
+        key += '_L' + str(args.L)\
+              + '_d' + str(args.d) \
+              + '_K' + str(args.K)
+
+    key+=  '_Nl' + str(args.Nlayers) \
           + '_Hs' + str(args.Hs) \
           + '_Ht' + str(args.Ht) \
           + '_epsilon' + str(args.epsilon) \

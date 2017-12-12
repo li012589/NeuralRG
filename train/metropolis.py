@@ -22,7 +22,7 @@ class MCMC:
         collectdata (bool): if to collect all data generated.
     """
 
-    def __init__(self, target, model, collectdata=False, beta=1.0):
+    def __init__(self, target, model, collectdata=False):
         """
         Init MCMC class
         Args:
@@ -34,16 +34,12 @@ class MCMC:
         self.target = target
         self.model= model 
         self.collectdata = collectdata
-        self.beta = beta
 
         self.measurements = []
 
         if self.collectdata:
             self.data = []
-
-    def set_beta(self, beta):
-        self.beta = beta 
-    
+   
     def run(self, batchSize,ntherm, nmeasure, nskip, z=None, cuda = None):
         """
         This method start sampling.
@@ -133,7 +129,7 @@ class MCMC:
         pi_z = self.target(z)
         p_z = self.model.logProbability(z)
 
-        diff = self.beta*(pi_x-pi_z -p_x + p_z)
+        diff = (pi_x-pi_z -p_x + p_z)
         r = -F.relu(-diff)
         accept = Variable(diff.data.exp() >= diff.data.uniform_())
 

@@ -28,7 +28,7 @@ class Ising(Target):
 
     def energy(self, x): # actually logp
         return -0.5*(x**2).sum(dim=1) \
-        + torch.log(torch.cosh(torch.mm(x, self.VT))).sum(dim=1)
+        + torch.log(torch.cosh(self.beta*torch.mm(x, self.VT))).sum(dim=1)
     
     def measure(self, x):
         p = torch.sigmoid(2.*torch.mm(x, self.VT)) 

@@ -6,9 +6,10 @@ class Target(object):
     '''
     base class for target 
     '''
-    def __init__(self,nvars,name = "Target"):
+    def __init__(self,nvars,name = "Target", beta=1.0):
         self.nvars = nvars
         self.name = name
+        self.beta = beta
 
     def __call__(self, x):
         return self.energy(x)
@@ -28,3 +29,6 @@ class Target(object):
 
     def measure(self, x):
         return (x.data**2).sum(dim=1).cpu().numpy()
+
+    def set_beta(self, beta):
+        self.beta = beta 
