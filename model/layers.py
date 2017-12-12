@@ -32,7 +32,11 @@ class MLP(nn.Module):
         """
         super(MLP, self).__init__()
         self.fc1 = nn.Linear(inNum, hideNum)
+        self.fc1.weight.data.normal_(0, 0.01)
+        self.fc1.bias.data.fill_(0)
         self.fc2 = nn.Linear(hideNum, inNum)
+        self.fc2.weight.data.normal_(0, 0.01)
+        self.fc2.bias.data.fill_(0)
         self.name = name
         self.activation = activation
 

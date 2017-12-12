@@ -17,10 +17,9 @@ class Ising(Target):
     
         w, v = eigh(self.K)    
         d = 1.0-w.min()
-        self.Lambda = Variable(torch.from_numpy(w+d).view(-1,len(w)),  requires_grad=False)
+        v = np.dot(v, np.diag(np.sqrt(w+d)))
         self.VT = Variable( torch.from_numpy(v.transpose()), requires_grad=False)
         if cuda is not None:
-            self.Lambda = self.Lambda.cuda(cuda)
             self.VT = self.VT.cuda(cuda)
         #print (self.d)
         #print (v)
@@ -28,7 +27,7 @@ class Ising(Target):
         print (self.VT)
 
     def energy(self, x): # actually logp
-        return -0.5*(x**2/self.Lambda).sum(dim=1) \
+        return -0.5*(x**2).sum(dim=1) \
         + torch.log(torch.cosh(torch.mm(x, self.VT))).sum(dim=1)
     
     def measure(self, x):
