@@ -1,6 +1,6 @@
 from .template import RealNVPtemplate, PriorTemplate
-from .realnvp import Gaussian,Cauchy, RealNVP
+from .realnvp import Gaussian,Cauchy, GMM, RealNVP
 from .layers import MLP, CNN, FC, ScalableTanh
 
 __all__ = ['RealNVPtemplate', 'PriorTemplate',
-           'Gaussian', 'Cauchy', 'MLP', 'RealNVP', 'CNN','FC', 'ScalableTanh']
+           'Gaussian', 'Cauchy', 'GMM', 'MLP', 'RealNVP', 'CNN','FC', 'ScalableTanh']

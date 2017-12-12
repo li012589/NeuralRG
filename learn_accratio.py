@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import Gaussian, Cauchy, MLP,RealNVP, ScalableTanh
+from model import Gaussian, Cauchy, GMM, MLP,RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from copy import deepcopy
@@ -139,7 +139,6 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, 
                "beta:", beta, 
                "offset:", offset.offset.data[0], 
-               "sigma", model.prior.sigma.data[0],
                "obs", np.array(measurements).mean() 
                )
 
@@ -267,9 +266,12 @@ if __name__=="__main__":
         prior = Gaussian([Nvars], requires_grad = args.train_prior)
     elif args.prior == 'cauchy':
         prior = Cauchy([Nvars], requires_grad = args.train_prior)
+    elif args.prior == 'gmm':
+        prior = GMM([Nvars])
     else:
         print ('what prior?', args.prior)
         sys.exit(1)
+    print ('prior:', prior.name)
 
     key = args.folder \
           + args.target 
