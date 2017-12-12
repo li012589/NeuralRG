@@ -90,9 +90,9 @@ class GMM(PriorTemplate):
         self.shapeList = shapeList
         
         #now we can only have two centers 
-        self.mu1= torch.nn.Parameter(torch.DoubleTensor(*shapeList).uniform_(), requires_grad=True)    
+        self.mu1= torch.nn.Parameter(torch.DoubleTensor(*shapeList).normal_(), requires_grad=True)    
         self.logsigma1 = torch.nn.Parameter(torch.DoubleTensor(*shapeList).zero_(), requires_grad=True)    
-        self.mu2 = torch.nn.Parameter(torch.DoubleTensor(*shapeList).uniform_(), requires_grad=True)    
+        self.mu2 = torch.nn.Parameter(torch.DoubleTensor(*shapeList).normal_(), requires_grad=True)    
         self.logsigma2 = torch.nn.Parameter(torch.DoubleTensor(*shapeList).zero_(), requires_grad=True)    
 
     def sample(self, batchSize, volatile=False, ifCuda=False, double=True):

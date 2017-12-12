@@ -27,7 +27,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         epsilon = 1.0, alpha=0.0, beta=1.0, gamma=0.0, delta=0.0, omega=0.0, 
               lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None):
 
-    LOSS=[]
+    LOSS = []
     OBS = []
 
     sampler = MCMC(target, model, collectdata=True)
@@ -209,6 +209,7 @@ if __name__=="__main__":
     group.add_argument("-cuda", action='store_true', help="use GPU")
     group.add_argument("-float", action='store_true', help="use float32")
 
+    group.add_argument("-lr", type=float, default=0.001, help="learning rate")
     group.add_argument("-epsilon", type=float, default=1.0, help="acc term")
     group.add_argument("-alpha", type=float, default=0.0, help="sjd term")
     group.add_argument("-beta", type=float, default=1.0, help="temperature term")
@@ -318,7 +319,7 @@ if __name__=="__main__":
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Ntherm, args.Nsteps, args.Nskips,
                             epsilon=args.epsilon,alpha=args.alpha, beta=args.beta, 
-                            gamma =args.gamma, delta=args.delta, omega=args.omega,
+                            gamma =args.gamma, delta=args.delta, omega=args.omega, lr=args.lr, 
                             cuda = cuda)
 
     sampler = MCMC(target, model, collectdata=True)
