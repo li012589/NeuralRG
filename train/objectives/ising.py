@@ -2,7 +2,7 @@ import torch
 from torch.autograd import Variable
 import torch.nn.functional as F
 import numpy as np
-from scipy.linalg import eigh 
+from scipy.linalg import eigh, inv 
 
 from .template import Target
 from .lattice import Hypercube
@@ -16,22 +16,27 @@ class Ising(Target):
         self.K = lattice.Adj * K
     
         w, v = eigh(self.K)    
-        d = 1.0-w.min()
-        v = np.dot(v, np.diag(np.sqrt(w+d)))
-        self.VT = Variable( torch.from_numpy(v.transpose()), requires_grad=False)
+        offset = 1.0-w.min()
+        self.K += np.eye(w.size)*offset
+        self.Kinv = Variable(torch.from_numpy(inv(self.K)), requires_grad=False)
+        #self.VT = Variable( torch.from_numpy(v.transpose()), requires_grad=False)
         if cuda is not None:
-            self.VT = self.VT.cuda(cuda)
+            #self.VT = self.VT.cuda(cuda)
+            self.Kinv = self.Kinv.cuda(cuda)
         #print (self.d)
         #print (v)
         #print (self.Lambda)
-        print (self.VT)
+        #print (self.VT)
+        #print (self.Kinv)
 
     def energy(self, x): # actually logp
-        return -0.5*(x**2).sum(dim=1) \
-        + torch.log(torch.cosh(self.beta*torch.mm(x, self.VT))).sum(dim=1)
+        #return -0.5*(x**2).sum(dim=1) \
+        #+ torch.log(torch.cosh(self.beta*torch.mm(x, self.VT))).sum(dim=1)
+        return -0.5*(torch.mm(x,self.Kinv) * x ).sum(dim=1) \
+        + torch.log(torch.cosh(self.beta*x)).sum(dim=1)
     
     def measure(self, x):
-        p = torch.sigmoid(2.*torch.mm(x, self.VT)) 
+        p = torch.sigmoid(2.*x) 
         #sample spin
         #s = 2*torch.bernoulli(p).data.numpy()-1
         #return (s.mean(axis=1))**2
