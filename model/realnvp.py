@@ -117,8 +117,8 @@ class GMM(PriorTemplate):
                 #print (selector)
                 
                 #sample from one of the Gaussian 
-                return selector * (Variable(torch.DoubleTensor(*size).normal_()) + self.mu1)*torch.exp(self.logsigma1) \
-                 + (1.-selector)* (Variable(torch.DoubleTensor(*size).normal_()) + self.mu2)*torch.exp(self.logsigma2) 
+                return selector * (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma1) + self.mu1) \
+                 + (1.-selector)* (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma2) + self.mu2) 
             else:
                 raise NotImplementedError(str(type(self)))
 
