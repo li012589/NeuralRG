@@ -10,6 +10,24 @@ class ScalableTanh(nn.Module):
     def forward(self,x):
         return self.scale * F.tanh(x)
 
+class Squeezing(nn.Module):
+    def __init__(self,nvars,filterSize = 2):
+        super(Squeezing,self).__init__()
+        self.filterSize = filterSize
+    def forward(self,x):
+        batch_size, channels, in_height, in_width = input.size()
+        out_channels = channels / (downscale_factor ** 2)
+        block_size = 1 / downscale_factor
+
+        out_height = in_height * downscale_factor
+        out_width = in_width * downscale_factor
+
+        input_view = input.contiguous().view(
+        batch_size, channels, out_height, block_size, out_width, block_size)
+
+        shuffle_out = input_view.permute(0, 1, 3, 5, 2, 4).contiguous()
+        return shuffle_out.view(batch_size, out_channels, out_height, out_width)
+
 class MLP(nn.Module):
     """
 
