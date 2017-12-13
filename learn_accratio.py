@@ -223,6 +223,7 @@ if __name__=="__main__":
     group = parser.add_argument_group('network parameters')
     group.add_argument("-modelname", default=None, help="load model")
     group.add_argument("-prior", default='gaussian', help="prior distribution")
+    group.add_argument("-masktype", default='channel', help="masktype")
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -267,7 +268,7 @@ if __name__=="__main__":
     Nvars = target.nvars 
 
     if args.prior == 'gaussian':
-        prior = Gaussian([Nvars], requires_grad = args.train_prior)
+        prior = Gaussian([1, args.L, args.L], requires_grad = args.train_prior)
     elif args.prior == 'cauchy':
         prior = Cauchy([Nvars], requires_grad = args.train_prior)
     elif args.prior == 'gmm':
@@ -305,7 +306,7 @@ if __name__=="__main__":
     sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
     tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)] 
 
-    model = RealNVP([Nvars], sList, tList, prior, maskTpye="channel",name = key, double=not args.float)
+    model = RealNVP([1, args.L, args.L], sList, tList, prior, maskType=args.masktype, name = key, double=not args.float)
 
     if args.modelname is not None:
         try:
