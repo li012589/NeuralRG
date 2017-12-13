@@ -9,7 +9,7 @@ from .lattice import Hypercube
 
 class Ising(Target):
 
-    def __init__(self, L, d, K, cuda):
+    def __init__(self, L, d, K, cuda=None):
         super(Ising, self).__init__(L**d,'Ising')
 
         lattice = Hypercube(L, d)
