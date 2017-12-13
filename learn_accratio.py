@@ -139,7 +139,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         print ("epoch:",epoch, "loss:",loss.data[0], "acc:", accratio, 
                "beta:", beta, 
                "offset:", offset.offset.data[0], 
-               "obs", np.array(measurements).mean() 
+               "obs", np.array(measurements).mean(), 
+               "mu", model.prior.mu1.data[0], model.prior.mu2.data[0]
                )
 
         LOSS.append([loss.data[0], accratio])
