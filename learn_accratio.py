@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import Gaussian, Cauchy, GMM, MLP,RealNVP, ScalableTanh
+from model import Gaussian, Cauchy, GMM, MLP,CNN,RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from copy import deepcopy
@@ -225,6 +225,7 @@ if __name__=="__main__":
     group.add_argument("-modelname", default=None, help="load model")
     group.add_argument("-prior", default='gaussian', help="prior distribution")
     group.add_argument("-masktype", default='channel', help="masktype")
+    group.add_argument("-CNN",action = 'store_true',help='')
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -304,8 +305,13 @@ if __name__=="__main__":
     cmd = ['mkdir', '-p', key]
     subprocess.check_call(cmd)
 
-    sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
-    tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)] 
+    #sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
+    #tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)]
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    print([1,args.L,args.L//2])
+    print([1, args.L, args.L])
+    sList = [CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure)]
+    tList =  [CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure)]
 
     model = RealNVP([1, args.L, args.L], sList, tList, prior, maskType=args.masktype, name = key, double=not args.float)
 
@@ -320,6 +326,8 @@ if __name__=="__main__":
     if args.cuda:
         model = model.cuda()
         print("moving model to GPU")
+
+    target(model.prior(64))
 
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Ntherm, args.Nsteps, args.Nskips,
