@@ -307,11 +307,23 @@ if __name__=="__main__":
 
     #sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
     #tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)]
-    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
+    netStructure = [[10,3,1,1],
+                    [10,3,1,1],
+                    [10,3,1,1],
+                    [1,3,1,1]]
+   #[outchannel, filter_size, stride, padding]
+
     print([1,args.L,args.L//2])
     print([1, args.L, args.L])
-    sList = [CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure)]
-    tList =  [CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure),CNN([1,args.L,args.L//2],netStructure)]
+    sList = [CNN([1,args.L,args.L//2],netStructure),
+             CNN([1,args.L,args.L//2],netStructure),
+             CNN([1,args.L,args.L//2],netStructure),
+             CNN([1,args.L,args.L//2],netStructure, F.tanh)]
+
+    tList =  [CNN([1,args.L,args.L//2],netStructure),
+              CNN([1,args.L,args.L//2],netStructure),
+              CNN([1,args.L,args.L//2],netStructure),
+              CNN([1,args.L,args.L//2],netStructure, F.linear)]
 
     model = RealNVP([1, args.L, args.L], sList, tList, prior, maskType=args.masktype, name = key, double=not args.float)
 

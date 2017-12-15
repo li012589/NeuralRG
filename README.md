@@ -87,6 +87,6 @@ Learn by maximazing the acceptance rate
 python learn_accratio.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 10 -Nlayers 4 -Hs 10 -Ht 10 -target ring2d -epsilon 1.0 -alpha 0.0 -beta 1.0 -delta 1.0 -omega 1.0 -Nepoch 5000 
 
 #Ising
-python learn_accratio.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 10 -Nlayers 4 -Hs 10 -Ht 10 -target ising -K 0.44068679350977147 -L 4 -d 2 -epsilon 1.0 -alpha 0.0 -beta 1.0  -delta 1.0 -omega 0.0 -Nepoch 5000 -prior gmm -lr 0.01 
+python learn_accratio.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 10 -Nlayers 4 -Hs 10 -Ht 10 -target ising -K 0.44068679350977147 -L 4 -d 2 -epsilon 1.0 -alpha 0.0 -beta 1.0  -delta 0.0 -omega 0.0 -Nepoch 5000 -mask checkerboard 
 ```
 

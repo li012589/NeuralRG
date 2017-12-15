@@ -115,7 +115,7 @@ class CNN(nn.Module):
 
     """
 
-    def __init__(self, inShape, netStructure, name="cnn"):
+    def __init__(self, inShape, netStructure, name="cnn", activation=F.tanh):
         """
 
         This mehtod initialise this class.
@@ -136,6 +136,7 @@ class CNN(nn.Module):
         layer = netStructure[-1]
         self.variableList.append(nn.Sequential(
             nn.Conv2d(former, layer[0], layer[1], layer[2], layer[3])))
+        self.activation = activation
         #assert layer[0] == inshape[0]
 
     def forward(self, x):
@@ -150,4 +151,4 @@ class CNN(nn.Module):
         """
         for layer in self.variableList:
             x = layer(x)
-        return x
+        return self.activation(x)
