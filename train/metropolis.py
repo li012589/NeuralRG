@@ -40,7 +40,7 @@ class MCMC:
         if self.collectdata:
             self.data = []
    
-    def run(self, batchSize,ntherm, nmeasure, nskip, z=None, cuda = None):
+    def run(self, batchSize,ntherm, nmeasure, nskip, z=None, cuda = None, sliceDim = 0):
         """
         This method start sampling.
         Args:
@@ -70,18 +70,19 @@ class MCMC:
         accratio = 0.0
         for n in range(ntherm+nmeasure):
             for i in range(nskip):
-                _,_,_,z,_ = self.step(batchSize,z)
+                _,_,_,z,_ = self.step(batchSize,z,sliceDim = sliceDim)
 
-            a,r,x,z,squared_jumped_distance = self.step(batchSize,z)
+            a,r,x,z,squared_jumped_distance = self.step(batchSize,z,sliceDim = sliceDim)
 
             accratio += a # mean acceptance ratio 
             res += r      # log(A)
-            sjd += squared_jumped_distance 
-            kld += self.model.logProbability(x)-self.target(x) # KL(p||\pi)
+            #print ('sjd', squared_jumped_distance)
+            #sjd += squared_jumped_distance 
+            kld += self.model.logProbability(x, sliceDim = sliceDim)-self.target(x) # KL(p||\pi)
 
             if self.collectdata:
                 #collect samples
-                z_ = z.data
+                z_ = z.data.view(batchSize, -1)
                 #for i in range(z_.shape[0]):
                 #    print (' '.join(map(str, z_[i,:])))
                 logp = self.target(z).data
@@ -89,7 +90,7 @@ class MCMC:
                 zpack.append(torch.cat((z_, logp), 1))
                 
                 #collect proposals 
-                x_ = x.data
+                x_ = x.data.view(batchSize, -1)
                 logp = self.target(x).data
                 logp = logp.view(-1, 1)
                 xpack.append(torch.cat((x_, logp), 1))
@@ -107,11 +108,11 @@ class MCMC:
         #print ('#accratio:', accratio)
         return zpack,xpack,measurepack,accratio,res,sjd,kld
 
-    def step(self,batchSize,z):
+    def step(self,batchSize,z, sliceDim):
         """
         This method run a step of sampling.
         """
-        x = self.model.sample(batchSize)
+        x = self.model.sample(batchSize,sliceDim=sliceDim)
         
         #print (type(x), type(z))
         #print ('pix', type(self.target(x)))
@@ -125,11 +126,15 @@ class MCMC:
         #print ('pz', self.model.logProbability(z).data)
 
         pi_x = self.target(x) # API change: should be self.target.logProbability()
-        p_x = self.model.logProbability(x)
+        p_x = self.model.logProbability(x, sliceDim=sliceDim)
         pi_z = self.target(z)
-        p_z = self.model.logProbability(z)
-
+        p_z = self.model.logProbability(z, sliceDim=sliceDim)
+        #print(p_z.data.shape)
+        #print(p_x.data.shape)
+        #print(pi_x.data.shape)
+        #print(pi_z.data.shape)
         diff = (pi_x-pi_z -p_x + p_z)
+        #print ('diff', diff)
         r = -F.relu(-diff)
         accept = Variable(diff.data.exp() >= diff.data.uniform_())
 
@@ -140,6 +145,19 @@ class MCMC:
 
         #x.masked_scatter_(accept,torch.masked_select(z,accept))
         accept.data = accept.data.double()
+        
+        
+        size = list(x.data.shape)
+        #print (size)
+        size[0] = 1
+        #print (accept.view(batchSize, 1, 1, 1).data.shape)
+        accept = (accept.view(batchSize, 1, 1, 1).repeat(*size))
+
+        #print (x.data.shape )
+        #print (z.data.shape )
+        #print (accept.data.shape )
+
+        accept = accept.view(x.data.shape)
         squared_jumped_distance = accept * ((x-z)**2).sum(dim=1)
 
         #print ('accept:', accept)
@@ -148,7 +166,6 @@ class MCMC:
         #print ('(x-z)^2:',  ((x-z)**2).sum(dim=1))
         #print (squared_jumped_distance)
 
-        accept = accept.view(batchSize, -1)
 
         return a,r,x,accept * x + (1.-accept)*z, squared_jumped_distance
 

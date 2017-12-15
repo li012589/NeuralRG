@@ -13,6 +13,7 @@ class Ising(Target):
         super(Ising, self).__init__(L**d,'Ising')
 
         lattice = Hypercube(L, d)
+        self.Nvars = lattice.Nsite
         self.K = lattice.Adj * K
     
         w, v = eigh(self.K)    
@@ -30,10 +31,12 @@ class Ising(Target):
         #print (self.Kinv)
 
     def energy(self, x): # actually logp
+
+        
         #return -0.5*(x**2).sum(dim=1) \
         #+ torch.log(torch.cosh(self.beta*torch.mm(x, self.VT))).sum(dim=1)
-        return -0.5*(torch.mm(x,self.Kinv) * x ).sum(dim=1) \
-        + torch.log(torch.cosh(self.beta*x)).sum(dim=1)
+        return -0.5*(torch.mm(x.view(-1, self.Nvars),self.Kinv) * x.view(-1, self.Nvars) ).sum(dim=1) \
+        + torch.log(torch.cosh(self.beta*x.view(-1, self.Nvars))).sum(dim=1)
     
     def measure(self, x):
         p = torch.sigmoid(2.*x) 

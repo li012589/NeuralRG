@@ -86,7 +86,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
         if buff_samples.maximum > Batchsize:
             # draw starting state from the sampler buffer 
-            zinit = buff_samples.draw(Batchsize)[:, :-1]
+            zinit = buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1, 1, args.L, args.L)
         else:
             zinit = None
 
@@ -95,7 +95,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
                                                                                           Nsteps, 
                                                                                           Nskips,
                                                                                           zinit,
-                                                                                          cuda=cuda)
+                                                                                          cuda=cuda,
+                                                                                          sliceDim = 2)
 
         ######################################################
         #mes loss on the proposals
@@ -105,7 +106,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         traindata = buff_proposals.draw(Batchsize*(Ntherm+Nsteps))
         x_data = Variable(traindata[:, :-1])
         y_data = Variable(traindata[:, -1])
-        y_pred = model.logProbability(x_data)
+        y_pred = model.logProbability(x_data.contiguous().view(-1, 1, args.L, args.L), sliceDim=2)
         mse = (offset(y_pred) - y_data).pow(2)
         ######################################################
 
@@ -126,7 +127,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         x_data = Variable(traindata[:, :-1])
         #import pdb
         #pdb.set_trace()
-        nll_samples = -model.logProbability(x_data)
+        nll_samples = -model.logProbability(x_data.contiguous().view(-1, 1, args.L, args.L), sliceDim=2)
         ######################################################
 
         loss = -epsilon*res.mean() - alpha * sjd.mean() + gamma * mse.mean() \
@@ -328,7 +329,7 @@ if __name__=="__main__":
 
     sampler = MCMC(target, model, collectdata=True)
     
-    _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda)
+    _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda, sliceDim = 2)
     
     h5filename = key + '_mc.h5'
     print("save at: " + h5filename)

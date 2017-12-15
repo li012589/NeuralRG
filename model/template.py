@@ -374,7 +374,10 @@ class RealNVPtemplate(torch.nn.Module):
                     self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         size = [-1] + self.shapeList
         size[sliceDim + 1] = size[sliceDim + 1] // 2
-
+        
+        #print ('size',size)
+        #print ('sliceDim', sliceDim)
+        #print (y.data.shape)
         y0 = torch.masked_select(y, mask).view(size)
         y1 = torch.masked_select(y, mask_).view(size)
         y0, y1 = self._inferenceMeta(y0, y1, ifLogjac)

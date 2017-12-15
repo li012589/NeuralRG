@@ -281,6 +281,7 @@ class RealNVP(RealNVPtemplate):
                 unit = torch.FloatTensor([[1, 0], [0, 1]])
             mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
+            print (mask)
         else:
             raise ValueError("maskType not known.")
         if ifByte:
@@ -330,6 +331,7 @@ class RealNVP(RealNVPtemplate):
 
         """
         return self._logProbabilityWithContraction(x, self.mask, self.mask_, sliceDim)
+
     def logProbabilityWithInference(self,x,sliceDim=0):
         z = self._inferenceWithContraction(x, self.mask, self.mask_, sliceDim, True)
         return self.prior.logProbability(z) + self._inferenceLogjac,z
