@@ -66,8 +66,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
 
     fig2 = plt.figure(figsize=(8, 8))
-    fig2.title('$\epsilon=%g, \delta=%g, \omega=%g$'%(epsilon, delta, omega))
     ax21 = fig2.add_subplot(311)
+    plt.title('$\epsilon=%g, \delta=%g, \omega=%g$'%(epsilon, delta, omega))
     l3, = ax21.plot([], [], label='loss')
     ax21.legend()
 
