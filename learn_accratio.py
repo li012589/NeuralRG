@@ -13,34 +13,35 @@ from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from copy import deepcopy
 
-class Offset(torch.nn.Module):
-    '''
-    offset a scalar 
-    '''
-    def __init__(self):
-        super(Offset, self).__init__()
-        self.offset = torch.nn.Parameter(torch.DoubleTensor([0]))    
-    def forward(self, x):
-        return x + self.offset
+#class Offset(torch.nn.Module):
+#    '''
+#    offset a scalar 
+#    '''
+#    def __init__(self):
+#        super(Offset, self).__init__()
+#        self.offset = torch.nn.Parameter(torch.DoubleTensor([0]))    
+#    def forward(self, x):
+#        return x + self.offset
 
 def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, 
-        epsilon = 1.0, alpha=0.0, beta=1.0, gamma=0.0, delta=0.0, omega=0.0, 
-              lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None):
+              epsilon = 1.0, beta=1.0, delta=0.0, omega=0.0, 
+              lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None
+              exact= None):
 
     LOSS = []
     OBS = []
 
     sampler = MCMC(target, model, collectdata=True)
     
-    offset = Offset()
-    if cuda is not None:
-        offset = offset.cuda(cuda)
+    #offset = Offset()
+    #if cuda is not None:
+    #    offset = offset.cuda(cuda)
     buff_proposals = Buffer(10000)
     buff_samples = Buffer(10000)
 
     params = list(model.parameters()) 
-    if (gamma>0):
-        params += list(offset.parameters())
+    #if (gamma>0):
+    #    params += list(offset.parameters())
     
     #filter out those we do not want to train
     params = list(filter(lambda p: p.requires_grad, params))
@@ -76,6 +77,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
     ax23 = fig2.add_subplot(313, sharex=ax21)
     l5, = ax23.plot([], [], label='obs')
+    if exact is not None:
+        ax23.axhline(exact, color='r')
     ax23.set_xlim([0, Nepochs])
     ax23.legend()
 
@@ -129,7 +132,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
                ,"loss:",loss.data[0]
                ,"acc:", accratio
                ,"beta:", beta
-               ,"offset:", offset.offset.data[0]
+               #,"offset:", offset.offset.data[0]
                ,"obs", np.array(measurements).mean()
                #"mu", model.prior.mu1.data[0], model.prior.mu2.data[0]
                )
@@ -233,6 +236,7 @@ if __name__=="__main__":
     group.add_argument("-L",type=int, default=2,help="linear size")
     group.add_argument("-d",type=int, default=1,help="dimension")
     group.add_argument("-K",type=float, default=0.44068679350977147 ,help="K")
+    group.add_argument("-exact",type=float,default=None,help="exact")
 
     args = parser.parse_args()
     cuda = None
@@ -282,9 +286,7 @@ if __name__=="__main__":
           + '_mask' + str(args.masktype) \
           + '_slice' + str(args.slicedim) \
           + '_epsilon' + str(args.epsilon) \
-          + '_alpha' + str(args.alpha) \
           + '_beta' + str(args.beta) \
-          + '_gamma' + str(args.gamma) \
           + '_delta' + str(args.delta) \
           + '_omega' + str(args.omega) \
           + '_Batchsize' + str(args.Batchsize) \
@@ -312,7 +314,7 @@ if __name__=="__main__":
     sList = [CNN(snet, ScalableTanh(half_size)) for i in range(args.Nlayers)]
     tList = [CNN(tnet, F.linear) for i in range(args.Nlayers)]
 
-    model = RealNVP(input_size, sList, tList, prior, maskType=args.masktype, sliceDim=args.slicedim, name = key, double=not args.float)
+    model = RealNVP(input_size, sList, tList, prior, maskType=args.masktype, sliceDim=args.slicedim, name = key, double=not args.float, exact=args.exact)
 
     if args.modelname is not None:
         try:
@@ -328,8 +330,8 @@ if __name__=="__main__":
 
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Ntherm, args.Nsteps, args.Nskips,
-                            epsilon=args.epsilon,alpha=args.alpha, beta=args.beta, 
-                            gamma =args.gamma, delta=args.delta, omega=args.omega, lr=args.lr, 
+                            epsilon=args.epsilon,beta=args.beta, 
+                            delta=args.delta, omega=args.omega, lr=args.lr, 
                             cuda = cuda)
 
     sampler = MCMC(target, model, collectdata=True)
