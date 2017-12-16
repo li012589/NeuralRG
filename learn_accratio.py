@@ -279,6 +279,8 @@ if __name__=="__main__":
     key+=  '_Nl' + str(args.Nlayers) \
           + '_Hs' + str(args.Hs) \
           + '_Ht' + str(args.Ht) \
+          + '_mask' + str(args.masktype) \
+          + '_slice' + str(args.slicedim) \
           + '_epsilon' + str(args.epsilon) \
           + '_alpha' + str(args.alpha) \
           + '_beta' + str(args.beta) \
@@ -332,7 +334,7 @@ if __name__=="__main__":
 
     sampler = MCMC(target, model, collectdata=True)
     
-    _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda)
+    _, _, measurements, _, _, _ = sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda)
     
     h5filename = key + '_mc.h5'
     print("save at: " + h5filename)
