@@ -285,7 +285,7 @@ class RealNVP(RealNVPtemplate):
         else:
             raise ValueError("maskType not known.")
 
-        print (mask)
+        print ('mask:', mask)
         if ifByte:
             mask = mask.byte()
         if self.ifCuda:

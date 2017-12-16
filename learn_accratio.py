@@ -296,11 +296,9 @@ if __name__=="__main__":
     #sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
     #tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)]
     snet = [[args.Hs,3,1,1],
-            [args.Hs,3,1,1],
             [1,3,1,1]]
 
     tnet = [[args.Ht,3,1,1],
-            [args.Ht,3,1,1],
             [1,3,1,1]]
     #[outchannel, filter_size, stride, padding]
     #should be size peserving CNN
