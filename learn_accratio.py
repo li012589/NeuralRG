@@ -334,7 +334,7 @@ if __name__=="__main__":
 
     sampler = MCMC(target, model, collectdata=True)
     
-    _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda)
+    _, _, measurements, _, _, _ = sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda)
     
     h5filename = key + '_mc.h5'
     print("save at: " + h5filename)
