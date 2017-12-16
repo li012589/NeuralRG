@@ -90,3 +90,11 @@ python learn_accratio.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 10 -Nlayers 4 -H
 python learn_accratio.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 10 -Nlayers 4 -Hs 4 -Ht 4 -target ising -K 0.44068679350977147 -L 4 -d 2 -epsilon 0.0 -alpha 0.0 -beta 1.0  -delta 1.0 -Nepoch 5000 -mask checkerboard  -slicedim 2  -lr 0.01 
 ```
 
+### Exact Ising results 
+
+|         |          M2           | En   |
+| :-----: | :-------------------: | :--- |
+| d=2,L=2 | 0.56882 +/- 0.000409  |      |
+| d=2,L=4 | 0.761761 +/- 0.000421 |      |
+| d=2,L=8 | 0.646769 +/- 0.000445 |      |
+
