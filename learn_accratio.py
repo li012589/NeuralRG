@@ -279,6 +279,8 @@ if __name__=="__main__":
     key+=  '_Nl' + str(args.Nlayers) \
           + '_Hs' + str(args.Hs) \
           + '_Ht' + str(args.Ht) \
+          + '_mask' + str(args.masktype) \
+          + '_slice' + str(args.slicedim) \
           + '_epsilon' + str(args.epsilon) \
           + '_alpha' + str(args.alpha) \
           + '_beta' + str(args.beta) \
