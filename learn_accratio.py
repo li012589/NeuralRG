@@ -25,7 +25,7 @@ from copy import deepcopy
 
 def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, 
               epsilon = 1.0, beta=1.0, delta=0.0, omega=0.0, 
-              lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None
+              lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None, 
               exact= None):
 
     LOSS = []
@@ -66,6 +66,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
 
     fig2 = plt.figure(figsize=(8, 8))
+    fig2.title('$\epsilon=%g, \delta=%g, \omega=%g$'%(epsilon, delta, omega))
     ax21 = fig2.add_subplot(311)
     l3, = ax21.plot([], [], label='loss')
     ax21.legend()
@@ -314,7 +315,7 @@ if __name__=="__main__":
     sList = [CNN(snet, ScalableTanh(half_size)) for i in range(args.Nlayers)]
     tList = [CNN(tnet, F.linear) for i in range(args.Nlayers)]
 
-    model = RealNVP(input_size, sList, tList, prior, maskType=args.masktype, sliceDim=args.slicedim, name = key, double=not args.float, exact=args.exact)
+    model = RealNVP(input_size, sList, tList, prior, maskType=args.masktype, sliceDim=args.slicedim, name = key, double=not args.float)
 
     if args.modelname is not None:
         try:
@@ -332,7 +333,7 @@ if __name__=="__main__":
                             args.Ntherm, args.Nsteps, args.Nskips,
                             epsilon=args.epsilon,beta=args.beta, 
                             delta=args.delta, omega=args.omega, lr=args.lr, 
-                            cuda = cuda)
+                            cuda = cuda, exact=args.exact)
 
     sampler = MCMC(target, model, collectdata=True)
     
