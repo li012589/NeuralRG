@@ -76,7 +76,7 @@ class MCMC:
             res += r      # log(A)
             #print ('sjd', squared_jumped_distance)
             #sjd += squared_jumped_distance 
-            #kld += self.model.logProbability(x)-self.target(x) # KL(p||\pi)
+            kld += self.model.logProbability(x)-self.target(x) # KL(p||\pi)
 
             if self.collectdata:
                 #collect samples

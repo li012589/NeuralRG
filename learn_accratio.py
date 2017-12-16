@@ -202,10 +202,10 @@ if __name__=="__main__":
     group.add_argument("-float", action='store_true', help="use float32")
 
     group.add_argument("-lr", type=float, default=0.001, help="learning rate")
-    group.add_argument("-epsilon", type=float, default=1.0, help="acc term")
-    group.add_argument("-alpha", type=float, default=0.0, help="sjd term")
+    group.add_argument("-epsilon", type=float, default=1.0, help="acceptance term")
+    #group.add_argument("-alpha", type=float, default=0.0, help="sjd term")
     group.add_argument("-beta", type=float, default=1.0, help="temperature term")
-    group.add_argument("-gamma", type=float, default=0.0, help="weight to the mse loss")
+    #group.add_argument("-gamma", type=float, default=0.0, help="weight to the mse loss")
     group.add_argument("-delta", type=float, default=0.0, help="weight to the nll loss on data")
     group.add_argument("-omega", type=float, default=0.0, help="weight to the KL(model|data)")
 
