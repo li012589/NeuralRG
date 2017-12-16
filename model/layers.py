@@ -115,29 +115,27 @@ class CNN(nn.Module):
 
     """
 
-    def __init__(self, inShape, netStructure, name="cnn", activation=F.tanh):
+    def __init__(self, netStructure, name="cnn", activation=F.tanh):
         """
 
         This mehtod initialise this class.
         Args:
-            inShape (list int): shape of input variables.
             netStructure (list int): parameters of inner cnn layers, each items has 4 integer, which is channels of outputs, filter size, stride, padding in sequence.
             name (string): name of this class.
 
         """
         super(CNN, self).__init__()
         self.variableList = nn.ModuleList()
-        former = inShape[0]
+        inchannel = 1
         self.name = name
         for layer in netStructure[:-1]:
             self.variableList.append(nn.Sequential(
-                nn.Conv2d(former, layer[0], layer[1], layer[2], layer[3]), nn.ReLU()))
-            former = layer[0]
+                nn.Conv2d(inchallel, layer[0], layer[1], layer[2], layer[3]), nn.ReLU()))
+            inchannel = layer[0]
         layer = netStructure[-1]
         self.variableList.append(nn.Sequential(
-            nn.Conv2d(former, layer[0], layer[1], layer[2], layer[3])))
+            nn.Conv2d(inchannel, layer[0], layer[1], layer[2], layer[3])))
         self.activation = activation
-        #assert layer[0] == inshape[0]
 
     def forward(self, x):
         """

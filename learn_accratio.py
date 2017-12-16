@@ -299,16 +299,10 @@ if __name__=="__main__":
                     [4,3,1,1],
                     [1,3,1,1]]
     #[outchannel, filter_size, stride, padding]
+    #should be size peserving CNN
 
-    sList = [CNN([1,args.L,args.L//2],netStructure),
-             CNN([1,args.L,args.L//2],netStructure),
-             CNN([1,args.L,args.L//2],netStructure),
-             CNN([1,args.L,args.L//2],netStructure, F.tanh)]
-
-    tList =  [CNN([1,args.L,args.L//2],netStructure),
-              CNN([1,args.L,args.L//2],netStructure),
-              CNN([1,args.L,args.L//2],netStructure),
-              CNN([1,args.L,args.L//2],netStructure, F.linear)]
+    sList = [CNN(netStructure, F.tanh) for i in range(args.Nlayers)]
+    tList = [CNN(netStructure, F.linear) for i in range(args.Nlayers)]
 
     model = RealNVP([1, args.L, args.L], sList, tList, prior, maskType=args.masktype, sliceDim=args.slicedim, name = key, double=not args.float)
 
