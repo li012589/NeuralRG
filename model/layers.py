@@ -1,12 +1,13 @@
+import math 
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 
 class ScalableTanh(nn.Module):
-    def __init__(self,nvars):
+    def __init__(self,size):
         super(ScalableTanh,self).__init__()
-        self.scale = nn.Parameter(torch.zeros(nvars))
+        self.scale = nn.Parameter(torch.zeros(size))
     def forward(self,x):
         return self.scale * F.tanh(x)
 
@@ -136,6 +137,13 @@ class CNN(nn.Module):
         self.variableList.append(nn.Sequential(
             nn.Conv2d(inchannel, layer[0], layer[1], layer[2], layer[3])))
         self.activation = activation
+        
+        #weight initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+                m.bias.data.fill_(0)
 
     def forward(self, x):
         """
