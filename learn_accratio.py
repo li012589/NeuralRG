@@ -295,14 +295,18 @@ if __name__=="__main__":
 
     #sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
     #tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)]
-    netStructure = [[4,3,1,1],
-                    [4,3,1,1],
-                    [1,3,1,1]]
+    snet = [[args.Hs,3,1,1],
+            [args.Hs,3,1,1],
+            [1,3,1,1]]
+
+    tnet = [[args.Ht,3,1,1],
+            [args.Ht,3,1,1],
+            [1,3,1,1]]
     #[outchannel, filter_size, stride, padding]
     #should be size peserving CNN
 
-    sList = [CNN(netStructure, F.tanh) for i in range(args.Nlayers)]
-    tList = [CNN(netStructure, F.linear) for i in range(args.Nlayers)]
+    sList = [CNN(snet, F.tanh) for i in range(args.Nlayers)]
+    tList = [CNN(tnet, F.linear) for i in range(args.Nlayers)]
 
     model = RealNVP([1, args.L, args.L], sList, tList, prior, maskType=args.masktype, sliceDim=args.slicedim, name = key, double=not args.float)
 

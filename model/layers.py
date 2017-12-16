@@ -130,7 +130,7 @@ class CNN(nn.Module):
         self.name = name
         for layer in netStructure[:-1]:
             self.variableList.append(nn.Sequential(
-                nn.Conv2d(inchallel, layer[0], layer[1], layer[2], layer[3]), nn.ReLU()))
+                nn.Conv2d(inchannel, layer[0], layer[1], layer[2], layer[3]), nn.ReLU()))
             inchannel = layer[0]
         layer = netStructure[-1]
         self.variableList.append(nn.Sequential(
