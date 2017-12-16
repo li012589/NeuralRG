@@ -90,25 +90,14 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         else:
             zinit = None
 
-        samples, proposals, measurements, accratio, res, sjd, kld  = sampler.run(Batchsize, 
+        samples, proposals, measurements, accratio, res, kld  = sampler.run(Batchsize, 
                                                                                           Ntherm, 
                                                                                           Nsteps, 
                                                                                           Nskips,
                                                                                           zinit,
-                                                                                          cuda=cuda,
-                                                                                          sliceDim = 2)
+                                                                                          cuda=cuda
+                                                                                          )
 
-        ######################################################
-        #mes loss on the proposals
-        buff_proposals.push(proposals.view(Batchsize*(Ntherm+Nsteps),-1))
-
-        #mes loss on the proposals
-        traindata = buff_proposals.draw(Batchsize*(Ntherm+Nsteps))
-        x_data = Variable(traindata[:, :-1])
-        y_data = Variable(traindata[:, -1])
-        y_pred = model.logProbability(x_data.contiguous().view(-1, 1, args.L, args.L), sliceDim=2)
-        mse = (offset(y_pred) - y_data).pow(2)
-        ######################################################
 
         ######################################################
         #nll loss on the samples
@@ -127,11 +116,10 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         x_data = Variable(traindata[:, :-1])
         #import pdb
         #pdb.set_trace()
-        nll_samples = -model.logProbability(x_data.contiguous().view(-1, 1, args.L, args.L), sliceDim=2)
+        nll_samples = -model.logProbability(x_data.contiguous().view(-1, 1, args.L, args.L))
         ######################################################
 
-        loss = -epsilon*res.mean() - alpha * sjd.mean() + gamma * mse.mean() \
-               + delta*nll_samples.mean()  + omega * kld.mean() 
+        loss = -epsilon*res.mean() + delta*nll_samples.mean()  + omega * kld.mean() 
 
         if (epoch < Nanneal):
             beta += dbeta
@@ -164,10 +152,10 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
             proposals.shape = (Batchsize*(Ntherm+Nsteps), -1)
             
             l1.set_xdata(proposals[:,0])
-            l1.set_ydata(proposals[:,-2])
+            l1.set_ydata(proposals[:,1])
 
             l2.set_xdata(samples[:,0])
-            l2.set_ydata(samples[:,-2])
+            l2.set_ydata(samples[:,1])
             ax1.set_title('epoch=%g'%(epoch))
 
             ax1.relim()
@@ -225,7 +213,7 @@ if __name__=="__main__":
     group.add_argument("-modelname", default=None, help="load model")
     group.add_argument("-prior", default='gaussian', help="prior distribution")
     group.add_argument("-masktype", default='channel', help="masktype")
-    group.add_argument("-CNN",action = 'store_true',help='')
+    group.add_argument("-slicedim", type=int, default=2, help="slice dimension")
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -307,14 +295,11 @@ if __name__=="__main__":
 
     #sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
     #tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)]
-    netStructure = [[10,3,1,1],
-                    [10,3,1,1],
-                    [10,3,1,1],
+    netStructure = [[4,3,1,1],
+                    [4,3,1,1],
                     [1,3,1,1]]
-   #[outchannel, filter_size, stride, padding]
+    #[outchannel, filter_size, stride, padding]
 
-    print([1,args.L,args.L//2])
-    print([1, args.L, args.L])
     sList = [CNN([1,args.L,args.L//2],netStructure),
              CNN([1,args.L,args.L//2],netStructure),
              CNN([1,args.L,args.L//2],netStructure),
@@ -325,7 +310,7 @@ if __name__=="__main__":
               CNN([1,args.L,args.L//2],netStructure),
               CNN([1,args.L,args.L//2],netStructure, F.linear)]
 
-    model = RealNVP([1, args.L, args.L], sList, tList, prior, maskType=args.masktype, name = key, double=not args.float)
+    model = RealNVP([1, args.L, args.L], sList, tList, prior, maskType=args.masktype, sliceDim=args.slicedim, name = key, double=not args.float)
 
     if args.modelname is not None:
         try:
@@ -339,8 +324,6 @@ if __name__=="__main__":
         model = model.cuda()
         print("moving model to GPU")
 
-    target(model.prior(64))
-
     model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Ntherm, args.Nsteps, args.Nskips,
                             epsilon=args.epsilon,alpha=args.alpha, beta=args.beta, 
@@ -349,7 +332,7 @@ if __name__=="__main__":
 
     sampler = MCMC(target, model, collectdata=True)
     
-    _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda, sliceDim = 2)
+    _, _, measurements, _, _, _, _= sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda)
     
     h5filename = key + '_mc.h5'
     print("save at: " + h5filename)

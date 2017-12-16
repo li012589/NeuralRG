@@ -168,7 +168,7 @@ class RealNVPtemplate(torch.nn.Module):
                     self._generateLogjac += s
         return y0, y1
 
-    def _generateWithContraction(self, y, mask, mask_, sliceDim, ifLogjac=False):
+    def _generateWithContraction(self, y, mask, mask_, ifLogjac=False):
         """
 
         This method generate complex distribution using variables sampled from prior distribution. Unlike _generate method this method use mask first to contract y into y0 and y1 to reduce computational complexity.
@@ -176,7 +176,6 @@ class RealNVPtemplate(torch.nn.Module):
             y (torch.autograd.Variable): input Variable.
             mask (torch.Tensor): mask to divide y into y0 and y1.
             mask_ (torch.Tensor): mask_ = 1-mask.
-            sliceDim (int): in which dimension should mask be used on y.
             ifLogjac (int): iflag variable, used to tell if log jacobian should be computed.
         Return:
             output (torch.autograd.Variable): output Variable.
@@ -200,7 +199,7 @@ class RealNVPtemplate(torch.nn.Module):
                 else:
                     self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         size = [-1] + self.shapeList
-        size[sliceDim + 1] = size[sliceDim + 1] // 2
+        size[self.sliceDim + 1] = size[self.sliceDim + 1] // 2
         y0 = torch.masked_select(y, mask).view(size)
         y1 = torch.masked_select(y, mask_).view(size)
         y0, y1 = self._generateMeta(y0, y1, ifLogjac)
@@ -218,7 +217,7 @@ class RealNVPtemplate(torch.nn.Module):
         output.masked_scatter_(mask_, y1)
         return output
 
-    def _generateWithSlice(self, y, sliceDim, ifLogjac=False):
+    def _generateWithSlice(self, y, ifLogjac=False):
         """
 
         This method generate complex distribution using variables sampled from prior distribution. Unlike _generate method this method first slice y into y0 and y1 to reduce computational complexity.
@@ -226,7 +225,6 @@ class RealNVPtemplate(torch.nn.Module):
             y (torch.autograd.Variable): input Variable.
             mask (torch.Tensor): mask to divide y into y0 and y1.
             mask_ (torch.Tensor): mask_ = 1-mask.
-            sliceDim (int): in which dimension should mask be used on y.
             ifLogjac (int): iflag variable, used to tell if log jacobian should be computed.
         Return:
             output (torch.autograd.Variable): output Variable.
@@ -247,11 +245,11 @@ class RealNVPtemplate(torch.nn.Module):
                     self._generateLogjac = Variable(torch.zeros(y.data.shape[0]).double())
                 else:
                     self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
-        y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
+        y0 = y.narrow(self.sliceDim + 1, 0, self.shapeList[self.sliceDim] // 2)
         y1 = y.narrow(
-            sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim] - 1)
+            self.sliceDim + 1, self.shapeList[self.sliceDim] // 2, self.shapeList[self.sliceDim] - 1)
         y0, y1 = self._generateMeta(y0, y1, ifLogjac)
-        return torch.cat((y0, y1), sliceDim + 1)
+        return torch.cat((y0, y1), self.sliceDim + 1)
 
     def _inference(self, y, mask, mask_, ifLogjac=False):
         """
@@ -341,7 +339,7 @@ class RealNVPtemplate(torch.nn.Module):
                     self._inferenceLogjac -= s
         return y0, y1
 
-    def _inferenceWithContraction(self, y, mask, mask_, sliceDim, ifLogjac=False):
+    def _inferenceWithContraction(self, y, mask, mask_, ifLogjac=False):
         """
 
         This method inference prior distribution using variables sampled from complex distribution. Unlike _inference method this method use mask first to contract y into y0 and y1 to reduce computational complexity.
@@ -349,7 +347,6 @@ class RealNVPtemplate(torch.nn.Module):
             y (torch.autograd.Variable): input Variable.
             mask (torch.Tensor): mask to divide y into y0 and y1.
             mask_ (torch.Tensor): mask_ = 1-mask.
-            sliceDim (int): in which dimension should mask be used on y.
             ifLogjac (int): iflag variable, used to tell if log jacobian should be computed.
         Return:
             output (torch.autograd.Variable): output Variable.
@@ -373,7 +370,7 @@ class RealNVPtemplate(torch.nn.Module):
                 else:
                     self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         size = [-1] + self.shapeList
-        size[sliceDim + 1] = size[sliceDim + 1] // 2
+        size[self.sliceDim + 1] = size[self.sliceDim + 1] // 2
         
         #print ('size',size)
         #print ('sliceDim', sliceDim)
@@ -395,7 +392,7 @@ class RealNVPtemplate(torch.nn.Module):
         output.masked_scatter_(mask_, y1)
         return output
 
-    def _inferenceWithSlice(self, y, sliceDim, ifLogjac=False):
+    def _inferenceWithSlice(self, y, ifLogjac=False):
         """
 
         This method inference prior distribution using variables sampled from complex distribution. Unlike _inference method this method first slice y into y0 and y1 to reduce computational complexity.
@@ -403,7 +400,6 @@ class RealNVPtemplate(torch.nn.Module):
             y (torch.autograd.Variable): input Variable.
             mask (torch.Tensor): mask to divide y into y0 and y1.
             mask_ (torch.Tensor): mask_ = 1-mask.
-            sliceDim (int): in which dimension should mask be used on y.
             ifLogjac (int): iflag variable, used to tell if log jacobian should be computed.
         Return:
             output (torch.autograd.Variable): output Variable.
@@ -424,11 +420,11 @@ class RealNVPtemplate(torch.nn.Module):
                     self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]).double())
                 else:
                     self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
-        y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
+        y0 = y.narrow(self.sliceDim + 1, 0, self.shapeList[self.sliceDim] // 2)
         y1 = y.narrow(
-            sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim] - 1)
+            self.sliceDim + 1, self.shapeList[self.sliceDim] // 2, self.shapeList[self.sliceDim] - 1)
         y0, y1 = self._inferenceMeta(y0, y1, ifLogjac)
-        return torch.cat((y0, y1), sliceDim + 1)
+        return torch.cat((y0, y1), self.sliceDim + 1)
 
     def _logProbability(self, x, mask, mask_):
         """
@@ -445,21 +441,20 @@ class RealNVPtemplate(torch.nn.Module):
         z = self._inference(x, mask, mask_, True)
         return self.prior.logProbability(z) + self._inferenceLogjac
 
-    def _logProbabilityWithSlice(self, x, sliceDim):
+    def _logProbabilityWithSlice(self, x):
         """
 
         This method gives the log of probability of x sampled from complex distribution.
         Args:
             x (torch.autograd.Variable): input Variable.
-            sliceDim (int): in which dimension should mask be used on y.
         Return:
             probability (torch.autograd.Variable): probability of x.
 
         """
-        z = self._inferenceWithSlice(x, sliceDim, True)
+        z = self._inferenceWithSlice(x, True)
         return self.prior.logProbability(z) + self._inferenceLogjac
 
-    def _logProbabilityWithContraction(self, x, mask, mask_, sliceDim):
+    def _logProbabilityWithContraction(self, x, mask, mask_):
         """
 
         This method gives the log of probability of x sampled from complex distribution.
@@ -467,12 +462,11 @@ class RealNVPtemplate(torch.nn.Module):
             x (torch.autograd.Variable): input Variable.
             mask (torch.Tensor): mask to divide y into y0 and y1.
             mask_ (torch.Tensor): mask_ = 1-mask.
-            sliceDim (int): in which dimension should mask be used on y.
         Return:
             probability (torch.autograd.Variable): probability of x.
 
         """
-        z = self._inferenceWithContraction(x, mask, mask_, sliceDim, True)
+        z = self._inferenceWithContraction(x, mask, mask_, True)
         return self.prior.logProbability(z) + self._inferenceLogjac
 
     def _saveModel(self, saveDic):

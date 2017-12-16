@@ -40,7 +40,7 @@ class MCMC:
         if self.collectdata:
             self.data = []
    
-    def run(self, batchSize,ntherm, nmeasure, nskip, z=None, cuda = None, sliceDim = 0):
+    def run(self, batchSize,ntherm, nmeasure, nskip, z=None, cuda = None):
         """
         This method start sampling.
         Args:
@@ -59,26 +59,24 @@ class MCMC:
             z = z.cuda(cuda)
             kld = Variable(torch.DoubleTensor(batchSize).zero_()).cuda(cuda)
             res = Variable(torch.DoubleTensor(batchSize).zero_()).cuda(cuda)
-            sjd = Variable(torch.DoubleTensor(batchSize).zero_()).cuda(cuda)
         else:
             kld = Variable(torch.DoubleTensor(batchSize).zero_())
             res = Variable(torch.DoubleTensor(batchSize).zero_())
-            sjd = Variable(torch.DoubleTensor(batchSize).zero_())
         zpack = [] # samples 
         xpack = [] # proposals
         measurepack = []
         accratio = 0.0
         for n in range(ntherm+nmeasure):
             for i in range(nskip):
-                _,_,_,z,_ = self.step(batchSize,z,sliceDim = sliceDim)
+                _,_,_,z = self.step(batchSize,z)
 
-            a,r,x,z,squared_jumped_distance = self.step(batchSize,z,sliceDim = sliceDim)
+            a,r,x,z = self.step(batchSize,z)
 
             accratio += a # mean acceptance ratio 
             res += r      # log(A)
             #print ('sjd', squared_jumped_distance)
             #sjd += squared_jumped_distance 
-            kld += self.model.logProbability(x, sliceDim = sliceDim)-self.target(x) # KL(p||\pi)
+            kld += self.model.logProbability(x)-self.target(x) # KL(p||\pi)
 
             if self.collectdata:
                 #collect samples
@@ -100,19 +98,18 @@ class MCMC:
 
         accratio /= float(ntherm+nmeasure)
         res /= float(ntherm+nmeasure)
-        sjd /= float(ntherm+nmeasure)
         zpack = torch.stack(zpack,0)
         xpack = torch.stack(xpack,0)
         kld /= float(ntherm+nmeasure)
 
         #print ('#accratio:', accratio)
-        return zpack,xpack,measurepack,accratio,res,sjd,kld
+        return zpack,xpack,measurepack,accratio,res,kld
 
-    def step(self,batchSize,z, sliceDim):
+    def step(self,batchSize,z):
         """
         This method run a step of sampling.
         """
-        x = self.model.sample(batchSize,sliceDim=sliceDim)
+        x = self.model.sample(batchSize)
         
         #print (type(x), type(z))
         #print ('pix', type(self.target(x)))
@@ -126,9 +123,9 @@ class MCMC:
         #print ('pz', self.model.logProbability(z).data)
 
         pi_x = self.target(x) # API change: should be self.target.logProbability()
-        p_x = self.model.logProbability(x, sliceDim=sliceDim)
+        p_x = self.model.logProbability(x)
         pi_z = self.target(z)
-        p_z = self.model.logProbability(z, sliceDim=sliceDim)
+        p_z = self.model.logProbability(z)
         #print(p_z.data.shape)
         #print(p_x.data.shape)
         #print(pi_x.data.shape)
@@ -143,31 +140,13 @@ class MCMC:
         #print ('#', accept.float().mean())
         #print (A.mean())
 
-        #x.masked_scatter_(accept,torch.masked_select(z,accept))
         accept.data = accept.data.double()
-        
-        
-        size = list(x.data.shape)
-        #print (size)
-        size[0] = 1
-        #print (accept.view(batchSize, 1, 1, 1).data.shape)
-        accept = (accept.view(batchSize, 1, 1, 1).repeat(*size))
+        accept = accept.view(batchSize, -1)
 
-        #print (x.data.shape )
-        #print (z.data.shape )
-        #print (accept.data.shape )
+        z = accept * x.view(batchSize, -1) + (1.-accept)*z.view(batchSize, -1)
+        z = z.view(x.data.shape)
 
-        accept = accept.view(x.data.shape)
-        squared_jumped_distance = accept * ((x-z)**2).sum(dim=1)
-
-        #print ('accept:', accept)
-        #print ('x:', x)
-        #print ('z:', z)
-        #print ('(x-z)^2:',  ((x-z)**2).sum(dim=1))
-        #print (squared_jumped_distance)
-
-
-        return a,r,x,accept * x + (1.-accept)*z, squared_jumped_distance
+        return a,r,x,z
 
     def measure(self, x,measureFn=None):
         """

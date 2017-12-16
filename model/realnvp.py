@@ -232,7 +232,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, maskType="channel", name=None, double=True):
+    def __init__(self, shapeList, sList, tList, prior, maskType="channel", sliceDim=0, name=None, double=True):
         """
 
         This mehtod initialise this class.
@@ -247,6 +247,7 @@ class RealNVP(RealNVPtemplate):
         super(RealNVP, self).__init__(
             shapeList, sList, tList, prior, name,double)
         self.maskType = maskType
+        self.sliceDim = sliceDim
         self.createMask(maskType)
 
     def createMask(self, maskType="channel", ifByte=1, double = True):
@@ -263,14 +264,14 @@ class RealNVP(RealNVPtemplate):
         self.maskType = maskType
         size = self.shapeList.copy()
         if maskType == "channel":
-            size[0] = size[0] // 2
+            size[self.sliceDim] = size[self.sliceDim] // 2
             if double:
                 maskOne = torch.ones(size).double()
                 maskZero = torch.zeros(size).double()
             else:
                 maskOne = torch.ones(size)
                 maskZero = torch.zeros(size)
-            mask = torch.cat([maskOne, maskZero], 0)
+            mask = torch.cat([maskOne, maskZero], self.sliceDim)
 
         elif maskType == "checkerboard":
             assert (size[1] % 2 == 0)
@@ -280,10 +281,11 @@ class RealNVP(RealNVPtemplate):
             else:
                 unit = torch.FloatTensor([[1, 0], [0, 1]])
             mask = (unit.repeat(
-                size[0], size[1] // 2, size[2] // 2))
-            print (mask)
+                    size[0], size[1] // 2, size[2] // 2))
         else:
             raise ValueError("maskType not known.")
+
+        print (mask)
         if ifByte:
             mask = mask.byte()
         if self.ifCuda:
@@ -293,47 +295,44 @@ class RealNVP(RealNVPtemplate):
         self.register_buffer("mask_",1-mask)
         return mask
 
-    def generate(self, z, sliceDim=0):
+    def generate(self, z):
         """
 
         This method generate complex distribution using variables sampled from prior distribution.
         Args:
             z (torch.autograd.Variable): input Variable.
-            sliceDim (int): in which dimension should mask be used on y.
         Return:
             x (torch.autograd.Variable): output Variable.
 
         """
-        return self._generateWithContraction(z, self.mask, self.mask_, sliceDim)
+        return self._generateWithContraction(z, self.mask, self.mask_)
 
-    def inference(self, x, sliceDim=0):
+    def inference(self, x):
         """
 
         This method inference prior distribution using variable sampled from complex distribution.
         Args:
             x (torch.autograd.Variable): input Variable.
-            sliceDim (int): in which dimension should mask be used on y.
         Return:
             z (torch.autograd.Variable): output Variable.
 
         """
-        return self._inferenceWithContraction(x, self.mask, self.mask_, sliceDim)
+        return self._inferenceWithContraction(x, self.mask, self.mask_)
 
-    def logProbability(self, x, sliceDim=0):
+    def logProbability(self, x):
         """
 
         This method gives the log of probability of x sampled from complex distribution.
         Args:
             x (torch.autograd.Variable): input Variable.
-            sliceDim (int): in which dimension should mask be used on y.
         Return:
             log-probability (torch.autograd.Variable): log-probability of x.
 
         """
-        return self._logProbabilityWithContraction(x, self.mask, self.mask_, sliceDim)
+        return self._logProbabilityWithContraction(x, self.mask, self.mask_)
 
-    def logProbabilityWithInference(self,x,sliceDim=0):
-        z = self._inferenceWithContraction(x, self.mask, self.mask_, sliceDim, True)
+    def logProbabilityWithInference(self,x):
+        z = self._inferenceWithContraction(x, self.mask, self.mask_, True)
         return self.prior.logProbability(z) + self._inferenceLogjac,z
 
     def saveModel(self, saveDic):
@@ -368,13 +367,12 @@ class RealNVP(RealNVPtemplate):
         self.shapeList = saveDic["shapeList"]
         return saveDic
 
-    def sample(self, batchSize, sliceDim=0, useGenerate=True):
+    def sample(self, batchSize,useGenerate=True):
         """
 
         This method directly sample samples of batch size given
         Args:
             batchSize (int): size of sampled batch.
-            sliceDim (int): in which dimension should mask be used on y.
         return:
             samples: (torch.autograd.Variable): output Variable.
         """
@@ -384,9 +382,9 @@ class RealNVP(RealNVPtemplate):
         else:
             z = self.prior(batchSize)
         if useGenerate:
-            return self.generate(z, sliceDim)
+            return self.generate(z)
         else:
-            return self.inference(z, sliceDim)
+            return self.inference(z)
 
 if __name__ == "__main__":
     
