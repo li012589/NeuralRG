@@ -50,7 +50,10 @@ class ResNet(nn.Module):
         super(ResNet, self).__init__()
         self.name = name
         #self.layers = nn.ModuleList()
-        self.in_channels = 1
+        self.in_channels = channels 
+        self.conv = conv3x3(1, channels)
+        self.bn = nn.BatchNorm2d(channels)
+        self.relu = nn.ReLU(inplace=True)
         self.layer1 = self.make_layer(ResidualBlock, channels, 1)
         self.layer2 = self.make_layer(ResidualBlock, 1, 1)
         self.activation = activation
@@ -86,6 +89,10 @@ class ResNet(nn.Module):
             x (torch.autograd.Variable): output variables.
 
         """
-        x = self.layer1(x)
-        x = self.layer2(x)
-        return self.activation(x)
+
+        out = self.conv(x)
+        out = self.bn(out)
+        out = self.relu(out)
+        out = self.layer1(out)
+        out = self.layer2(out)
+        return self.activation(out)
