@@ -35,11 +35,11 @@ class Ising(Target):
         
         #return -0.5*(x**2).sum(dim=1) \
         #+ torch.log(torch.cosh(self.beta*torch.mm(x, self.VT))).sum(dim=1)
-        return -0.5*(torch.mm(x.view(-1, self.Nvars),self.Kinv) * x.view(-1, self.Nvars) ).sum(dim=1) \
+        return -0.5*(torch.mm(x.view(-1, self.Nvars),self.Kinv) * x.view(-1, self.Nvars)).sum(dim=1) \
         + torch.log(torch.cosh(self.beta*x.view(-1, self.Nvars))).sum(dim=1)
     
     def measure(self, x):
-        p = torch.sigmoid(2.*x) 
+        p = torch.sigmoid(2.*x).view(-1, self.Nvars)
         #sample spin
         #s = 2*torch.bernoulli(p).data.numpy()-1
         #return (s.mean(axis=1))**2
