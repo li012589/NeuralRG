@@ -302,11 +302,15 @@ if __name__=="__main__":
             [1,3,1,1]]
     #[outchannel, filter_size, stride, padding]
     #should be size peserving CNN
+    
+    input_size = [1, args.L, args.L]
+    half_size = input_size.copy()
+    half_size[args.slicedim] = half_size[args.slicedim]//2
 
-    sList = [CNN(snet, F.tanh) for i in range(args.Nlayers)]
+    sList = [CNN(snet, ScalableTanh(half_size)) for i in range(args.Nlayers)]
     tList = [CNN(tnet, F.linear) for i in range(args.Nlayers)]
 
-    model = RealNVP([1, args.L, args.L], sList, tList, prior, maskType=args.masktype, sliceDim=args.slicedim, name = key, double=not args.float)
+    model = RealNVP(input_size, sList, tList, prior, maskType=args.masktype, sliceDim=args.slicedim, name = key, double=not args.float)
 
     if args.modelname is not None:
         try:
