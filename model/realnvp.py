@@ -274,6 +274,26 @@ class RealNVP(RealNVPtemplate):
                     maskZero = torch.zeros(size)
                 mask = torch.cat([maskOne, maskZero], slicedim)
             
+            elif ('bars' in masktype):
+                assert (size[1] % 2 == 0)
+                assert (size[2] % 2 == 0)
+                if double:
+                    unit = torch.DoubleTensor([[1, 0], [1, 0]])
+                else:
+                    unit = torch.FloatTensor([[1, 0], [1, 0]])
+                mask = (unit.repeat(
+                        size[0], size[1] // 2, size[2] // 2))
+ 
+            elif ('stripes' in masktype):
+                assert (size[1] % 2 == 0)
+                assert (size[2] % 2 == 0)
+                if double:
+                    unit = torch.DoubleTensor([[1, 1], [0, 0]])
+                else:
+                    unit = torch.FloatTensor([[1, 1], [0, 0]])
+                mask = (unit.repeat(
+                        size[0], size[1] // 2, size[2] // 2))
+ 
             elif 'checkerboard' in masktype:
                 assert (size[1] % 2 == 0)
                 assert (size[2] % 2 == 0)
