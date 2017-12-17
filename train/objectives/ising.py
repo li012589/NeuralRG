@@ -12,9 +12,9 @@ class Ising(Target):
     def __init__(self, L, d, K, cuda=None):
         super(Ising, self).__init__(L**d,'Ising')
 
-        lattice = Hypercube(L, d)
-        self.Nvars = lattice.Nsite
-        self.K = lattice.Adj * K
+        self.lattice = Hypercube(L, d)
+        self.Nvars = self.lattice.Nsite
+        self.K = self.lattice.Adj * K
     
         w, v = eigh(self.K)    
         offset = 1.0-w.min()

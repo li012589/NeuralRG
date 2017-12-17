@@ -10,7 +10,7 @@ from model import Gaussian,MLP,RealNVP
 from train import Ring2D, Ring5, Wave, Phi4, MCMC
 
 class Buffer(object):
-    def __init__(self,maximum,data=None,testRatio=0.3,cuda = None):
+    def __init__(self,maximum,data=None,testRatio=0.0,cuda = None):
         testSize = int(testRatio*maximum)
         self.testRatio = testRatio
         self.capacity = int(maximum*(1+self.testRatio))
