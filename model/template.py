@@ -110,26 +110,15 @@ class RealNVPtemplate(torch.nn.Module):
                 else:
                     self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         for i in range(self.NumLayers):
-            if (i % 2 == 0):
-                y_ = masks[i//2] * y
-                s = self.sList[i](y_) * masks_[i//2]
-                t = self.tList[i](y_) * masks_[i//2]
-                #checkNan(s)
-                y = y_ + masks_[i//2] * (y * checkNan(torch.exp(s)) + t)
-                if ifLogjac:
-                    for _ in self.shapeList:
-                        s = s.sum(dim=-1)
-                    self._generateLogjac += s
-            else:
-                y_ = masks_[i//2] * y
-                s = self.sList[i](y_) * masks[i//2]
-                t = self.tList[i](y_) * masks[i//2]
-                #checkNan(s)
-                y = y_ + masks[i//2] * (y * checkNan(torch.exp(s)) + t)
-                if ifLogjac:
-                    for _ in self.shapeList:
-                        s = s.sum(dim=-1)
-                    self._generateLogjac += s
+            y_ = masks[i] * y
+            s = self.sList[i](y_) * masks_[i]
+            t = self.tList[i](y_) * masks_[i]
+            #checkNan(s)
+            y = y_ + masks_[i] * (y * checkNan(torch.exp(s)) + t)
+            if ifLogjac:
+                for _ in self.shapeList:
+                    s = s.sum(dim=-1)
+                self._generateLogjac += s
         return y
 
     def _inference(self, y, masks, masks_, ifLogjac=False):
@@ -163,26 +152,15 @@ class RealNVPtemplate(torch.nn.Module):
                     self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
 
         for i in list(range(self.NumLayers))[::-1]:
-            if (i % 2 == 0):
-                y_ = masks[i//2] * y
-                s = self.sList[i](y_) * masks_[i//2]
-                t = self.tList[i](y_) * masks_[i//2]
-                #checkNan(s)
-                y = masks_[i//2] * (y - t) * checkNan(torch.exp(-s)) + y_
-                if ifLogjac:
-                    for _ in self.shapeList:
-                        s = s.sum(dim=-1)
-                    self._inferenceLogjac -= s
-            else:
-                y_ = masks_[i//2] * y
-                s = self.sList[i](y_) * masks[i//2]
-                t = self.tList[i](y_) * masks[i//2]
-                #checkNan(s)
-                y = masks[i//2] * (y - t) * checkNan(torch.exp(-s)) + y_
-                if ifLogjac:
-                    for _ in self.shapeList:
-                        s = s.sum(dim=-1)
-                    self._inferenceLogjac -= s
+            y_ = masks[i] * y
+            s = self.sList[i](y_) * masks_[i]
+            t = self.tList[i](y_) * masks_[i]
+            #checkNan(s)
+            y = masks_[i] * (y - t) * checkNan(torch.exp(-s)) + y_
+            if ifLogjac:
+                for _ in self.shapeList:
+                    s = s.sum(dim=-1)
+                self._inferenceLogjac -= s
         return y
 
     def _logProbability(self, x, masks, masks_):

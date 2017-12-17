@@ -313,7 +313,7 @@ if __name__=="__main__":
     
     sList = [CNN(snet, F.tanh) for i in range(args.Nlayers)]
     tList = [CNN(tnet, F.linear) for i in range(args.Nlayers)]
-    masktypelist = ['checkerboard', 'updown']
+    masktypelist = ['checkerboard0', 'checkerboard1', 'checkerboard0', 'updown0', 'updown1', 'updown0']
     
     #Resnet 
     #sList = [ResNet(args.Hs, ScalableTanh(half_size)) for i in range(args.Nlayers)]

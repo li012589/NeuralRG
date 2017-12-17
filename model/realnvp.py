@@ -263,8 +263,8 @@ class RealNVP(RealNVPtemplate):
         self.masks_ = []
         for masktype in masktypelist: 
             size = self.shapeList.copy()
-            if masktype in ["updown", "leftright"]: 
-                slicedim = 1 if masktype == "updown" else 2
+            if ('updown' in masktype) or ('leftright' in masktype):
+                slicedim = 1 if ("updown" in masktype) else 2
                 size[slicedim] = size[slicedim] // 2
                 if double:
                     maskOne = torch.ones(size).double()
@@ -274,7 +274,7 @@ class RealNVP(RealNVPtemplate):
                     maskZero = torch.zeros(size)
                 mask = torch.cat([maskOne, maskZero], slicedim)
             
-            elif masktype == "checkerboard":
+            elif 'checkerboard' in masktype:
                 assert (size[1] % 2 == 0)
                 assert (size[2] % 2 == 0)
                 if double:
@@ -286,19 +286,20 @@ class RealNVP(RealNVPtemplate):
             else:
                 raise ValueError("maskType not known.")
             
-            print ('mask:', mask)
             if ifByte:
                 mask = mask.byte()
             if self.ifCuda:
                 cudaNo = self.mask.get_device()
                 mask = mask.pin_memory().cuda(cudaNo)
+            
+            if '0' in masktype:
+                self.masks.append(Variable(mask))
+                self.masks_.append(Variable(1-mask))
+            else:
+                self.masks_.append(Variable(mask))
+                self.masks.append(Variable(1-mask))
 
-            self.masks.append(Variable(mask))
-            self.masks_.append(Variable(1-mask))
-
-            #self.register_buffer("mask",mask)
-            #self.register_buffer("mask_",1-mask)
-        #return mask
+            print ('mask:', self.masks[-1])
 
     def generate(self, z):
         """
