@@ -5,11 +5,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class ScalableTanh(nn.Module):
-    def __init__(self,size):
+    def __init__(self,input_size):
         super(ScalableTanh,self).__init__()
-        self.scale = nn.Parameter(torch.zeros(size))
+        self.scale = nn.Parameter(torch.zeros(input_size))
     def forward(self,x):
-        return self.scale * F.tanh(x)
+        size = x.data.shape 
+        return self.scale.view(-1, size[0], size[1], size[2]) * F.tanh(x)
 
 class Squeezing(nn.Module):
     def __init__(self,filterSize = 2):
