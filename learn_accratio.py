@@ -225,7 +225,7 @@ if __name__=="__main__":
     group.add_argument("-Ntherm", type=int, default=10, help="")
     group.add_argument("-Nsteps", type=int, default=10, help="steps used in training")
     group.add_argument("-Nskips", type=int, default=10, help="")
-    group.add_argument("-Nsamples", type=int, default=100, help="")
+    group.add_argument("-Nsamples", type=int, default=1000, help="")
 
     group = parser.add_argument_group('target parameters')
     group.add_argument("-target", default='ring2d', help="target distribution")
@@ -311,9 +311,12 @@ if __name__=="__main__":
     #[outchannel, filter_size, stride, padding]
     #should be size peserving CNN
     
-    sList = [CNN(snet, F.tanh) for i in range(args.Nlayers)]
+    sList = [CNN(snet, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
     tList = [CNN(tnet, F.linear) for i in range(args.Nlayers)]
-    masktypelist = ['checkerboard0', 'checkerboard1', 'checkerboard0', 'updown0', 'updown1', 'updown0']
+    masktypelist = ['checkerboard0', 'checkerboard1', 'checkerboard0', 
+                    'bars0', 'bars1', 'bars0',
+                    'stripes0', 'stripes1', 'stripes0',
+                    ]
     
     #Resnet 
     #sList = [ResNet(args.Hs, ScalableTanh(half_size)) for i in range(args.Nlayers)]
