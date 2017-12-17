@@ -232,7 +232,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, maskType="channel", sliceDim=0, name=None, double=True):
+    def __init__(self, shapeList, sList, tList, prior, masktypelist, name=None, double=True):
         """
 
         This mehtod initialise this class.
@@ -246,11 +246,9 @@ class RealNVP(RealNVPtemplate):
         """
         super(RealNVP, self).__init__(
             shapeList, sList, tList, prior, name,double)
-        self.maskType = maskType
-        self.sliceDim = sliceDim
-        self.createMask(maskType)
+        self.createMask(masktypelist)
 
-    def createMask(self, maskType="channel", ifByte=1, double = True):
+    def createMask(self, masktypelist, ifByte=0, double = True):
         """
 
         This method create mask for x, and save it in self.mask for later use.
@@ -261,39 +259,46 @@ class RealNVP(RealNVPtemplate):
             mask (torch.Tensor): mask to divide x into y0 and y1.
 
         """
-        self.maskType = maskType
-        size = self.shapeList.copy()
-        if maskType == "channel":
-            size[self.sliceDim] = size[self.sliceDim] // 2
-            if double:
-                maskOne = torch.ones(size).double()
-                maskZero = torch.zeros(size).double()
+        self.masks = []
+        self.masks_ = []
+        for masktype in masktypelist: 
+            size = self.shapeList.copy()
+            if masktype in ["updown", "leftright"]: 
+                slicedim = 1 if masktype == "updown" else 2
+                size[slicedim] = size[slicedim] // 2
+                if double:
+                    maskOne = torch.ones(size).double()
+                    maskZero = torch.zeros(size).double()
+                else:
+                    maskOne = torch.ones(size)
+                    maskZero = torch.zeros(size)
+                mask = torch.cat([maskOne, maskZero], slicedim)
+            
+            elif masktype == "checkerboard":
+                assert (size[1] % 2 == 0)
+                assert (size[2] % 2 == 0)
+                if double:
+                    unit = torch.DoubleTensor([[1, 0], [0, 1]])
+                else:
+                    unit = torch.FloatTensor([[1, 0], [0, 1]])
+                mask = (unit.repeat(
+                        size[0], size[1] // 2, size[2] // 2))
             else:
-                maskOne = torch.ones(size)
-                maskZero = torch.zeros(size)
-            mask = torch.cat([maskOne, maskZero], self.sliceDim)
+                raise ValueError("maskType not known.")
+            
+            print ('mask:', mask)
+            if ifByte:
+                mask = mask.byte()
+            if self.ifCuda:
+                cudaNo = self.mask.get_device()
+                mask = mask.pin_memory().cuda(cudaNo)
 
-        elif maskType == "checkerboard":
-            assert (size[1] % 2 == 0)
-            assert (size[2] % 2 == 0)
-            if double:
-                unit = torch.DoubleTensor([[1, 0], [0, 1]])
-            else:
-                unit = torch.FloatTensor([[1, 0], [0, 1]])
-            mask = (unit.repeat(
-                    size[0], size[1] // 2, size[2] // 2))
-        else:
-            raise ValueError("maskType not known.")
+            self.masks.append(Variable(mask))
+            self.masks_.append(Variable(1-mask))
 
-        print ('mask:', mask)
-        if ifByte:
-            mask = mask.byte()
-        if self.ifCuda:
-            cudaNo = self.mask.get_device()
-            mask = mask.pin_memory().cuda(cudaNo)
-        self.register_buffer("mask",mask)
-        self.register_buffer("mask_",1-mask)
-        return mask
+            #self.register_buffer("mask",mask)
+            #self.register_buffer("mask_",1-mask)
+        #return mask
 
     def generate(self, z):
         """
@@ -305,7 +310,7 @@ class RealNVP(RealNVPtemplate):
             x (torch.autograd.Variable): output Variable.
 
         """
-        return self._generateWithContraction(z, self.mask, self.mask_)
+        return self._generate(z, self.masks, self.masks_)
 
     def inference(self, x):
         """
@@ -317,7 +322,7 @@ class RealNVP(RealNVPtemplate):
             z (torch.autograd.Variable): output Variable.
 
         """
-        return self._inferenceWithContraction(x, self.mask, self.mask_)
+        return self._inference(x, self.masks, self.masks_)
 
     def logProbability(self, x):
         """
@@ -329,10 +334,10 @@ class RealNVP(RealNVPtemplate):
             log-probability (torch.autograd.Variable): log-probability of x.
 
         """
-        return self._logProbabilityWithContraction(x, self.mask, self.mask_)
+        return self._logProbability(x, self.masks, self.masks_)
 
     def logProbabilityWithInference(self,x):
-        z = self._inferenceWithContraction(x, self.mask, self.mask_, True)
+        z = self._inference(x, self.masks, self.masks_, True)
         return self.prior.logProbability(z) + self._inferenceLogjac,z
 
     def saveModel(self, saveDic):
@@ -346,8 +351,8 @@ class RealNVP(RealNVPtemplate):
 
         """
         self._saveModel(saveDic)
-        saveDic["mask"] = self.mask.cpu()  # Do check if exist !!
-        saveDic["mask_"] = self.mask_.cpu()
+        #saveDic["masks"] = self.masks.cpu()  # Do check if exist !!
+        #saveDic["masks_"] = self.masks_.cpu()
         saveDic["shapeList"] = self.shapeList
         return saveDic
 

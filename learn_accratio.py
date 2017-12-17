@@ -216,8 +216,6 @@ if __name__=="__main__":
     group = parser.add_argument_group('network parameters')
     group.add_argument("-modelname", default=None, help="load model")
     group.add_argument("-prior", default='gaussian', help="prior distribution")
-    group.add_argument("-masktype", default='channel', help="masktype")
-    group.add_argument("-slicedim", type=int, default=2, help="slice dimension")
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -284,8 +282,6 @@ if __name__=="__main__":
     key+=  '_Nl' + str(args.Nlayers) \
           + '_Hs' + str(args.Hs) \
           + '_Ht' + str(args.Ht) \
-          + '_mask' + str(args.masktype) \
-          + '_slice' + str(args.slicedim) \
           + '_epsilon' + str(args.epsilon) \
           + '_beta' + str(args.beta) \
           + '_delta' + str(args.delta) \
@@ -303,8 +299,8 @@ if __name__=="__main__":
     #tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)]
 
     input_size = [1, args.L, args.L]
-    half_size = input_size.copy()
-    half_size[args.slicedim] = half_size[args.slicedim]//2
+    #half_size = input_size.copy()
+    #half_size[args.slicedim] = half_size[args.slicedim]//2
 
     #CNN 
     snet = [[args.Hs,3,1,1],
@@ -315,14 +311,16 @@ if __name__=="__main__":
     #[outchannel, filter_size, stride, padding]
     #should be size peserving CNN
     
-    sList = [CNN(snet, ScalableTanh(half_size)) for i in range(args.Nlayers)]
+    sList = [CNN(snet, F.tanh) for i in range(args.Nlayers)]
     tList = [CNN(tnet, F.linear) for i in range(args.Nlayers)]
+    masktypelist = ['checkerboard', 'updown']
     
     #Resnet 
     #sList = [ResNet(args.Hs, ScalableTanh(half_size)) for i in range(args.Nlayers)]
     #tList = [ResNet(args.Ht, F.linear) for i in range(args.Nlayers)]
 
-    model = RealNVP(input_size, sList, tList, prior, maskType=args.masktype, sliceDim=args.slicedim, name = key, double=not args.float)
+    model = RealNVP(input_size, sList, tList, prior, 
+                    masktypelist, name = key, double=not args.float)
 
     if args.modelname is not None:
         try:
