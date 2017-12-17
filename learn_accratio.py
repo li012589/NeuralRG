@@ -104,23 +104,36 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
 
         ######################################################
-        #nll loss on the samples
+        #push samples to buffer 
         xy = samples.view(Batchsize*Nsteps,-1)
-
         #data argumentation using invertion symmetry
-        xy_invert = deepcopy(xy)
-        xy_invert[:, :-1] = -xy_invert[:, :-1] 
-        xy = torch.stack([xy, xy_invert],0).view(Batchsize*Nsteps*2,-1)
+        #xy_invert = deepcopy(xy)
+        #xy_invert[:, :-1] = -xy_invert[:, :-1] 
+        #xy = torch.stack([xy, xy_invert],0).view(Batchsize*Nsteps*2,-1)
         #print (xy) 
-
         buff_samples.push(xy)
+        
+        #sample from buffer 
+        traindata = buff_samples.draw(Batchsize)
+
+        #data argumentation via randomly symmetry transformation 
+        x_data = []
+        for i in range(Batchsize):
+            x = traindata[i, :-1].numpy()
+            x.shape = target.lattice.shape
+            #translation 
+            shift = np.random.randint(x.shape[0], size=2)
+            x = np.roll(x, shift[0], axis=0)
+            x = np.roll(x, shift[1], axis=1)
+            #spin inversion 
+            if (np.random.rand()<0.5):
+                x = -x 
+            x_data.append(x)
+        x_data = Variable(torch.from_numpy(np.array(x_data)))
+        x_data = torch.unsqueeze(x_data, 1)
 
         #nll loss on the samples
-        traindata = buff_samples.draw(Batchsize)
-        x_data = Variable(traindata[:, :-1])
-        #import pdb
-        #pdb.set_trace()
-        nll_samples = -model.logProbability(x_data.contiguous().view(-1, 1, args.L, args.L))
+        nll_samples = -model.logProbability(x_data)
         ######################################################
 
         loss = -epsilon*res.mean() + delta*nll_samples.mean()  + omega * kld.mean() 
@@ -314,9 +327,11 @@ if __name__=="__main__":
     
     sList = [CNN(snet, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
     tList = [CNN(tnet, F.linear) for i in range(args.Nlayers)]
-    masktypelist = ['checkerboard0', 'checkerboard1', 'checkerboard0', 
-                    'bars0', 'bars1', 'bars0',
-                    'stripes0', 'stripes1', 'stripes0',
+    masktypelist = ['checkerboard0', 'checkerboard1', 
+                    'leftright0', 'leftright1',
+                    'updown0', 'updown1',
+                    'bars0', 'bars1',
+                    'stripes0', 'stripes1'
                     ]
     
     #Resnet 

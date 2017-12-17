@@ -5,6 +5,7 @@ class Lattice:
     def __init__(self,L, d):
         self.L = L 
         self.d = d
+        self.shape = [L]*d 
         self.Nsite = L**d 
 
     def move(self, idx, d, shift):
