@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import Gaussian, Cauchy, GMM, MLP,CNN,RealNVP, ScalableTanh
+from model import Gaussian, Cauchy, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from copy import deepcopy
@@ -36,7 +36,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
     #offset = Offset()
     #if cuda is not None:
     #    offset = offset.cuda(cuda)
-    buff_proposals = Buffer(10000)
+    #buff_proposals = Buffer(10000)
     buff_samples = Buffer(10000)
 
     params = list(model.parameters()) 
@@ -88,7 +88,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
     for epoch in range(Nepochs):
 
-        if buff_samples.maximum > Batchsize:
+        if (buff_samples.maximum > Batchsize):
             # draw starting state from the sampler buffer 
             zinit = buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1, 1, args.L, args.L)
         else:
@@ -105,18 +105,18 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
         ######################################################
         #nll loss on the samples
-        xy = samples.view(Batchsize*(Ntherm+Nsteps),-1)
+        xy = samples.view(Batchsize*Nsteps,-1)
 
         #data argumentation using invertion symmetry
         xy_invert = deepcopy(xy)
         xy_invert[:, :-1] = -xy_invert[:, :-1] 
-        xy = torch.stack([xy, xy_invert],0).view(Batchsize*(Ntherm+Nsteps)*2,-1)
+        xy = torch.stack([xy, xy_invert],0).view(Batchsize*Nsteps*2,-1)
         #print (xy) 
 
         buff_samples.push(xy)
 
         #nll loss on the samples
-        traindata = buff_samples.draw(Batchsize*(Ntherm+Nsteps))
+        traindata = buff_samples.draw(Batchsize)
         x_data = Variable(traindata[:, :-1])
         #import pdb
         #pdb.set_trace()
@@ -150,10 +150,10 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
             torch.save(saveDict, model.name+'/epoch'+str(epoch))
 
             samples = samples.cpu().numpy()
-            samples.shape = (Batchsize*(Ntherm+Nsteps), -1)
+            samples.shape = (Batchsize*Nsteps, -1)
 
             proposals = proposals.cpu().numpy()
-            proposals.shape = (Batchsize*(Ntherm+Nsteps), -1)
+            proposals.shape = (Batchsize*Nsteps, -1)
             
             l1.set_xdata(proposals[:,0])
             l1.set_ydata(proposals[:,1])
@@ -297,9 +297,16 @@ if __name__=="__main__":
 
     cmd = ['mkdir', '-p', key]
     subprocess.check_call(cmd)
-
+    
+    #MLP 
     #sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
     #tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)]
+
+    input_size = [1, args.L, args.L]
+    half_size = input_size.copy()
+    half_size[args.slicedim] = half_size[args.slicedim]//2
+
+    #CNN 
     snet = [[args.Hs,3,1,1],
             [1,3,1,1]]
 
@@ -308,12 +315,12 @@ if __name__=="__main__":
     #[outchannel, filter_size, stride, padding]
     #should be size peserving CNN
     
-    input_size = [1, args.L, args.L]
-    half_size = input_size.copy()
-    half_size[args.slicedim] = half_size[args.slicedim]//2
-
     sList = [CNN(snet, ScalableTanh(half_size)) for i in range(args.Nlayers)]
     tList = [CNN(tnet, F.linear) for i in range(args.Nlayers)]
+    
+    #Resnet 
+    #sList = [ResNet(args.Hs, ScalableTanh(half_size)) for i in range(args.Nlayers)]
+    #tList = [ResNet(args.Ht, F.linear) for i in range(args.Nlayers)]
 
     model = RealNVP(input_size, sList, tList, prior, maskType=args.masktype, sliceDim=args.slicedim, name = key, double=not args.float)
 

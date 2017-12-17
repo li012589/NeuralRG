@@ -42,7 +42,7 @@ class Ising(Target):
         p = torch.sigmoid(2.*x).view(-1, self.Nvars)
         #sample spin
         #s = 2*torch.bernoulli(p).data.numpy()-1
-        #return (s.mean(axis=1))**2
+        #sf = (s.mean(axis=1))**2
         #for i in range(s.shape[0]):
         #    print (' '.join(map(str, s[i,:])))
  

@@ -49,6 +49,7 @@ class MCMC:
             nskip (int): number of steps skiped in measure.
             z (): initial state 
         """
+
         if z is None:
             #z = self.model.sample(batchSize)      # sample from model
             z = self.model.prior.sample(batchSize) # sample from prior 
@@ -67,40 +68,40 @@ class MCMC:
         measurepack = []
         accratio = 0.0
         for n in range(ntherm+nmeasure):
-            for i in range(nskip):
+            for _ in range(nskip):
                 _,_,_,z = self.step(batchSize,z)
 
             a,r,x,z = self.step(batchSize,z)
 
-            accratio += a # mean acceptance ratio 
-            res += r      # log(A)
-            #print ('sjd', squared_jumped_distance)
-            #sjd += squared_jumped_distance 
-            kld += self.model.logProbability(x)-self.target(x) # KL(p||\pi)
-
-            if self.collectdata:
-                #collect samples
-                z_ = z.data.view(batchSize, -1)
-                #for i in range(z_.shape[0]):
-                #    print (' '.join(map(str, z_[i,:])))
-                logp = self.target(z).data
-                logp = logp.view(-1,1)
-                zpack.append(torch.cat((z_, logp), 1))
-                
-                #collect proposals 
-                x_ = x.data.view(batchSize, -1)
-                logp = self.target(x).data
-                logp = logp.view(-1, 1)
-                xpack.append(torch.cat((x_, logp), 1))
-            
             if n>=ntherm:
-                measurepack.append(self.measure(z))
+                accratio += a # mean acceptance ratio 
+                res += r      # log(A)
+                #print ('sjd', squared_jumped_distance)
+                #sjd += squared_jumped_distance 
+                kld += self.model.logProbability(x)-self.target(x) # KL(p||\pi)
 
-        accratio /= float(ntherm+nmeasure)
-        res /= float(ntherm+nmeasure)
+                measurepack.append(self.measure(z))
+                if self.collectdata:
+                    #collect samples
+                    z_ = z.data.view(batchSize, -1)
+                    #for i in range(z_.shape[0]):
+                    #    print (' '.join(map(str, z_[i,:])))
+                    logp = self.target(z).data
+                    logp = logp.view(-1,1)
+                    zpack.append(torch.cat((z_, logp), 1))
+                    
+                    #collect proposals 
+                    x_ = x.data.view(batchSize, -1)
+                    logp = self.target(x).data
+                    logp = logp.view(-1, 1)
+                    xpack.append(torch.cat((x_, logp), 1))
+            
+
+        accratio /= float(nmeasure)
+        res /= float(nmeasure)
+        kld /= float(nmeasure)
         zpack = torch.stack(zpack,0)
         xpack = torch.stack(xpack,0)
-        kld /= float(ntherm+nmeasure)
 
         #print ('#accratio:', accratio)
         return zpack,xpack,measurepack,accratio,res,kld
