@@ -122,13 +122,14 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
             x = traindata[i, :-1].numpy()
             x.shape = target.lattice.shape
             #translation 
-            shift = np.random.randint(x.shape[0], size=2)
-            x = np.roll(x, shift[0], axis=0)
-            x = np.roll(x, shift[1], axis=1)
+            #shift = np.random.randint(x.shape[0], size=2)
+            #x = np.roll(x, shift[0], axis=0)
+            #x = np.roll(x, shift[1], axis=1)
             #spin inversion 
-            if (np.random.rand()<0.5):
-                x = -x 
+            #if (np.random.rand()<0.5):
+            #    x = -x 
             x_data.append(x)
+            x_data.append(-x)
         x_data = Variable(torch.from_numpy(np.array(x_data)))
         x_data = torch.unsqueeze(x_data, 1)
 
