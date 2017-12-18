@@ -335,10 +335,14 @@ if __name__=="__main__":
 
     #CNN 
     snet = [[args.Hs,3,1,1],
-            [1,3,1,1]]
+            [args.Hs,1,1,0],
+            [1,3,1,1]
+            ]
 
     tnet = [[args.Ht,3,1,1],
-            [1,3,1,1]]
+            [args.Ht,1,1,0],
+            [1,3,1,1]
+           ]
     #[outchannel, filter_size, stride, padding]
     #should be size peserving CNN
     
