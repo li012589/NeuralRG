@@ -54,9 +54,10 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
     dbeta = (1.-beta)/Nanneal
     
     plt.ion() 
+
+    #samples 
     fig1 = plt.figure()
     ax1 = fig1.add_subplot(111)
-
     l1, = ax1.plot([], [],'o', alpha=0.5, label='proposals')
     l2, = ax1.plot([], [],'*', alpha=0.5, label='samples')
     plt.xlabel('$x_1$')
@@ -64,7 +65,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
     plt.legend()
     fig1.canvas.draw()
 
-
+    #loss, acceptance, observable 
     fig2 = plt.figure(figsize=(8, 8))
     ax21 = fig2.add_subplot(311)
     plt.title('$\epsilon=%g, \delta=%g, \omega=%g$'%(epsilon, delta, omega))
@@ -85,6 +86,12 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
     plt.xlabel('epochs')
     fig2.canvas.draw()
+    
+    #parameter hist  
+    fig3 = plt.figure()
+    ax3 = fig3.add_subplot(111)
+    [n, X, V]=ax3.hist([], bins=50)
+    fig3.canvas.draw()
 
     for epoch in range(Nepochs):
 
@@ -159,10 +166,6 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         loss.backward()
         optimizer.step()
 
-        #params = list(model.parameters()) 
-        #params = list(filter(lambda p: p.requires_grad, params))
-        #print (params)
-
         if save and epoch%saveSteps==0:
             saveDict = model.saveModel({})
             torch.save(saveDict, model.name+'/epoch'+str(epoch))
@@ -203,6 +206,16 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
             ax23.autoscale_view() 
 
             fig2.canvas.draw()
+
+            paramslist = []
+            for p in params:
+                paramslist += list(p.data.numpy().ravel())
+            ax3.cla()
+            [n,X,V]=ax3.hist(paramslist)
+            ax3.relim()
+            ax3.autoscale_view() 
+            fig3.canvas.draw()
+
             plt.pause(0.001)
 
     fig2.savefig(model.name + '/loss.png')
