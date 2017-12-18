@@ -250,13 +250,14 @@ if __name__=="__main__":
     group.add_argument("-Nlayers", type=int, default=8, help="")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
+    group.add_argument("-train_model", action='store_true', help="actually train model")
     group.add_argument("-train_prior", action='store_true', help="if we train the prior")
 
     group = parser.add_argument_group('mc parameters')
     group.add_argument("-Ntherm", type=int, default=10, help="")
     group.add_argument("-Nsteps", type=int, default=10, help="steps used in training")
     group.add_argument("-Nskips", type=int, default=10, help="")
-    group.add_argument("-Nsamples", type=int, default=1000, help="")
+    group.add_argument("-Nsamples", type=int, default=100, help="")
 
     group = parser.add_argument_group('target parameters')
     group.add_argument("-target", default='ring2d', help="target distribution")
@@ -369,13 +370,14 @@ if __name__=="__main__":
             print('#load model', args.modelname)
         except FileNotFoundError:
             print('model file not found:', args.modelname)
-    print("train model", key)
 
     if args.cuda:
         model = model.cuda()
         print("moving model to GPU")
 
-    model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
+    if args.train_model:
+        print("train model", key)
+        model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
                             args.Ntherm, args.Nsteps, args.Nskips,
                             epsilon=args.epsilon,beta=args.beta, 
                             delta=args.delta, omega=args.omega, lr=args.lr, 
@@ -383,7 +385,7 @@ if __name__=="__main__":
 
     sampler = MCMC(target, model, collectdata=True)
     
-    _, _, measurements, _, _, _ = sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda)
+    samples, proposals, measurements, accratio, _, _ = sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda)
     
     h5filename = key + '_mc.h5'
     print("save at: " + h5filename)
@@ -397,5 +399,9 @@ if __name__=="__main__":
     params.create_dataset("model", data=model.name)
     results = h5.create_group('results')
     results.create_dataset("obs", data=np.array(measurements))
-    results.create_dataset("loss", data=np.array(LOSS))
+    results.create_dataset("samples", data=samples.numpy())
+    results.create_dataset("proposals", data=proposals.numpy())
+    if args.train_model:
+        results.create_dataset("loss", data=np.array(LOSS))
     h5.close()
+    print ('#accratio:', accratio)
