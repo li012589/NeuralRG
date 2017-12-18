@@ -12,12 +12,13 @@ class Ising(Target):
     def __init__(self, L, d, K, cuda=None):
         super(Ising, self).__init__(L**d,'Ising')
 
-        self.lattice = Hypercube(L, d)
+        self.lattice = Hypercube(L, d, 'open')
+        print (self.lattice.Adj)
         self.Nvars = self.lattice.Nsite
         self.K = self.lattice.Adj * K
     
         w, v = eigh(self.K)    
-        offset = 1.0-w.min()
+        offset = 0.1-w.min()
         self.K += np.eye(w.size)*offset
         self.Kinv = Variable(torch.from_numpy(inv(self.K)), requires_grad=False)
         #self.VT = Variable( torch.from_numpy(v.transpose()), requires_grad=False)
