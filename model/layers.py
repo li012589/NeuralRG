@@ -9,8 +9,8 @@ class ScalableTanh(nn.Module):
         super(ScalableTanh,self).__init__()
         self.scale = nn.Parameter(torch.zeros(input_size))
     def forward(self,x):
-        size = x.data.shape 
-        return self.scale.view(-1, size[0], size[1], size[2]) * F.tanh(x)
+        return self.scale * F.tanh(x)
+
 
 class Squeezing(nn.Module):
     def __init__(self,filterSize = 2):
@@ -48,7 +48,7 @@ class MLP(nn.Module):
 
     """
 
-    def __init__(self, inNum, hideNum, name="mlp", activation = F.tanh):
+    def __init__(self, inNum, hideNum, activation, name="mlp"):
         """
 
         This mehtod initialise this class.
@@ -85,7 +85,7 @@ class MLP(nn.Module):
         return x
 
 class FC(nn.Module):
-    def __init__(self,dList, name="FC", activation=None):
+    def __init__(self,dList,activation=None,name="FC"):
         super(FC,self).__init__()
         if activation is None:
             activation = [nn.ReLU() for _ in range(len(dList)-1)]
@@ -117,7 +117,7 @@ class CNN(nn.Module):
 
     """
 
-    def __init__(self, netStructure, name="cnn", activation=F.tanh):
+    def __init__(self, netStructure, name="cnn", activation=None):
         """
 
         This mehtod initialise this class.
@@ -138,7 +138,9 @@ class CNN(nn.Module):
             inchannel = layer[0]
         layer = netStructure[-1]
         self.variableList.append(nn.Sequential(
-            nn.Conv2d(inchannel, layer[0], layer[1], layer[2], layer[3])))
+                nn.Conv2d(inchannel, layer[0], layer[1], layer[2], layer[3]),
+                nn.MaxPool2d(layer[1], layer[2], layer[3]), 
+                ))
         self.activation = activation
         
         #weight initialization
@@ -161,4 +163,9 @@ class CNN(nn.Module):
         """
         for layer in self.variableList:
             x = layer(x)
-        return self.activation(x)
+
+        if self.activation is not None:
+            return self.activation(x)
+        else:
+            return x 
+
