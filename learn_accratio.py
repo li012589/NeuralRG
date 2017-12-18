@@ -159,6 +159,10 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         loss.backward()
         optimizer.step()
 
+        #params = list(model.parameters()) 
+        #params = list(filter(lambda p: p.requires_grad, params))
+        #print (params)
+
         if save and epoch%saveSteps==0:
             saveDict = model.saveModel({})
             torch.save(saveDict, model.name+'/epoch'+str(epoch))
@@ -326,8 +330,8 @@ if __name__=="__main__":
     #[outchannel, filter_size, stride, padding]
     #should be size peserving CNN
     
-    sList = [CNN(snet, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
-    tList = [CNN(tnet, F.linear) for i in range(args.Nlayers)]
+    sList = [CNN(snet, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
+    tList = [CNN(tnet) for i in range(args.Nlayers)]
     masktypelist = ['checkerboard0', 'checkerboard1', 
                     'leftright0', 'leftright1',
                     'updown0', 'updown1',
