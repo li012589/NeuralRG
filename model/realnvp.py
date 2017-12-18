@@ -374,7 +374,7 @@ class RealNVP(RealNVPtemplate):
         self._saveModel(saveDic)
         #saveDic["masks"] = self.masks.cpu()  # Do check if exist !!
         #saveDic["masks_"] = self.masks_.cpu()
-        saveDic["shapeList"] = self.shapeList
+        #saveDic["shapeList"] = self.shapeList
         return saveDic
 
     def loadModel(self, saveDic):
@@ -388,9 +388,9 @@ class RealNVP(RealNVPtemplate):
 
         """
         self._loadModel(saveDic)
-        self.register_buffer("mask",saveDic["mask"])
-        self.register_buffer("mask_",saveDic["mask_"])
-        self.shapeList = saveDic["shapeList"]
+        #self.register_buffer("mask",saveDic["mask"])
+        #self.register_buffer("mask_",saveDic["mask_"])
+        #self.shapeList = saveDic["shapeList"]
         return saveDic
 
     def sample(self, batchSize,useGenerate=True):
