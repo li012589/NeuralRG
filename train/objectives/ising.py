@@ -9,13 +9,13 @@ from .lattice import Hypercube
 
 class Ising(Target):
 
-    def __init__(self, L, d, K, cuda=None):
+    def __init__(self, L, d, T, cuda=None):
         super(Ising, self).__init__(L**d,'Ising')
 
         self.lattice = Hypercube(L, d, 'open')
         print (self.lattice.Adj)
         self.Nvars = self.lattice.Nsite
-        self.K = self.lattice.Adj * K
+        self.K = self.lattice.Adj/T
     
         w, v = eigh(self.K)    
         offset = 0.1-w.min()
