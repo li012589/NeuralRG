@@ -266,7 +266,7 @@ if __name__=="__main__":
     #Ising
     group.add_argument("-L",type=int, default=2,help="linear size")
     group.add_argument("-d",type=int, default=1,help="dimension")
-    group.add_argument("-K",type=float, default=0.44068679350977147 ,help="K")
+    group.add_argument("-T",type=float, default=2.6, help="Temperature")
     group.add_argument("-exact",type=float,default=None,help="exact")
 
     args = parser.parse_args()
@@ -285,7 +285,7 @@ if __name__=="__main__":
     elif args.target == 'phi4':
         target = Phi4(4,2,0.15,1.145)
     elif args.target == 'ising':
-        target = Ising(args.L, args.d, args.K, cuda)
+        target = Ising(args.L, args.d, args.T, cuda)
     else:
         print ('what target ?', args.target)
         sys.exit(1)
@@ -309,7 +309,7 @@ if __name__=="__main__":
     if (args.target=='ising'):
         key += '_L' + str(args.L)\
               + '_d' + str(args.d) \
-              + '_K' + str(args.K)
+              + '_T' + str(args.T)
 
     key+=  '_Nl' + str(args.Nlayers) \
           + '_Hs' + str(args.Hs) \
