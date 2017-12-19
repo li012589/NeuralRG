@@ -48,7 +48,7 @@ class MLP(nn.Module):
 
     """
 
-    def __init__(self, inNum, hideNum, activation, name="mlp"):
+    def __init__(self, inNum, hideNum, activation=F.tanh, name="mlp"):
         """
 
         This mehtod initialise this class.
@@ -117,7 +117,7 @@ class CNN(nn.Module):
 
     """
 
-    def __init__(self, netStructure, name="cnn", activation=None):
+    def __init__(self, netStructure,activation=None,name="cnn"):
         """
 
         This mehtod initialise this class.
