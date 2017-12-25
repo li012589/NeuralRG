@@ -348,18 +348,20 @@ if __name__=="__main__":
     #[outchannel, filter_size, stride, padding]
     #should be size peserving CNN
     
-    sList = [CNN(snet, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
-    tList = [CNN(tnet) for i in range(args.Nlayers)]
-    masktypelist = ['checkerboard0', 'checkerboard1', 
-                    'leftright0', 'leftright1',
-                    'updown0', 'updown1',
-                    'bars0', 'bars1',
-                    'stripes0', 'stripes1'
-                    ]
+    #sList = [CNN(snet, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
+    #tList = [CNN(tnet) for i in range(args.Nlayers)]
+    #masktypelist = ['checkerboard0', 'checkerboard1', 
+    #                'leftright0', 'leftright1',
+    #                'updown0', 'updown1',
+    #                'bars0', 'bars1',
+    #                'stripes0', 'stripes1'
+    #                ]
     
     #Resnet 
-    #sList = [ResNet(args.Hs, ScalableTanh(half_size)) for i in range(args.Nlayers)]
-    #tList = [ResNet(args.Ht, F.linear) for i in range(args.Nlayers)]
+    sList = [ResNet(args.Hs, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
+    tList = [ResNet(args.Ht) for i in range(args.Nlayers)]
+
+    masktypelist = ['checkerboard0', 'checkerboard1'] * (args.Nlayers//2)
 
     model = RealNVP(input_size, sList, tList, prior, 
                     masktypelist, name = key, double=not args.float)
