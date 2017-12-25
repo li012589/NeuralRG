@@ -235,12 +235,12 @@ def test_contraction_cuda():
     #print(x)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]] # [channel, filter_size, stride, padding]
 
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     realNVP = realNVP.cuda()
-    mask = realNVP.createMask("checkerboard",1)
+    mask = realNVP.createMask(["checkerboard"]*4,1)
 
     z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2,True)
     print(realNVP._logProbabilityWithContraction(z,realNVP.mask,realNVP.mask_,2))
@@ -254,8 +254,9 @@ def test_slice_cuda():
     gaussian3d = Gaussian([2,4,4])
     x = gaussian3d(3).cuda()
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
-    tList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
+    sList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+    tList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     realNVP = realNVP.cuda()
     z = realNVP._generateWithSlice(x,0,True)
@@ -269,10 +270,11 @@ def test_tempalte_contractionCNN_cuda():
     gaussian3d = Gaussian([2,4,4])
     x3d = gaussian3d(3).cuda()
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[2,2,1,0]]
-    sList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
-    tList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask(ifByte=0)
+    mask3d = realNVP3d.createMask(["channel"]*4,ifByte=0)
     realNVP3d = realNVP3d.cuda()
     z3d = realNVP3d._generate(x3d,realNVP3d.mask,realNVP3d.mask_,True)
     zp3d = realNVP3d._inference(z3d,realNVP3d.mask,realNVP3d.mask_,True)
@@ -285,8 +287,9 @@ def test_slice_cudaNo0():
     gaussian3d = Gaussian([2,4,4])
     x = gaussian3d(3).cuda(2)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
-    tList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
+    sList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+    tList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     realNVP = realNVP.cuda(2)
     z = realNVP._generateWithSlice(x,0,True)
@@ -299,8 +302,9 @@ def test_forward():
     gaussian3d = Gaussian([2,4,4])
     x = gaussian3d(3)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
-    tList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
+    sList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+    tList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     z = realNVP(x)
     assert(list(z.data.shape) == [3])
@@ -327,7 +331,7 @@ def test_parallel():
 
 
 if __name__ == "__main__":
-    test_template_contraction_function_with_channel()
+    test_forward()
     #test_tempalte_contraction_mlp()
     #test_tempalte_invertibleMLP()
     #test_tempalte_invertible()
