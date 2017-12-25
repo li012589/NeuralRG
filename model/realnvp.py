@@ -119,12 +119,8 @@ class GMM(PriorTemplate):
             raise NotImplementedError(str(type(self)))
         else:
             if double:
-                #select the gaussian center 
                 selector = torch.from_numpy(np.random.choice(2, size=(batchSize,))).double()
                 selector = Variable(selector.view(batchSize, -1))
-                #print (selector)
-                
-                #sample from one of the Gaussian 
                 return selector * (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma1) + self.mu1) \
                  + (1.-selector)* (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma2) + self.mu2) 
             else:
@@ -299,7 +295,6 @@ class RealNVP(RealNVPtemplate):
                 unit = torch.FloatTensor([[1, 0], [0, 1]])
             mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
-            print (mask)
         elif ('updown' in maskType) or ('leftright' in maskType):
             slicedim = 1 if ("updown" in maskType) else 2
             size[slicedim] = size[slicedim] // 2
