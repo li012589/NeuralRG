@@ -257,7 +257,7 @@ def test_logProbabilityWithInference():
     tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask("checkerboard")
+    mask3d = realNVP3d.createMask(["checkerboard"]*4)
 
     z3d = realNVP3d.generate(x3d,2)
     zp3d = realNVP3d.inference(z3d,2)
