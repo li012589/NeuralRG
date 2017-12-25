@@ -305,21 +305,21 @@ class RealNVPtemplate(torch.nn.Module):
                     self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         for i in list(range(self.NumLayers))[::-1]:
             if (i % 2 == 0):
-                y_ = mask * y
-                s = self.sList[i](y_) * mask_
-                t = self.tList[i](y_) * mask_
+                y_ = mask[i] * y
+                s = self.sList[i](y_) * mask_[i]
+                t = self.tList[i](y_) * mask_[i]
                 #checkNan(s)
-                y = mask_ * (y - t) * checkNan(torch.exp(-s)) + y_
+                y = mask_[i] * (y - t) * checkNan(torch.exp(-s)) + y_
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
                     self._inferenceLogjac -= s
             else:
-                y_ = mask_ * y
-                s = self.sList[i](y_) * mask
-                t = self.tList[i](y_) * mask
+                y_ = mask_[i] * y
+                s = self.sList[i](y_) * mask[i]
+                t = self.tList[i](y_) * mask[i]
                 #checkNan(s)
-                y = mask * (y - t) * checkNan(torch.exp(-s)) + y_
+                y = mask[i] * (y - t) * checkNan(torch.exp(-s)) + y_
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
