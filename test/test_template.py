@@ -76,11 +76,11 @@ def test_tempalte_invertibleCNN():
 
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[2,2,1,0]] # [channel, filter_size, stride, padding]
 
-    sList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
-    tList3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask(ifByte=0)
+    mask3d = realNVP3d.createMask(["channel"]*4,ifByte=0)
 
     print("Testing 3d")
     print("3d original:")
@@ -102,8 +102,8 @@ def test_tempalte_invertibleCNN():
     saveDict3d = realNVP3d.saveModel({})
     torch.save(saveDict3d, './saveNet3d.testSave')
     # realNVP.loadModel({})
-    sListp3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
-    tListp3d = [CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure),CNN([2,4,4],netStructure)]
+    sListp3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tListp3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVPp3d = RealNVP([2,4,4], sListp3d, tListp3d, gaussian3d)
     saveDictp3d = torch.load('./saveNet3d.testSave')
@@ -327,7 +327,7 @@ def test_parallel():
 
 
 if __name__ == "__main__":
-    test_tempalte_invertibleMLP()
+    test_tempalte_invertibleCNN()
     #test_tempalte_contraction_mlp()
     #test_tempalte_invertibleMLP()
     #test_tempalte_invertible()
