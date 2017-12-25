@@ -244,12 +244,19 @@ class RealNVP(RealNVPtemplate):
             name (string): name of this class.
 
         """
+        self.mask = None
+        self.mask_ = None
+        assert len(sList) == len(tList)
         super(RealNVP, self).__init__(
             shapeList, sList, tList, prior, name,double)
+        if isinstance(maskType,str):
+            maskType = [maskType] * len(sList)
+        else:
+            assert len(maskType) == len(sList)
         self.maskType = maskType
         self.createMask(maskType)
 
-    def createMask(self, maskType="channel", ifByte=1, double = True):
+    def createMask(self, maskType, ifByte=1, double = True):
         """
 
         This method create mask for x, and save it in self.mask for later use.
@@ -260,6 +267,21 @@ class RealNVP(RealNVPtemplate):
             mask (torch.Tensor): mask to divide x into y0 and y1.
 
         """
+        maskList = None
+        mask_List = None
+        for iterm in maskType:
+            mask = self._createMaskMeta(iterm,ifByte,double)
+            mask_ = 1 - mask
+            if self.mask = None:
+                maskList = mask.view(1,*mask.shape)
+                mask_List = mask_.view(1,*mask_.shape)
+            else:
+                torch.cat([maskList,mask],0)
+                torch.cat([mask_List,mask_],0)
+        self.register_buffer("mask",maskList)
+        self.register_buffer("mask_",mask_List)
+
+    def _createMaskMeta(self,maskType,ifByte, double):
         self.maskType = maskType
         size = self.shapeList.copy()
         if maskType == "channel":
@@ -289,8 +311,8 @@ class RealNVP(RealNVPtemplate):
         if self.ifCuda:
             cudaNo = self.mask.get_device()
             mask = mask.pin_memory().cuda(cudaNo)
-        self.register_buffer("mask",mask)
-        self.register_buffer("mask_",1-mask)
+        #self.register_buffer("mask",mask)
+        #self.register_buffer("mask_",1-mask)
         return mask
 
     def generate(self, z, sliceDim=0):
