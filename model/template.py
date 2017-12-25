@@ -113,21 +113,21 @@ class RealNVPtemplate(torch.nn.Module):
                     self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         for i in range(self.NumLayers):
             if (i % 2 == 0):
-                y_ = mask * y
-                s = self.sList[i](y_) * mask_
-                t = self.tList[i](y_) * mask_
+                y_ = mask[i] * y
+                s = self.sList[i](y_) * mask_[i]
+                t = self.tList[i](y_) * mask_[i]
                 #checkNan(s)
-                y = y_ + mask_ * (y * checkNan(torch.exp(s)) + t)
+                y = y_ + mask_[i] * (y * checkNan(torch.exp(s)) + t)
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
                     self._generateLogjac += s
             else:
-                y_ = mask_ * y
-                s = self.sList[i](y_) * mask
-                t = self.tList[i](y_) * mask
+                y_ = mask_[i] * y
+                s = self.sList[i](y_) * mask[i]
+                t = self.tList[i](y_) * mask[i]
                 #checkNan(s)
-                y = y_ + mask * (y * checkNan(torch.exp(s)) + t)
+                y = y_ + mask[i] * (y * checkNan(torch.exp(s)) + t)
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
@@ -201,22 +201,41 @@ class RealNVPtemplate(torch.nn.Module):
                     self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
         size = [-1] + self.shapeList
         size[sliceDim + 1] = size[sliceDim + 1] // 2
-        y0 = torch.masked_select(y, mask).view(size)
-        y1 = torch.masked_select(y, mask_).view(size)
-        y0, y1 = self._generateMeta(y0, y1, ifLogjac)
-        if self.ifCuda:
-            if self.double:
-                output = Variable(torch.zeros(y.data.shape).double().pin_memory().cuda(cudaNo))
+        for i in range(self.NumLayers):
+            y1 = torch.masked_select(y, mask_[i]).view(size)
+            y0 = torch.masked_select(y, mask[i]).view(size)
+            if (i % 2 == 0):
+                s = self.sList[i](y0)
+                t = self.tList[i](y0)
+                #checkNan(s)
+                y1 = y1 * checkNan(torch.exp(s)) + t
+                if ifLogjac:
+                    for _ in self.shapeList:
+                        s = s.sum(dim=-1)
+                    self._generateLogjac += s
             else:
-                output = Variable(torch.zeros(y.data.shape).pin_memory().cuda(cudaNo))
-        else:
-            if self.double:
-                output = Variable(torch.zeros(y.data.shape).double())
+                s = self.sList[i](y1)
+                t = self.tList[i](y1)
+                #checkNan(s)
+                y0 = y0 * checkNan(torch.exp(s)) + t
+                if ifLogjac:
+                    for _ in self.shapeList:
+                        s = s.sum(dim=-1)
+                    self._generateLogjac += s
+            if self.ifCuda:
+                if self.double:
+                    output = Variable(torch.zeros(y.data.shape).double().pin_memory().cuda(cudaNo))
+                else:
+                    output = Variable(torch.zeros(y.data.shape).pin_memory().cuda(cudaNo))
             else:
-                output = Variable(torch.zeros(y.data.shape))
-        output.masked_scatter_(mask, y0)
-        output.masked_scatter_(mask_, y1)
-        return output
+                if self.double:
+                    output = Variable(torch.zeros(y.data.shape).double())
+                else:
+                    output = Variable(torch.zeros(y.data.shape))
+            output.masked_scatter_(mask[i], y0)
+            output.masked_scatter_(mask_[i], y1)
+            y = output
+        return y
 
     def _generateWithSlice(self, y, sliceDim, ifLogjac=False):
         """
@@ -374,26 +393,41 @@ class RealNVPtemplate(torch.nn.Module):
                     self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
         size = [-1] + self.shapeList
         size[sliceDim + 1] = size[sliceDim + 1] // 2
-        
-        #print ('size',size)
-        #print ('sliceDim', sliceDim)
-        #print (y.data.shape)
-        y0 = torch.masked_select(y, mask).view(size)
-        y1 = torch.masked_select(y, mask_).view(size)
-        y0, y1 = self._inferenceMeta(y0, y1, ifLogjac)
-        if self.ifCuda:
-            if self.double:
-                output = Variable(torch.zeros(y.data.shape).double().pin_memory().cuda(cudaNo))
+        for i in list(range(self.NumLayers))[::-1]:
+            y0 = torch.masked_select(y, mask[i]).view(size)
+            y1 = torch.masked_select(y, mask_[i]).view(size)
+            if (i % 2 == 0):
+                s = self.sList[i](y0)
+                t = self.tList[i](y0)
+                #checkNan(s)
+                y1 = (y1 - t) * checkNan(torch.exp(-s))
+                if ifLogjac:
+                    for _ in self.shapeList:
+                        s = s.sum(dim=-1)
+                    self._inferenceLogjac -= s
             else:
-                output = Variable(torch.zeros(y.data.shape).pin_memory().cuda(cudaNo))
-        else:
-            if self.double:
-                output = Variable(torch.zeros(y.data.shape).double())
+                s = self.sList[i](y1)
+                t = self.tList[i](y1)
+                #checkNan(s)
+                y0 = (y0 - t) * checkNan(torch.exp(-s))
+                if ifLogjac:
+                    for _ in self.shapeList:
+                        s = s.sum(dim=-1)
+                    self._inferenceLogjac -= s
+            if self.ifCuda:
+                if self.double:
+                    output = Variable(torch.zeros(y.data.shape).double().pin_memory().cuda(cudaNo))
+                else:
+                    output = Variable(torch.zeros(y.data.shape).pin_memory().cuda(cudaNo))
             else:
-                output = Variable(torch.zeros(y.data.shape))
-        output.masked_scatter_(mask, y0)
-        output.masked_scatter_(mask_, y1)
-        return output
+                if self.double:
+                    output = Variable(torch.zeros(y.data.shape).double())
+                else:
+                    output = Variable(torch.zeros(y.data.shape))
+                output.masked_scatter_(mask[i], y0)
+                output.masked_scatter_(mask_[i], y1)
+                y = output
+        return y
 
     def _inferenceWithSlice(self, y, sliceDim, ifLogjac=False):
         """

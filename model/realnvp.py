@@ -244,15 +244,12 @@ class RealNVP(RealNVPtemplate):
             name (string): name of this class.
 
         """
-        self.mask = None
-        self.mask_ = None
-        assert len(sList) == len(tList)
         super(RealNVP, self).__init__(
             shapeList, sList, tList, prior, name,double)
         if isinstance(maskType,str):
-            maskType = [maskType] * len(sList)
+            maskType = [maskType] * self.NumLayers
         else:
-            assert len(maskType) == len(sList)
+            assert len(maskType) == self.NumLayers
         self.maskType = maskType
         self.createMask(maskType)
 
@@ -272,17 +269,17 @@ class RealNVP(RealNVPtemplate):
         for iterm in maskType:
             mask = self._createMaskMeta(iterm,ifByte,double)
             mask_ = 1 - mask
-            if self.mask = None:
+            if maskList is None:
                 maskList = mask.view(1,*mask.shape)
                 mask_List = mask_.view(1,*mask_.shape)
             else:
-                torch.cat([maskList,mask],0)
-                torch.cat([mask_List,mask_],0)
+                maskList = torch.cat([maskList,mask.view(1,*mask.shape)],0)
+                mask_List = torch.cat([mask_List,mask_.view(1,*mask_.shape)],0)
         self.register_buffer("mask",maskList)
         self.register_buffer("mask_",mask_List)
 
     def _createMaskMeta(self,maskType,ifByte, double):
-        self.maskType = maskType
+        #self.maskType = maskType
         size = self.shapeList.copy()
         if maskType == "channel":
             size[0] = size[0] // 2
@@ -304,6 +301,34 @@ class RealNVP(RealNVPtemplate):
             mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
             print (mask)
+        elif ('updown' in masktype) or ('leftright' in masktype):
+            slicedim = 1 if ("updown" in masktype) else 2
+            size[slicedim] = size[slicedim] // 2
+            if double:
+                maskOne = torch.ones(size).double()
+                maskZero = torch.zeros(size).double()
+            else:
+                maskOne = torch.ones(size)
+                maskZero = torch.zeros(size)
+            mask = torch.cat([maskOne, maskZero], slicedim)
+        elif ('bars' in masktype):
+            assert (size[1] % 2 == 0)
+            assert (size[2] % 2 == 0)
+            if double:
+                unit = torch.DoubleTensor([[1, 0], [1, 0]])
+            else:
+                unit = torch.FloatTensor([[1, 0], [1, 0]])
+            mask = (unit.repeat(
+                size[0], size[1] // 2, size[2] // 2))
+        elif ('stripes' in masktype):
+            assert (size[1] % 2 == 0)
+            assert (size[2] % 2 == 0)
+            if double:
+                unit = torch.DoubleTensor([[1, 1], [0, 0]])
+            else:
+                unit = torch.FloatTensor([[1, 1], [0, 0]])
+            mask = (unit.repeat(
+                size[0], size[1] // 2, size[2] // 2))
         else:
             raise ValueError("maskType not known.")
         if ifByte:
