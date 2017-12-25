@@ -210,11 +210,11 @@ def test_template_contraction_function_with_channel():
     #print(x)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]] # [channel, filter_size, stride, padding]
 
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask = realNVP.createMask("channel",1)
+    mask = realNVP.createMask(["channel"]*4,1)
 
     z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2,True)
     #print(z)
@@ -327,7 +327,7 @@ def test_parallel():
 
 
 if __name__ == "__main__":
-    test_template_contraction_function_with_checkerboard()
+    test_template_contraction_function_with_channel()
     #test_tempalte_contraction_mlp()
     #test_tempalte_invertibleMLP()
     #test_tempalte_invertible()
