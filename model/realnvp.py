@@ -279,7 +279,6 @@ class RealNVP(RealNVPtemplate):
         self.register_buffer("mask_",mask_List)
 
     def _createMaskMeta(self,maskType,ifByte, double):
-        #self.maskType = maskType
         size = self.shapeList.copy()
         if maskType == "channel":
             size[0] = size[0] // 2
@@ -301,8 +300,8 @@ class RealNVP(RealNVPtemplate):
             mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
             print (mask)
-        elif ('updown' in masktype) or ('leftright' in masktype):
-            slicedim = 1 if ("updown" in masktype) else 2
+        elif ('updown' in maskType) or ('leftright' in maskType):
+            slicedim = 1 if ("updown" in maskType) else 2
             size[slicedim] = size[slicedim] // 2
             if double:
                 maskOne = torch.ones(size).double()
@@ -311,7 +310,7 @@ class RealNVP(RealNVPtemplate):
                 maskOne = torch.ones(size)
                 maskZero = torch.zeros(size)
             mask = torch.cat([maskOne, maskZero], slicedim)
-        elif ('bars' in masktype):
+        elif ('bars' in maskType):
             assert (size[1] % 2 == 0)
             assert (size[2] % 2 == 0)
             if double:
@@ -320,7 +319,7 @@ class RealNVP(RealNVPtemplate):
                 unit = torch.FloatTensor([[1, 0], [1, 0]])
             mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
-        elif ('stripes' in masktype):
+        elif ('stripes' in maskType):
             assert (size[1] % 2 == 0)
             assert (size[2] % 2 == 0)
             if double:
