@@ -240,7 +240,7 @@ def test_checkerboard_cuda_cudaNot0():
     tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda(maxGPU//2)
-    mask3d = realNVP3d.createMask("checkerboard")
+    mask3d = realNVP3d.createMask(["checkerboard"]*4)
 
     z3d = realNVP3d.generate(x3d,2)
     zp3d = realNVP3d.inference(z3d,2)
@@ -270,11 +270,11 @@ def test_logProbabilityWithInference_cuda():
     gaussian3d = Gaussian([2,4,4])
     x3d = gaussian3d(3).cuda()
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda()
-    mask3d = realNVP3d.createMask("checkerboard")
+    mask3d = realNVP3d.createMask(["checkerboard"]*4)
 
     z3d = realNVP3d.generate(x3d,2)
     zp3d = realNVP3d.inference(z3d,2)
