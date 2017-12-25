@@ -40,7 +40,7 @@ class ResNet(nn.Module):
 
     """
 
-    def __init__(self, channels, activation=F.tanh, name="resnet"):
+    def __init__(self, channels, activation=None, name="resnet"):
         """
 
         This mehtod initialise this class.
@@ -69,9 +69,10 @@ class ResNet(nn.Module):
     def make_layer(self, block, out_channels, blocks, stride=1):
         downsample = None
         if (stride != 1) or (self.in_channels != out_channels):
-            downsample = nn.Sequential(
-                conv3x3(self.in_channels, out_channels, stride=stride),
-                nn.BatchNorm2d(out_channels))
+            downsample = conv3x3(self.in_channels, out_channels, stride=stride)
+                #nn.Sequential(
+                #conv3x3(self.in_channels, out_channels, stride=stride)
+                #nn.BatchNorm2d(out_channels))
         layers = []
         layers.append(block(self.in_channels, out_channels, stride, downsample))
         self.in_channels = out_channels
@@ -95,4 +96,8 @@ class ResNet(nn.Module):
         out = self.relu(out)
         out = self.layer1(out)
         out = self.layer2(out)
-        return self.activation(out)
+        if self.activation is not None:
+            return self.activation(out)
+        else:
+            return out
+

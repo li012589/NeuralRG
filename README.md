@@ -87,7 +87,7 @@ Learn by maximazing the acceptance rate
 python learn_accratio.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 10 -Nlayers 4 -Hs 10 -Ht 10 -target ring2d -epsilon 1.0 -alpha 0.0 -beta 1.0 -delta 1.0 -omega 1.0 -Nepoch 5000 
 
 #Ising
-python learn_accratio.py -Batch 64 -Ntherm 5 -Nsteps 1 -Nskip 0 -Nlayers 10 -Hs 4 -Ht 4 -target ising -K 0.44068679350977147 -L 4 -d 2 -epsilon 1.0 -beta 1.0  -delta 1.0 -omega 0.0  -Nepoch 5000 -lr 0.01 -exact 0.371232 -train_model 
+python learn_accratio.py -Batch 64 -Ntherm 5 -Nsteps 1 -Nskip 0 -Nlayers 10 -Hs 4 -Ht 4 -target ising -T 2.5 -L 8 -d 2 -epsilon 1.0 -beta 1.0  -delta 1.0 -omega 0.0  -Nepoch 5000 -lr 0.001 -exact 0.177921 -train_model 
 ```
 
 To check the results 
@@ -116,10 +116,10 @@ python plot_configs.py -f data/learn_acc/ising_L4_d2_K0.44068679350977147_Nl10_H
 
 | $d=2,T=2.5$ | PBC  |          OBC           |
 | :---------: | :--: | :--------------------: |
+|    $L=4$    |      |   0.309222+/-0.0004    |
+|    $L=8$    |      | 0.177921 +/- 0.000304  |
 |   $L=16$    |      | 0.0905703 +/- 0.000219 |
-|             |      |                        |
-|             |      |                        |
-|             |      |                        |
+
 
 
 

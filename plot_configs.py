@@ -20,8 +20,8 @@ files = []
 sigmoid = lambda x: 1./(1.+np.exp(-x))
 for i in range(proposals.shape[0]):
 
-    left = proposals[i, 1, :-1]
-    right = samples[i, 1, :-1]
+    left = proposals[i, 0, :-1]
+    right = samples[i, 0, :-1]
     #left = sigmoid(2.* proposals[i, 1, :-1])
     #right = sigmoid(2.* samples[i, 1, :-1])
     N = len(left)
