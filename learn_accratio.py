@@ -38,7 +38,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
     #if cuda is not None:
     #    offset = offset.cuda(cuda)
     #buff_proposals = Buffer(10000)
-    buff_samples = Buffer(10000)
+    buff_samples = Buffer(10*Batchsize)
 
     params = list(model.parameters()) 
     #if (gamma>0):
@@ -117,20 +117,20 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         #push samples to buffer 
         xy = samples.view(Batchsize*Nsteps,-1)
         #data argumentation using invertion symmetry
-        #xy_invert = deepcopy(xy)
-        #xy_invert[:, :-1] = -xy_invert[:, :-1] 
-        #xy = torch.stack([xy, xy_invert],0).view(Batchsize*Nsteps*2,-1)
+        xy_invert = deepcopy(xy)
+        xy_invert[:, :-1] = -xy_invert[:, :-1] 
+        xy = torch.stack([xy, xy_invert],0).view(Batchsize*Nsteps*2,-1)
         #print (xy) 
         buff_samples.push(xy)
         
         #sample from buffer 
-        traindata = buff_samples.draw(Batchsize)
+        #traindata = buff_samples.draw(Batchsize)
 
         #data argumentation via randomly symmetry transformation 
-        x_data = []
-        for i in range(Batchsize):
-            x = traindata[i, :-1].numpy()
-            x.shape = target.lattice.shape
+        #x_data = []
+        #for i in range(Batchsize):
+        #    x = traindata[i, :-1].numpy()
+        #    x.shape = target.lattice.shape
             #translation 
             #shift = np.random.randint(x.shape[0], size=2)
             #x = np.roll(x, shift[0], axis=0)
@@ -138,11 +138,12 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
             #spin inversion 
             #if (np.random.rand()<0.5):
             #    x = -x 
-            x_data.append(x)
-            x_data.append(-x)
-        x_data = Variable(torch.from_numpy(np.array(x_data)))
-        x_data = torch.unsqueeze(x_data, 1)
+        #    x_data.append(x)
+        #    x_data.append(-x)
+        #x_data = Variable(torch.from_numpy(np.array(x_data)))
+        #x_data = torch.unsqueeze(x_data, 1)
 
+        x_data = Variable(buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1, 1, args.L, args.L))
         #nll loss on the samples
         nll_samples = -model.logProbability(x_data)
         ######################################################
@@ -154,7 +155,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         target.set_beta(beta)
         
         print ("epoch:",epoch
-               ,"loss:",loss.data[0]
+               ,"loss:",loss.data[0], -res.mean().data[0], nll_samples.mean().data[0], kld.mean().data[0]
                ,"acc:", accratio
                ,"beta:", beta
                #,"offset:", offset.offset.data[0]
