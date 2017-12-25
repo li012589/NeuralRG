@@ -45,7 +45,7 @@ def test_tempalte_invertibleMLP():
     realNVP = RealNVP([2], sList, tList, gaussian)
 
     x = realNVP.prior(10)
-    mask = realNVP.createMask(ifByte=0)
+    mask = realNVP.createMask(["channel"]*4,ifByte=0)
     print("original")
     #print(x)
 
@@ -327,6 +327,7 @@ def test_parallel():
 
 
 if __name__ == "__main__":
+    test_tempalte_invertibleMLP()
     #test_tempalte_contraction_mlp()
     #test_tempalte_invertibleMLP()
     #test_tempalte_invertible()
@@ -335,4 +336,3 @@ if __name__ == "__main__":
     #test_slice_cudaNo0()
     #test_tempalte_contractionCNN_cuda()
     #test_forward()
-    test_parallel()
