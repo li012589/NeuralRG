@@ -5,6 +5,7 @@ import torch
 torch.manual_seed(42)
 from torch.autograd import Variable
 import torch.nn.functional as F
+from torch.optim.lr_scheduler import ReduceLROnPlateau 
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -49,6 +50,8 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
     print ('total nubmer of trainable parameters:', nparams)
 
     optimizer = torch.optim.Adam(params, lr=lr, weight_decay=weight_decay)
+    #optimizer = torch.optim.SGD(params, lr=lr, momentum=0.9, weight_decay=weight_decay)
+    #scheduler = ReduceLROnPlateau(optimizer, 'min', verbose=True)
 
     Nanneal = Nepochs//2
     dbeta = (1.-beta)/Nanneal
@@ -165,6 +168,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        #scheduler.step(loss.data[0])
 
         if save and epoch%saveSteps==0:
             saveDict = model.saveModel({})
@@ -348,19 +352,19 @@ if __name__=="__main__":
     #[outchannel, filter_size, stride, padding]
     #should be size peserving CNN
     
-    #sList = [CNN(snet, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
-    #tList = [CNN(tnet) for i in range(args.Nlayers)]
+    sList = [CNN(snet, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
+    tList = [CNN(tnet) for i in range(args.Nlayers)]
+   
+    #Resnet 
+    #sList = [ResNet(args.Hs, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
+    #tList = [ResNet(args.Ht) for i in range(args.Nlayers)]
     #masktypelist = ['checkerboard0', 'checkerboard1', 
     #                'leftright0', 'leftright1',
     #                'updown0', 'updown1',
     #                'bars0', 'bars1',
     #                'stripes0', 'stripes1'
     #                ]
-    
-    #Resnet 
-    sList = [ResNet(args.Hs, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
-    tList = [ResNet(args.Ht) for i in range(args.Nlayers)]
-
+ 
     masktypelist = ['checkerboard0', 'checkerboard1'] * (args.Nlayers//2)
 
     model = RealNVP(input_size, sList, tList, prior, 

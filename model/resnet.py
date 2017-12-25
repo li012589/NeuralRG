@@ -54,17 +54,17 @@ class ResNet(nn.Module):
         self.conv = conv3x3(1, channels)
         #self.bn = nn.BatchNorm2d(channels)
         self.relu = nn.ReLU(inplace=True)
-        self.layer1 = self.make_layer(ResidualBlock, channels, 1)
+        self.layer1 = self.make_layer(ResidualBlock, channels, 2)
         self.layer2 = self.make_layer(ResidualBlock, 1, 1)
         self.activation = activation
         
         #weight initialization
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                #n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                #m.weight.data.normal_(0, math.sqrt(2. / n))
-                m.weight.data.normal_(0, 0.01)
-                m.bias.data.fill_(0)
+        #for m in self.modules():
+        #    if isinstance(m, nn.Conv2d):
+        #        #n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+        #        #m.weight.data.normal_(0, math.sqrt(2. / n))
+        #        m.weight.data.normal_(0, 0.01)
+        #        m.bias.data.fill_(0)
 
     def make_layer(self, block, out_channels, blocks, stride=1):
         downsample = None
