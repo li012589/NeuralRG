@@ -125,8 +125,8 @@ def test_template_slice_function():
     #print(x)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]] # [channel, filter_size, stride, padding]
 
-    sList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
-    tList3d = [CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure),CNN([1,4,4],netStructure)]
+    sList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+    tList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
 
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
 
@@ -327,7 +327,7 @@ def test_parallel():
 
 
 if __name__ == "__main__":
-    test_tempalte_invertibleCNN()
+    test_template_slice_function()
     #test_tempalte_contraction_mlp()
     #test_tempalte_invertibleMLP()
     #test_tempalte_invertible()
