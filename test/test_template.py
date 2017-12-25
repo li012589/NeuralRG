@@ -150,7 +150,7 @@ def test_tempalte_contraction_mlp():
     realNVP = RealNVP([2], sList, tList, gaussian)
 
     x = realNVP.prior(10)
-    mask = realNVP.createMask(ifByte=1)
+    mask = realNVP.createMask(["channel"]*4,ifByte=1)
     print("original")
     #print(x)
 
@@ -327,7 +327,7 @@ def test_parallel():
 
 
 if __name__ == "__main__":
-    test_template_slice_function()
+    test_tempalte_contraction_mlp()
     #test_tempalte_contraction_mlp()
     #test_tempalte_invertibleMLP()
     #test_tempalte_invertible()
