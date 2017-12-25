@@ -117,7 +117,7 @@ class CNN(nn.Module):
 
     """
 
-    def __init__(self, netStructure,activation=None,name="cnn"):
+    def __init__(self, netStructure,inchannel = 1 ,activation=None,name="cnn"):
         """
 
         This mehtod initialise this class.
@@ -128,7 +128,6 @@ class CNN(nn.Module):
         """
         super(CNN, self).__init__()
         self.variableList = nn.ModuleList()
-        inchannel = 1
         self.name = name
         for layer in netStructure[:-1]:
             self.variableList.append(nn.Sequential(

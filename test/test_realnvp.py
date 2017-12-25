@@ -81,7 +81,7 @@ def test_invertible():
 
 def test_3d():
 
-    gaussian3d = Gaussian([2,4,4])
+    gaussian3d = Gaussian([1,4,4])
     x3d = gaussian3d(3)
     #z3dp = z3d[:,0,:,:].view(10,-1,4,4)
     #print(z3dp)
@@ -89,13 +89,14 @@ def test_3d():
     #print(x)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]] # [channel, filter_size, stride, padding]
 
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+    tList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
 
-    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
+    realNVP3d = RealNVP([1,4,4], sList3d, tList3d, gaussian3d,maskType = "checkerboard")
+    print(realNVP3d.mask)
     #mask3d = realNVP3d.createMask()
 
-    assert realNVP3d.mask.shape[0] == 2
+    assert realNVP3d.mask.shape[0] == 1
     assert realNVP3d.mask.shape[1] == 4
     assert realNVP3d.mask.shape[2] == 4
 
@@ -119,10 +120,10 @@ def test_3d():
     saveDict3d = realNVP3d.saveModel({})
     torch.save(saveDict3d, './saveNet3d.testSave')
     # realNVP.loadModel({})
-    sListp3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tListp3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sListp3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+    tListp3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
 
-    realNVPp3d = RealNVP([2,4,4], sListp3d, tListp3d, gaussian3d)
+    realNVPp3d = RealNVP([1,4,4], sListp3d, tListp3d, gaussian3d)
     saveDictp3d = torch.load('./saveNet3d.testSave')
     realNVPp3d.loadModel(saveDictp3d)
 
@@ -293,9 +294,10 @@ def testCopyspeedCuda():
         t = torch.randn([3000,3000]).pin_memory().cuda()
 
 if __name__ == "__main__":
+    test_3d()
     #test_checkerboardMask()
     #test_checkerboard_cuda_cudaNot0()
     #copyTest()
     #copyTest_model()
-    test_logProbabilityWithInference()
+    #test_logProbabilityWithInference()
 
