@@ -49,7 +49,8 @@ def test_invertible():
     print(realNVP.mask_)
     z = realNVP.prior(10)
     #mask = realNVP.createMask()
-    #assert realNVP.mask.shape[0] == 2
+    assert realNVP.mask.shape[0] == 4
+    assert realNVP.mask.shape[1] == 2
 
     print("original")
     #print(x)
@@ -98,9 +99,10 @@ def test_3d():
     print(realNVP3d.mask)
     #mask3d = realNVP3d.createMask()
 
-    #assert realNVP3d.mask.shape[0] == 2
-    #assert realNVP3d.mask.shape[1] == 4
-    #assert realNVP3d.mask.shape[2] == 4
+    assert realNVP3d.mask.shape[0] == 4
+    assert realNVP3d.mask.shape[1] == 2
+    assert realNVP3d.mask.shape[2] == 4
+    assert realNVP3d.mask.shape[3] == 4
 
     print("test high dims")
 
