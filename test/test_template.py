@@ -330,7 +330,7 @@ def test_parallel():
 
     assert_array_almost_equal(z.data.numpy(),output.cpu().data.numpy())
 
-def test_multiplyMask_generate():
+def test_multiplyMask_generate_CNN():
     gaussian3d = Gaussian([2,4,4])
     x3d = gaussian3d(3)
     #z3dp = z3d[:,0,:,:].view(10,-1,4,4)
@@ -378,10 +378,10 @@ def test_multiplyMask_generate():
     assert_array_almost_equal(x3d.data.numpy(),zp3d.data.numpy())
     assert_array_almost_equal(zz3d.data.numpy(),z3d.data.numpy())
 
-def test_multiplyMask_generateWithContraction():
+def test_multiplyMask_generateWithContraction_CNN():
     pass
 
-def test_multiplyMask_generateWithSlice():
+def test_multiplyMask_generateWithSlice_CNN():
     pass
 
 
