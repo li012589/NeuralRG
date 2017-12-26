@@ -403,7 +403,30 @@ def test_multiplyMask_generateWithContraction_CNN():
     assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
 
 def test_multiplyMask_generateWithSlice_CNN():
-    pass
+    gaussian3d = Gaussian([2,4,4])
+    x = gaussian3d(3)
+    #z3dp = z3d[:,0,:,:].view(10,-1,4,4)
+    #print(z3dp)
+
+    #print(x)
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]] # [channel, filter_size, stride, padding]
+
+    sList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+    tList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+
+    realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
+    mask = realNVP.createMask(["channel","checkerboard","channel","checkerboard"],ifByte = 1)
+
+    z = realNVP._generateWithSlice(x,0,True)
+    #print(z)
+    zz = realNVP._inferenceWithSlice(z,0,True)
+
+    #print(zz)
+
+    assert_array_almost_equal(x.data.numpy(),zz.data.numpy())
+    #print(realNVP._generateLogjac.data.numpy())
+    #print(realNVP._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
 
 
 if __name__ == "__main__":
