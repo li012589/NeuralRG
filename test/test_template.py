@@ -428,6 +428,31 @@ def test_multiplyMask_generateWithSlice_CNN():
     #print(realNVP._inferenceLogjac.data.numpy())
     assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
 
+@skipIfNoCuda
+def test_contraction_cuda_withDifferentMasks():
+    gaussian3d = Gaussian([2,4,4])
+    x = gaussian3d(3).cuda()
+    #z3dp = z3d[:,0,:,:].view(10,-1,4,4)
+    #print(z3dp)
+
+    #print(x)
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]] # [channel, filter_size, stride, padding]
+
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+
+    realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
+    realNVP = realNVP.cuda()
+    mask = realNVP.createMask(["channel","checkerboard","channel","checkerboard"],1)
+
+    z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2,True)
+    print(realNVP._logProbabilityWithContraction(z,realNVP.mask,realNVP.mask_,2))
+    zz = realNVP._inferenceWithContraction(z,realNVP.mask,realNVP.mask_,2,True)
+
+    assert_array_almost_equal(x.cpu().data.numpy(),zz.cpu().data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.cpu().data.numpy(),-realNVP._inferenceLogjac.cpu().data.numpy())
+
+
 
 if __name__ == "__main__":
     test_multiplyMask_generateWithContraction_CNN()
