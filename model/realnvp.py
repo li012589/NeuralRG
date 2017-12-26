@@ -249,7 +249,7 @@ class RealNVP(RealNVPtemplate):
         self.maskType = maskType
         self.createMask(maskType)
 
-    def createMask(self, maskType, ifByte=1, double = True):
+    def createMask(self, maskType, ifByte=0, double = True):
         """
 
         This method create mask for x, and save it in self.mask for later use.
@@ -334,7 +334,7 @@ class RealNVP(RealNVPtemplate):
         #self.register_buffer("mask_",1-mask)
         return mask
 
-    def generate(self, z, sliceDim=0):
+    def generate(self, z):
         """
 
         This method generate complex distribution using variables sampled from prior distribution.
@@ -345,9 +345,9 @@ class RealNVP(RealNVPtemplate):
             x (torch.autograd.Variable): output Variable.
 
         """
-        return self._generateWithContraction(z, self.mask, self.mask_, sliceDim)
+        return self._generate(z, self.mask, self.mask_)
 
-    def inference(self, x, sliceDim=0):
+    def inference(self, x):
         """
 
         This method inference prior distribution using variable sampled from complex distribution.
@@ -358,9 +358,9 @@ class RealNVP(RealNVPtemplate):
             z (torch.autograd.Variable): output Variable.
 
         """
-        return self._inferenceWithContraction(x, self.mask, self.mask_, sliceDim)
+        return self._inference(x, self.mask, self.mask_)
 
-    def logProbability(self, x, sliceDim=0):
+    def logProbability(self, x):
         """
 
         This method gives the log of probability of x sampled from complex distribution.
@@ -371,10 +371,10 @@ class RealNVP(RealNVPtemplate):
             log-probability (torch.autograd.Variable): log-probability of x.
 
         """
-        return self._logProbabilityWithContraction(x, self.mask, self.mask_, sliceDim)
+        return self._logProbability(x, self.mask, self.mask_)
 
-    def logProbabilityWithInference(self,x,sliceDim=0):
-        z = self._inferenceWithContraction(x, self.mask, self.mask_, sliceDim, True)
+    def logProbabilityWithInference(self,x):
+        z = self._inference(x, self.mask, self.mask_, True)
         return self.prior.logProbability(z) + self._inferenceLogjac,z
 
     def saveModel(self, saveDic):
@@ -409,7 +409,7 @@ class RealNVP(RealNVPtemplate):
         self.shapeList = saveDic["shapeList"]
         return saveDic
 
-    def sample(self, batchSize, sliceDim=0, useGenerate=True):
+    def sample(self, batchSize, useGenerate=True):
         """
 
         This method directly sample samples of batch size given
@@ -425,12 +425,11 @@ class RealNVP(RealNVPtemplate):
         else:
             z = self.prior(batchSize)
         if useGenerate:
-            return self.generate(z, sliceDim)
+            return self.generate(z)
         else:
-            return self.inference(z, sliceDim)
+            return self.inference(z)
 
 if __name__ == "__main__":
-    
     gmm = GMM([4])
     samples = gmm.sample(10)
     print (samples)
