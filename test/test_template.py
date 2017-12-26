@@ -282,7 +282,7 @@ def test_tempalte_contractionCNN_cuda():
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
     assert_array_almost_equal(realNVP3d._generateLogjac.cpu().data.numpy(),-realNVP3d._inferenceLogjac.cpu().data.numpy())
 
-@skipIfNoCuda
+@skipIfOnlyOneGPU
 def test_slice_cudaNo0():
     gaussian3d = Gaussian([2,4,4])
     x = gaussian3d(3).cuda(2)
