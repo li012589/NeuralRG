@@ -361,7 +361,7 @@ if __name__=="__main__":
     sList = [ResNet(args.Hs, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
     tList = [ResNet(args.Ht) for i in range(args.Nlayers)]
 
-    masktypelist = ['checkerboard0', 'checkerboard1'] * (args.Nlayers//2)
+    masktypelist = ['checkerboard', 'checkerboard'] * (args.Nlayers//2)
 
     model = RealNVP(input_size, sList, tList, prior, 
                     masktypelist, name = key, double=not args.float)
