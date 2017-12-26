@@ -424,9 +424,9 @@ class RealNVPtemplate(torch.nn.Module):
                     output = Variable(torch.zeros(y.data.shape).double())
                 else:
                     output = Variable(torch.zeros(y.data.shape))
-                output.masked_scatter_(mask[i], y0)
-                output.masked_scatter_(mask_[i], y1)
-                y = output
+            output.masked_scatter_(mask[i], y0)
+            output.masked_scatter_(mask_[i], y1)
+            y = output
         return y
 
     def _inferenceWithSlice(self, y, sliceDim, ifLogjac=False):
