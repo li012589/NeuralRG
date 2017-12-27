@@ -365,8 +365,9 @@ if __name__=="__main__":
     #                'bars0', 'bars1',
     #                'stripes0', 'stripes1'
     #                ]
- 
-    masktypelist = ['checkerboard0', 'checkerboard1'] * (args.Nlayers//2)
+
+    #Resnet 
+    masktypelist = ['checkerboard', 'checkerboard'] * (args.Nlayers//2)
 
     model = RealNVP(input_size, sList, tList, prior, 
                     masktypelist, name = key, double=not args.float)

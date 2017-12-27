@@ -119,12 +119,8 @@ class GMM(PriorTemplate):
             raise NotImplementedError(str(type(self)))
         else:
             if double:
-                #select the gaussian center 
                 selector = torch.from_numpy(np.random.choice(2, size=(batchSize,))).double()
                 selector = Variable(selector.view(batchSize, -1))
-                #print (selector)
-                
-                #sample from one of the Gaussian 
                 return selector * (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma1) + self.mu1) \
                  + (1.-selector)* (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma2) + self.mu2) 
             else:
@@ -232,7 +228,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, masktypelist, name=None, double=True):
+    def __init__(self, shapeList, sList, tList, prior, maskType="channel", name=None, double=True):
         """
 
         This mehtod initialise this class.
@@ -246,9 +242,14 @@ class RealNVP(RealNVPtemplate):
         """
         super(RealNVP, self).__init__(
             shapeList, sList, tList, prior, name,double)
-        self.createMask(masktypelist)
+        if isinstance(maskType,str):
+            maskType = [maskType] * self.NumLayers
+        else:
+            assert len(maskType) == self.NumLayers
+        self.maskType = maskType
+        self.createMask(maskType)
 
-    def createMask(self, masktypelist, ifByte=0, double = True):
+    def createMask(self, maskType, ifByte=0, double = True):
         """
 
         This method create mask for x, and save it in self.mask for later use.
@@ -259,67 +260,79 @@ class RealNVP(RealNVPtemplate):
             mask (torch.Tensor): mask to divide x into y0 and y1.
 
         """
-        self.masks = []
-        self.masks_ = []
-        for masktype in masktypelist: 
-            size = self.shapeList.copy()
-            if ('updown' in masktype) or ('leftright' in masktype):
-                slicedim = 1 if ("updown" in masktype) else 2
-                size[slicedim] = size[slicedim] // 2
-                if double:
-                    maskOne = torch.ones(size).double()
-                    maskZero = torch.zeros(size).double()
-                else:
-                    maskOne = torch.ones(size)
-                    maskZero = torch.zeros(size)
-                mask = torch.cat([maskOne, maskZero], slicedim)
-            
-            elif ('bars' in masktype):
-                assert (size[1] % 2 == 0)
-                assert (size[2] % 2 == 0)
-                if double:
-                    unit = torch.DoubleTensor([[1, 0], [1, 0]])
-                else:
-                    unit = torch.FloatTensor([[1, 0], [1, 0]])
-                mask = (unit.repeat(
-                        size[0], size[1] // 2, size[2] // 2))
- 
-            elif ('stripes' in masktype):
-                assert (size[1] % 2 == 0)
-                assert (size[2] % 2 == 0)
-                if double:
-                    unit = torch.DoubleTensor([[1, 1], [0, 0]])
-                else:
-                    unit = torch.FloatTensor([[1, 1], [0, 0]])
-                mask = (unit.repeat(
-                        size[0], size[1] // 2, size[2] // 2))
- 
-            elif 'checkerboard' in masktype:
-                assert (size[1] % 2 == 0)
-                assert (size[2] % 2 == 0)
-                if double:
-                    unit = torch.DoubleTensor([[1, 0], [0, 1]])
-                else:
-                    unit = torch.FloatTensor([[1, 0], [0, 1]])
-                mask = (unit.repeat(
-                        size[0], size[1] // 2, size[2] // 2))
+        maskList = None
+        mask_List = None
+        for iterm in maskType:
+            mask = self._createMaskMeta(iterm,ifByte,double)
+            mask_ = 1 - mask
+            if maskList is None:
+                maskList = mask.view(1,*mask.shape)
+                mask_List = mask_.view(1,*mask_.shape)
             else:
-                raise ValueError("maskType not known.")
-            
-            if ifByte:
-                mask = mask.byte()
-            if self.ifCuda:
-                cudaNo = self.mask.get_device()
-                mask = mask.pin_memory().cuda(cudaNo)
-            
-            if '0' in masktype:
-                self.masks.append(Variable(mask))
-                self.masks_.append(Variable(1-mask))
-            else:
-                self.masks_.append(Variable(mask))
-                self.masks.append(Variable(1-mask))
+                maskList = torch.cat([maskList,mask.view(1,*mask.shape)],0)
+                mask_List = torch.cat([mask_List,mask_.view(1,*mask_.shape)],0)
+        self.register_buffer("mask",maskList)
+        self.register_buffer("mask_",mask_List)
 
-            print ('mask:', self.masks[-1])
+    def _createMaskMeta(self,maskType,ifByte, double):
+        size = self.shapeList.copy()
+        if maskType == "channel":
+            size[0] = size[0] // 2
+            if double:
+                maskOne = torch.ones(size).double()
+                maskZero = torch.zeros(size).double()
+            else:
+                maskOne = torch.ones(size)
+                maskZero = torch.zeros(size)
+            mask = torch.cat([maskOne, maskZero], 0)
+
+        elif maskType == "checkerboard":
+            assert (size[1] % 2 == 0)
+            assert (size[2] % 2 == 0)
+            if double:
+                unit = torch.DoubleTensor([[1, 0], [0, 1]])
+            else:
+                unit = torch.FloatTensor([[1, 0], [0, 1]])
+            mask = (unit.repeat(
+                size[0], size[1] // 2, size[2] // 2))
+        elif ('updown' in maskType) or ('leftright' in maskType):
+            slicedim = 1 if ("updown" in maskType) else 2
+            size[slicedim] = size[slicedim] // 2
+            if double:
+                maskOne = torch.ones(size).double()
+                maskZero = torch.zeros(size).double()
+            else:
+                maskOne = torch.ones(size)
+                maskZero = torch.zeros(size)
+            mask = torch.cat([maskOne, maskZero], slicedim)
+        elif ('bars' in maskType):
+            assert (size[1] % 2 == 0)
+            assert (size[2] % 2 == 0)
+            if double:
+                unit = torch.DoubleTensor([[1, 0], [1, 0]])
+            else:
+                unit = torch.FloatTensor([[1, 0], [1, 0]])
+            mask = (unit.repeat(
+                size[0], size[1] // 2, size[2] // 2))
+        elif ('stripes' in maskType):
+            assert (size[1] % 2 == 0)
+            assert (size[2] % 2 == 0)
+            if double:
+                unit = torch.DoubleTensor([[1, 1], [0, 0]])
+            else:
+                unit = torch.FloatTensor([[1, 1], [0, 0]])
+            mask = (unit.repeat(
+                size[0], size[1] // 2, size[2] // 2))
+        else:
+            raise ValueError("maskType not known.")
+        if ifByte:
+            mask = mask.byte()
+        if self.ifCuda:
+            cudaNo = self.mask.get_device()
+            mask = mask.pin_memory().cuda(cudaNo)
+        #self.register_buffer("mask",mask)
+        #self.register_buffer("mask_",1-mask)
+        return mask
 
     def generate(self, z):
         """
@@ -327,11 +340,12 @@ class RealNVP(RealNVPtemplate):
         This method generate complex distribution using variables sampled from prior distribution.
         Args:
             z (torch.autograd.Variable): input Variable.
+            sliceDim (int): in which dimension should mask be used on y.
         Return:
             x (torch.autograd.Variable): output Variable.
 
         """
-        return self._generate(z, self.masks, self.masks_)
+        return self._generate(z, self.mask, self.mask_)
 
     def inference(self, x):
         """
@@ -339,11 +353,12 @@ class RealNVP(RealNVPtemplate):
         This method inference prior distribution using variable sampled from complex distribution.
         Args:
             x (torch.autograd.Variable): input Variable.
+            sliceDim (int): in which dimension should mask be used on y.
         Return:
             z (torch.autograd.Variable): output Variable.
 
         """
-        return self._inference(x, self.masks, self.masks_)
+        return self._inference(x, self.mask, self.mask_)
 
     def logProbability(self, x):
         """
@@ -351,14 +366,15 @@ class RealNVP(RealNVPtemplate):
         This method gives the log of probability of x sampled from complex distribution.
         Args:
             x (torch.autograd.Variable): input Variable.
+            sliceDim (int): in which dimension should mask be used on y.
         Return:
             log-probability (torch.autograd.Variable): log-probability of x.
 
         """
-        return self._logProbability(x, self.masks, self.masks_)
+        return self._logProbability(x, self.mask, self.mask_)
 
     def logProbabilityWithInference(self,x):
-        z = self._inference(x, self.masks, self.masks_, True)
+        z = self._inference(x, self.mask, self.mask_, True)
         return self.prior.logProbability(z) + self._inferenceLogjac,z
 
     def saveModel(self, saveDic):
@@ -372,9 +388,9 @@ class RealNVP(RealNVPtemplate):
 
         """
         self._saveModel(saveDic)
-        #saveDic["masks"] = self.masks.cpu()  # Do check if exist !!
-        #saveDic["masks_"] = self.masks_.cpu()
-        #saveDic["shapeList"] = self.shapeList
+        saveDic["mask"] = self.mask.cpu()  # Do check if exist !!
+        saveDic["mask_"] = self.mask_.cpu()
+        saveDic["shapeList"] = self.shapeList
         return saveDic
 
     def loadModel(self, saveDic):
@@ -388,17 +404,18 @@ class RealNVP(RealNVPtemplate):
 
         """
         self._loadModel(saveDic)
-        #self.register_buffer("mask",saveDic["mask"])
-        #self.register_buffer("mask_",saveDic["mask_"])
-        #self.shapeList = saveDic["shapeList"]
+        self.register_buffer("mask",saveDic["mask"])
+        self.register_buffer("mask_",saveDic["mask_"])
+        self.shapeList = saveDic["shapeList"]
         return saveDic
 
-    def sample(self, batchSize,useGenerate=True):
+    def sample(self, batchSize, useGenerate=True):
         """
 
         This method directly sample samples of batch size given
         Args:
             batchSize (int): size of sampled batch.
+            sliceDim (int): in which dimension should mask be used on y.
         return:
             samples: (torch.autograd.Variable): output Variable.
         """
@@ -413,7 +430,6 @@ class RealNVP(RealNVPtemplate):
             return self.inference(z)
 
 if __name__ == "__main__":
-    
     gmm = GMM([4])
     samples = gmm.sample(10)
     print (samples)

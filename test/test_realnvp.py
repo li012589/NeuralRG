@@ -45,9 +45,12 @@ def test_invertible():
 
     realNVP = RealNVP([2], sList, tList, gaussian)
 
+    print(realNVP.mask)
+    print(realNVP.mask_)
     z = realNVP.prior(10)
     #mask = realNVP.createMask()
-    assert realNVP.mask.shape[0] == 2
+    assert realNVP.mask.shape[0] == 4
+    assert realNVP.mask.shape[1] == 2
 
     print("original")
     #print(x)
@@ -89,15 +92,17 @@ def test_3d():
     #print(x)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]] # [channel, filter_size, stride, padding]
 
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
-    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)#,maskType = "checkerboard")
+    print(realNVP3d.mask)
     #mask3d = realNVP3d.createMask()
 
-    assert realNVP3d.mask.shape[0] == 2
-    assert realNVP3d.mask.shape[1] == 4
+    assert realNVP3d.mask.shape[0] == 4
+    assert realNVP3d.mask.shape[1] == 2
     assert realNVP3d.mask.shape[2] == 4
+    assert realNVP3d.mask.shape[3] == 4
 
     print("test high dims")
 
@@ -119,8 +124,8 @@ def test_3d():
     saveDict3d = realNVP3d.saveModel({})
     torch.save(saveDict3d, './saveNet3d.testSave')
     # realNVP.loadModel({})
-    sListp3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tListp3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sListp3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tListp3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVPp3d = RealNVP([2,4,4], sListp3d, tListp3d, gaussian3d)
     saveDictp3d = torch.load('./saveNet3d.testSave')
@@ -141,11 +146,12 @@ def test_checkerboardMask():
 
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]] # [channel, filter_size, stride, padding]
 
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask("checkerboard")
+    mask3d = realNVP3d.createMask(["checkerboard"]*4)
     print(realNVP3d.mask)
 
     z3d = realNVP3d.generate(x3d,2)
@@ -163,8 +169,8 @@ def test_checkerboardMask():
     saveDict3d = realNVP3d.saveModel({})
     torch.save(saveDict3d, './saveNet3d.testSave')
     # realNVP.loadModel({})
-    sListp3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tListp3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sListp3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tListp3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVPp3d = RealNVP([2,4,4], sListp3d, tListp3d, gaussian3d)
     saveDictp3d = torch.load('./saveNet3d.testSave')
@@ -182,11 +188,11 @@ def test_checkerboard_cuda():
     gaussian3d = Gaussian([2,4,4])
     x3d = gaussian3d(3).cuda()
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda()
-    mask3d = realNVP3d.createMask("checkerboard")
+    mask3d = realNVP3d.createMask(["checkerboard"]*4)
 
     z3d = realNVP3d.generate(x3d,2)
     zp3d = realNVP3d.inference(z3d,2)
@@ -199,8 +205,8 @@ def test_sample():
     gaussian3d = Gaussian([2,4,4])
     x3d = gaussian3d(3)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d,"checkerboard")
 
@@ -214,8 +220,8 @@ def test_sample():
 def test_sample_cuda():
     gaussian3d = Gaussian([2,4,4])
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d,"checkerboard").cuda()
 
@@ -230,11 +236,11 @@ def test_checkerboard_cuda_cudaNot0():
     gaussian3d = Gaussian([2,4,4])
     x3d = gaussian3d(3).cuda(maxGPU//2)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda(maxGPU//2)
-    mask3d = realNVP3d.createMask("checkerboard")
+    mask3d = realNVP3d.createMask(["checkerboard"]*4)
 
     z3d = realNVP3d.generate(x3d,2)
     zp3d = realNVP3d.inference(z3d,2)
@@ -247,11 +253,11 @@ def test_logProbabilityWithInference():
     gaussian3d = Gaussian([2,4,4])
     x3d = gaussian3d(3)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask("checkerboard")
+    mask3d = realNVP3d.createMask(["checkerboard"]*4)
 
     z3d = realNVP3d.generate(x3d,2)
     zp3d = realNVP3d.inference(z3d,2)
@@ -264,11 +270,11 @@ def test_logProbabilityWithInference_cuda():
     gaussian3d = Gaussian([2,4,4])
     x3d = gaussian3d(3).cuda()
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
-    tList3d = [CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure),CNN([2,4,2],netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda()
-    mask3d = realNVP3d.createMask("checkerboard")
+    mask3d = realNVP3d.createMask(["checkerboard"]*4)
 
     z3d = realNVP3d.generate(x3d,2)
     zp3d = realNVP3d.inference(z3d,2)
@@ -293,9 +299,10 @@ def testCopyspeedCuda():
         t = torch.randn([3000,3000]).pin_memory().cuda()
 
 if __name__ == "__main__":
+    test_logProbabilityWithInference()
     #test_checkerboardMask()
     #test_checkerboard_cuda_cudaNot0()
     #copyTest()
     #copyTest_model()
-    test_logProbabilityWithInference()
+    #test_logProbabilityWithInference()
 
