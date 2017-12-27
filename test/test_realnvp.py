@@ -40,8 +40,8 @@ def test_invertible():
     print("test realNVP")
     gaussian = Gaussian([2])
 
-    sList = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
-    tList = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+    sList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+    tList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
 
     realNVP = RealNVP([2], sList, tList, gaussian)
 
@@ -70,8 +70,8 @@ def test_invertible():
     saveDict = realNVP.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
     # realNVP.loadModel({})
-    sListp = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
-    tListp = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+    sListp = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+    tListp = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
 
     realNVPp = RealNVP([2], sListp, tListp, gaussian)
     saveDictp = torch.load('./saveNet.testSave')
@@ -110,16 +110,16 @@ def test_3d():
     print("3d original:")
     #print(x3d)
 
-    z3d = realNVP3d.generate(x3d,2)
+    z3d = realNVP3d.generate(x3d)
     print("3d forward:")
     #print(z3d)
 
-    zp3d = realNVP3d.inference(z3d,2)
+    zp3d = realNVP3d.inference(z3d)
     print("Backward")
     #print(zp3d)
 
     print("3d logProbability")
-    print(realNVP3d.logProbability(z3d,2))
+    print(realNVP3d.logProbability(z3d))
 
     saveDict3d = realNVP3d.saveModel({})
     torch.save(saveDict3d, './saveNet3d.testSave')
@@ -131,7 +131,7 @@ def test_3d():
     saveDictp3d = torch.load('./saveNet3d.testSave')
     realNVPp3d.loadModel(saveDictp3d)
 
-    zz3d = realNVPp3d.generate(x3d,2)
+    zz3d = realNVPp3d.generate(x3d)
     print("3d Forward after restore")
     #print(zz3d)
 
@@ -154,17 +154,17 @@ def test_checkerboardMask():
     mask3d = realNVP3d.createMask(["checkerboard"]*4)
     print(realNVP3d.mask)
 
-    z3d = realNVP3d.generate(x3d,2)
+    z3d = realNVP3d.generate(x3d)
     print(realNVP3d.mask)
     print("3d forward:")
     #print(z3d)
 
-    zp3d = realNVP3d.inference(z3d,2)
+    zp3d = realNVP3d.inference(z3d)
     print("Backward")
     #print(zp3d)
 
     print("3d logProbability")
-    print(realNVP3d.logProbability(z3d,2))
+    print(realNVP3d.logProbability(z3d))
 
     saveDict3d = realNVP3d.saveModel({})
     torch.save(saveDict3d, './saveNet3d.testSave')
@@ -176,7 +176,7 @@ def test_checkerboardMask():
     saveDictp3d = torch.load('./saveNet3d.testSave')
     realNVPp3d.loadModel(saveDictp3d)
 
-    zz3d = realNVPp3d.generate(x3d,2)
+    zz3d = realNVPp3d.generate(x3d)
     print("3d Forward after restore")
     #print(zz3d)
 
@@ -194,10 +194,10 @@ def test_checkerboard_cuda():
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda()
     mask3d = realNVP3d.createMask(["checkerboard"]*4)
 
-    z3d = realNVP3d.generate(x3d,2)
-    zp3d = realNVP3d.inference(z3d,2)
+    z3d = realNVP3d.generate(x3d)
+    zp3d = realNVP3d.inference(z3d)
 
-    print(realNVP3d.logProbability(z3d,2))
+    print(realNVP3d.logProbability(z3d))
 
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
@@ -210,11 +210,11 @@ def test_sample():
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d,"checkerboard")
 
-    z3d = realNVP3d.sample(100,2,True)
+    z3d = realNVP3d.sample(100,True)
 
-    zp3d = realNVP3d.sample(100,2,False)
+    zp3d = realNVP3d.sample(100,False)
 
-    print(realNVP3d.logProbability(z3d,2))
+    print(realNVP3d.logProbability(z3d))
 
 @skipIfNoCuda
 def test_sample_cuda():
@@ -225,11 +225,11 @@ def test_sample_cuda():
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d,"checkerboard").cuda()
 
-    z3d = realNVP3d.sample(100,2,True)
+    z3d = realNVP3d.sample(100,True)
 
-    zp3d = realNVP3d.sample(100,2,False)
+    zp3d = realNVP3d.sample(100,False)
 
-    print(realNVP3d.logProbability(z3d,2))
+    print(realNVP3d.logProbability(z3d))
 
 @skipIfOnlyOneGPU
 def test_checkerboard_cuda_cudaNot0():
@@ -242,10 +242,10 @@ def test_checkerboard_cuda_cudaNot0():
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda(maxGPU//2)
     mask3d = realNVP3d.createMask(["checkerboard"]*4)
 
-    z3d = realNVP3d.generate(x3d,2)
-    zp3d = realNVP3d.inference(z3d,2)
+    z3d = realNVP3d.generate(x3d)
+    zp3d = realNVP3d.inference(z3d)
 
-    print(realNVP3d.logProbability(z3d,2))
+    print(realNVP3d.logProbability(z3d))
 
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
@@ -259,10 +259,10 @@ def test_logProbabilityWithInference():
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     mask3d = realNVP3d.createMask(["checkerboard"]*4)
 
-    z3d = realNVP3d.generate(x3d,2)
-    zp3d = realNVP3d.inference(z3d,2)
+    z3d = realNVP3d.generate(x3d)
+    zp3d = realNVP3d.inference(z3d)
 
-    print(realNVP3d.logProbabilityWithInference(z3d,2)[1])
+    print(realNVP3d.logProbabilityWithInference(z3d)[1])
 
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 @skipIfNoCuda
@@ -276,10 +276,10 @@ def test_logProbabilityWithInference_cuda():
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d).cuda()
     mask3d = realNVP3d.createMask(["checkerboard"]*4)
 
-    z3d = realNVP3d.generate(x3d,2)
-    zp3d = realNVP3d.inference(z3d,2)
+    z3d = realNVP3d.generate(x3d)
+    zp3d = realNVP3d.inference(z3d)
 
-    print(realNVP3d.logProbabilityWithInference(z3d,2)[1])
+    print(realNVP3d.logProbabilityWithInference(z3d)[1])
 
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
