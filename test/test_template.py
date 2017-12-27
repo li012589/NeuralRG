@@ -43,7 +43,6 @@ def test_tempalte_invertibleMLP():
     tList = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
 
     realNVP = RealNVP([2], sList, tList, gaussian)
-
     x = realNVP.prior(10)
     mask = realNVP.createMask(["channel"]*4,ifByte=0)
     print("original")
@@ -282,6 +281,23 @@ def test_tempalte_contractionCNN_cuda():
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
     assert_array_almost_equal(realNVP3d._generateLogjac.cpu().data.numpy(),-realNVP3d._inferenceLogjac.cpu().data.numpy())
 
+@skipIfNoCuda
+def test_tempalte_contractionCNN_checkerboard_cuda():
+    gaussian3d = Gaussian([2,4,4])
+    x3d = gaussian3d(3).cuda()
+    netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[2,2,1,0]]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+
+    realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
+    mask3d = realNVP3d.createMask(["checkerboard"]*4,ifByte=0)
+    realNVP3d = realNVP3d.cuda()
+    z3d = realNVP3d._generate(x3d,realNVP3d.mask,realNVP3d.mask_,True)
+    zp3d = realNVP3d._inference(z3d,realNVP3d.mask,realNVP3d.mask_,True)
+    print(realNVP3d._logProbability(z3d,realNVP3d.mask,realNVP3d.mask_))
+    assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
+    assert_array_almost_equal(realNVP3d._generateLogjac.cpu().data.numpy(),-realNVP3d._inferenceLogjac.cpu().data.numpy())
+
 @skipIfOnlyOneGPU
 def test_slice_cudaNo0():
     gaussian3d = Gaussian([2,4,4])
@@ -302,15 +318,15 @@ def test_forward():
     gaussian3d = Gaussian([2,4,4])
     x = gaussian3d(3)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
-    tList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     z = realNVP(x)
     assert(list(z.data.shape) == [3])
     #assert(z.shape ==)
     realNVP.pointer = "generate"
-    z = realNVP(x,0)
+    z = realNVP(x)
     assert(list(z.data.shape) == [3,2,4,4])
 
 @skipIfOnlyOneGPU
@@ -318,8 +334,8 @@ def test_parallel():
     gaussian3d = Gaussian([2,4,4])
     x = gaussian3d(3)
     netStructure = [[3,2,1,1],[4,2,1,1],[3,2,1,0],[1,2,1,0]]
-    sList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
-    tList3d = [CNN(netStructure),CNN(netStructure),CNN(netStructure),CNN(netStructure)]
+    sList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
+    tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     z = realNVP(x)
@@ -455,7 +471,7 @@ def test_contraction_cuda_withDifferentMasks():
 
 
 if __name__ == "__main__":
-    test_multiplyMask_generateWithContraction_CNN()
+    test_forward()
     #test_tempalte_contraction_mlp()
     #test_tempalte_invertibleMLP()
     #test_tempalte_invertible()
