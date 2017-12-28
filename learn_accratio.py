@@ -214,7 +214,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
             paramslist = []
             for p in params:
-                paramslist += list(p.data.numpy().ravel())
+                paramslist += list(p.data.cpu().numpy().ravel()) # could be sppeed up
             ax3.cla()
             [n,X,V]=ax3.hist(paramslist)
             ax3.relim()
