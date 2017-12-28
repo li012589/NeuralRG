@@ -239,7 +239,7 @@ if __name__=="__main__":
     group.add_argument("-Nepochs", type=int, default=500, help="")
     group.add_argument("-Batchsize", type=int, default=64, help="")
     group.add_argument("-cuda", action='store_true', help="use GPU")
-    group.add_argument("-float", action='store_true', help="use float32")
+    group.add_argument("-float", action='store_false', help="use float32")
 
     group.add_argument("-lr", type=float, default=0.001, help="learning rate")
     group.add_argument("-epsilon", type=float, default=1.0, help="acceptance term")
@@ -290,7 +290,7 @@ if __name__=="__main__":
     elif args.target == 'phi4':
         target = Phi4(4,2,0.15,1.145)
     elif args.target == 'ising':
-        target = Ising(args.L, args.d, args.T, cuda)
+        target = Ising(args.L, args.d, args.T, cuda, not args.float)
     else:
         print ('what target ?', args.target)
         sys.exit(1)
