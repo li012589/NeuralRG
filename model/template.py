@@ -67,6 +67,9 @@ class RealNVPtemplate(torch.nn.Module):
         """
         cudaModel = super(RealNVPtemplate, self).cuda(device)
         cudaModel.ifCuda = True
+        if device is None:
+            device = 0
+        cudaModel.prior.cudaNo = device
         return cudaModel
 
     def cpu(self):
@@ -79,6 +82,7 @@ class RealNVPtemplate(torch.nn.Module):
         """
         cpuModel = super(RealNVPtemplate, self).cpu()
         cpuModel.ifCuda = False
+        cpuModel.prior.cudaNo = None
         return cpuModel
 
     def _generate(self, y, mask, mask_, ifLogjac=False):

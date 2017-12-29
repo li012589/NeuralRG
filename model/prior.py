@@ -41,31 +41,6 @@ class PriorTemplate(torch.nn.Module):
 
         """
         raise NotImplementedError(str(type(self)))
-    def cuda(self,device=None,async=False):
-        """
-
-        This method move everything in RealNVPtemplate to GPU.
-        Return:
-            cudaModel (nn.Module.cuda): the instance in GPU.
-
-        """
-        cudaModel = super(PriorTemplate, self).cuda(device)
-        if device is None:
-            device = 0
-        cudaModel.cudaNo = device
-        return cudaModel
-
-    def cpu(self):
-        """
-
-        This method move everything in RealNVPtemplate to CPU.
-        Return:
-            cudaModel (nn.Module): the instance in CPU.
-
-        """
-        cpuModel = super(PriorTemplate, self).cpu()
-        cpuModel.cudaNo = None
-        return cpuModel
 
 
 class Cauchy(PriorTemplate):
@@ -280,5 +255,5 @@ class Gaussian(PriorTemplate):
             logProbability (torch.autograd.Variable): log probability of input variables.
 
         """
-        tmp = -0.5 * (z/self.sigma)**2 
+        tmp = -0.5 * (z/self.sigma)**2
         return tmp.view(z.data.shape[0],-1).sum(dim=1)  # sum all but the batch dimension
