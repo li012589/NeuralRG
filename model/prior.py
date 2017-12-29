@@ -49,7 +49,7 @@ class PriorTemplate(torch.nn.Module):
             cudaModel (nn.Module.cuda): the instance in GPU.
 
         """
-        cudaModel = super(RealNVPtemplate, self).cuda(device)
+        cudaModel = super(PriorTemplate, self).cuda(device)
         if device is None:
             device = 0
         cudaModel.cudaNo = device
@@ -63,7 +63,7 @@ class PriorTemplate(torch.nn.Module):
             cudaModel (nn.Module): the instance in CPU.
 
         """
-        cpuModel = super(RealNVPtemplate, self).cpu()
+        cpuModel = super(PriorTemplate, self).cpu()
         cpuModel.cudaNo = None
         return cpuModel
 
