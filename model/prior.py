@@ -4,7 +4,43 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .template import PriorTemplate
+class PriorTemplate(torch.nn.Module):
+    """
+
+    This is the template class for prior, which will be used in realNVP class.
+    Args:
+        name (PriorTemplate): name of this prior.
+
+    """
+
+    def __init__(self, name="prior"):
+        super(PriorTemplate, self).__init__()
+
+        """
+
+        This method initialise this class.
+        Args:
+            name (PriorTemplate): name of this prior.
+
+        """
+        self.name = name
+
+    def __call__(self):
+        """
+
+        This method should return sampled variables in prior distribution.
+
+        """
+        raise NotImplementedError(str(type(self)))
+
+    def logProbability(self, x):
+        """
+
+        This method should return the probability of input variable in prior distribution.
+
+        """
+        raise NotImplementedError(str(type(self)))
+
 
 class Cauchy(PriorTemplate):
     """
