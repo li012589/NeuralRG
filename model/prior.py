@@ -24,6 +24,7 @@ class PriorTemplate(torch.nn.Module):
 
         """
         self.name = name
+        self.cudaNo = None
 
     def __call__(self):
         """
@@ -40,6 +41,31 @@ class PriorTemplate(torch.nn.Module):
 
         """
         raise NotImplementedError(str(type(self)))
+    def cuda(self,device=None,async=False):
+        """
+
+        This method move everything in RealNVPtemplate to GPU.
+        Return:
+            cudaModel (nn.Module.cuda): the instance in GPU.
+
+        """
+        cudaModel = super(RealNVPtemplate, self).cuda(device)
+        if device is None:
+            device = 0
+        cudaModel.cudaNo = device
+        return cudaModel
+
+    def cpu(self):
+        """
+
+        This method move everything in RealNVPtemplate to CPU.
+        Return:
+            cudaModel (nn.Module): the instance in CPU.
+
+        """
+        cpuModel = super(RealNVPtemplate, self).cpu()
+        cpuModel.cudaNo = None
+        return cpuModel
 
 
 class Cauchy(PriorTemplate):
@@ -205,7 +231,7 @@ class Gaussian(PriorTemplate):
 
     """
 
-    def __init__(self, shapeList, sigma=1, requires_grad=False, name="gaussian"):
+    def __init__(self, shapeList, sigma=1, requires_grad=False, double = False, name="gaussian"):
         """
 
         This method initialise this class.
@@ -217,6 +243,7 @@ class Gaussian(PriorTemplate):
         super(Gaussian, self).__init__(name)
         self.shapeList = shapeList
         self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad=requires_grad)
+        self.double = double
     def sample(self, batchSize, volatile=False):
         """
 
@@ -229,7 +256,16 @@ class Gaussian(PriorTemplate):
 
         """
         size = [batchSize] + self.shapeList
-        return Variable(torch.randn(size),volatile=volatile) * self.sigma
+        if self.cudaNo is not None:
+            if self.double:
+                return Variable(torch.randn(size).double().pin_memory().cuda(cudaNo),volatile=volatile) * self.sigma
+            else:
+                return Variable(torch.randn(size).pin_memory().cuda(cudaNo),volatile=volatile) * self.sigma
+        else:
+            if self.double:
+                return Variable(torch.randn(size).double(),volatile=volatile) * self.sigma
+            else:
+                return Variable(torch.randn(size),volatile=volatile) * self.sigma
 
     def __call__(self,*args,**kwargs):
         return self.sample(*args,**kwargs)
