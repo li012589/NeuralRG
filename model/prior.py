@@ -91,11 +91,11 @@ class GMM(PriorTemplate):
         selector = Variable(torch.from_numpy(np.random.choice(2, size=(batchSize,))).view(batchSize,-1))
         if self.cudaNo is not None:
             if self.double:
-                selector = selector.double()
+                selector = selector.double().cuda(self.cudaNo)
                 return selector * (Variable(torch.DoubleTensor(*size).normal_().pin_memory().cuda(self.cudaNo))*torch.exp(self.logsigma1) + self.mu1) \
                  + (1.-selector)* (Variable(torch.DoubleTensor(*size).normal_()).pin_memory().cuda(self.cudaNo)*torch.exp(self.logsigma2) + self.mu2)
             else:
-                selector = selector.float()
+                selector = selector.float().cuda(self.cudaNo)
                 return selector * (Variable(torch.FloatTensor(*size).normal_().pin_memory().cuda(self.cudaNo))*torch.exp(self.logsigma1) + self.mu1) \
                  + (1.-selector)* (Variable(torch.FloatTensor(*size).normal_().pin_memory().cuda(self.cudaNo))*torch.exp(self.logsigma2) + self.mu2)
         else:
