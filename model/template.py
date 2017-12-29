@@ -23,7 +23,7 @@ class RealNVPtemplate(torch.nn.Module):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, name=None, double=True):
+    def __init__(self, shapeList, sList, tList, prior, name=None, double=False):
         """
 
         This mehtod initialise this class.

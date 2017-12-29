@@ -9,18 +9,20 @@ from .lattice import Hypercube
 
 class Ising(Target):
 
-    def __init__(self, L, d, T, cuda=None):
+    def __init__(self, L, d, T, cuda=None, double = False):
         super(Ising, self).__init__(L**d,'Ising')
 
         self.lattice = Hypercube(L, d, 'open')
-        print (self.lattice.Adj)
         self.Nvars = self.lattice.Nsite
         self.K = self.lattice.Adj/T
     
         w, v = eigh(self.K)    
         offset = 0.1-w.min()
         self.K += np.eye(w.size)*offset
-        self.Kinv = Variable(torch.from_numpy(inv(self.K)), requires_grad=False)
+        if not double:
+            self.Kinv = Variable(torch.from_numpy(inv(self.K)).float(), requires_grad=False)
+        else:
+            self.Kinv = Variable(torch.from_numpy(inv(self.K)), requires_grad=False)
         #self.VT = Variable( torch.from_numpy(v.transpose()), requires_grad=False)
         if cuda is not None:
             #self.VT = self.VT.cuda(cuda)

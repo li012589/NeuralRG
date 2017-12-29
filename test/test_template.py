@@ -344,7 +344,7 @@ def test_parallel():
     output = net(x.cuda())
     print(output)
 
-    assert_array_almost_equal(z.data.numpy(),output.cpu().data.numpy())
+    assert_array_almost_equal(z.data.numpy(),output.cpu().data.numpy(),decimal=5)
 
 def test_multiplyMask_generate_CNN():
     gaussian3d = Gaussian([2,4,4])

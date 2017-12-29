@@ -40,7 +40,7 @@ class MCMC:
         if self.collectdata:
             self.data = []
    
-    def run(self, batchSize,ntherm, nmeasure, nskip, z=None, cuda = None):
+    def run(self, batchSize,ntherm, nmeasure, nskip, z=None, cuda = None, double = False):
         """
         This method start sampling.
         Args:
@@ -56,22 +56,25 @@ class MCMC:
         else:
             z = Variable(z)                        # sample from data
 
-        if cuda is not None:
-            z = z.cuda(cuda)
-            kld = Variable(torch.DoubleTensor(batchSize).zero_()).cuda(cuda)
-            res = Variable(torch.DoubleTensor(batchSize).zero_()).cuda(cuda)
-        else:
+        if double:
             kld = Variable(torch.DoubleTensor(batchSize).zero_())
             res = Variable(torch.DoubleTensor(batchSize).zero_())
+        else:
+            kld = Variable(torch.FloatTensor(batchSize).zero_())
+            res = Variable(torch.FloatTensor(batchSize).zero_())
+        if cuda is not None:
+            z = z.cuda(cuda)
+            kld = kld.cuda(cuda)
+            res = res.cuda(cuda)
         zpack = [] # samples 
         xpack = [] # proposals
         measurepack = []
         accratio = 0.0
         for n in range(ntherm+nmeasure):
             for _ in range(nskip):
-                _,_,_,z = self.step(batchSize,z)
+                _,_,_,z = self.step(batchSize,z,double)
 
-            a,r,x,z = self.step(batchSize,z)
+            a,r,x,z = self.step(batchSize,z,double)
 
             if n>=ntherm:
                 accratio += a # mean acceptance ratio 
@@ -106,7 +109,7 @@ class MCMC:
         #print ('#accratio:', accratio)
         return zpack,xpack,measurepack,accratio,res,kld
 
-    def step(self,batchSize,z):
+    def step(self,batchSize,z,double):
         """
         This method run a step of sampling.
         """
@@ -136,12 +139,12 @@ class MCMC:
         r = -F.relu(-diff)
         accept = Variable(diff.data.exp() >= diff.data.uniform_())
 
-        a = accept.data.double().mean()
-
-        #print ('#', accept.float().mean())
-        #print (A.mean())
-
-        accept.data = accept.data.double()
+        if double:
+            a = accept.data.double().mean()
+            accept.data = accept.data.double()
+        else:
+            a = accept.data.float().mean()
+            accept.data = accept.data.float()
         accept = accept.view(batchSize, -1)
 
         z = accept * x.view(batchSize, -1) + (1.-accept)*z.view(batchSize, -1)
