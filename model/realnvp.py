@@ -4,225 +4,7 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 
-from model import RealNVPtemplate, PriorTemplate
-
-class Cauchy(PriorTemplate):
-    """
-
-    This is a class for Cauchy prior distribution.
-    Args:
-        name (PriorTemplate): name of this prior.
-        shapeList (int list): shape of sampled variables.
-
-    """
-
-    def __init__(self, shapeList, sigma=1, requires_grad=False, double = False, name="cauchy"):
-        """
-
-        This method initialise this class.
-        Args:
-            shapeList (int list): shape of sampled variables.
-            name (PriorTemplate): name of this prior.
-
-        """
-        super(Cauchy, self).__init__(name)
-        self.shapeList = shapeList
-        if double:
-            self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]), requires_grad= requires_grad)
-        else:
-            self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad= requires_grad)
-
-    def sample(self, batchSize, volatile=False, ifCuda=False, double=False):
-        """
-
-        This method gives variables sampled from prior distribution.
-        Args:
-            batchSize (int): size of batch of variables to sample.
-            volatile (bool): if only want forward, flag volatile to True to disable computation graph.
-        Return:
-            Samples (torch.autograd.Variable): sampled variables.
-
-        """
-        size = [batchSize] + self.shapeList
-        if ifCuda:
-            if double:
-                return Variable(torch.DoubleTensor(*size).cauchy_(sigma=self.sigma).pin_memory(),volatile=volatile)
-            else:
-                return Variable(torch.FloatTensor(*size).cauchy_(sigma=self.sigma).pin_memory(),volatile=volatile)
-        else:
-            if double:
-                return Variable(torch.DoubleTensor(*size).cauchy_(sigma=self.sigma), volatile=volatile)
-            else:
-                return Variable(torch.FloatTensor(*size).cauchy_(sigma=self.sigma), volatile=volatile)
-    def __call__(self,*args,**kwargs):
-        return self.sample(*args,**kwargs)
-
-    def logProbability(self, z):
-        """
-
-        This method gives the log probability of z in prior distribution.
-        Args:
-            z (torch.autograd.Variable): variables to get log probability of.
-        Return:
-            logProbability (torch.autograd.Variable): log probability of input variables.
-
-        """
-        tmp = -torch.log(z**2+self.sigma**2)
-        return tmp.view(z.data.shape[0],-1).sum(dim=1)  # sum all but the batch dimension
-
-class GMM(PriorTemplate):
-    """
-
-    Gaussian mixture prior distribution.
-    Args:
-        name (PriorTemplate): name of this prior.
-        shapeList (int list): shape of sampled variables.
-
-    """
-
-    def __init__(self, shapeList, double = False, name="GMM"):
-        """
-
-        This method initialise this class.
-        Args:
-            shapeList (int list): shape of sampled variables.
-            name (PriorTemplate): name of this prior.
-
-        """
-        super(GMM, self).__init__(name)
-        self.shapeList = shapeList
-        #now we can only have two centers 
-
-        #shared mu and sigma
-        if double:
-            self.mu1= torch.nn.Parameter(torch.DoubleTensor([1.]), requires_grad=True)
-            self.logsigma1 = torch.nn.Parameter(torch.DoubleTensor([0.]), requires_grad=True)
-            self.mu2 = torch.nn.Parameter(torch.DoubleTensor([-1.]), requires_grad=True)
-            self.logsigma2 = torch.nn.Parameter(torch.DoubleTensor([0.]), requires_grad=True)
-        else:
-            self.mu1= torch.nn.Parameter(torch.FloatTensor([1.]), requires_grad=True)
-            self.logsigma1 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad=True)
-            self.mu2 = torch.nn.Parameter(torch.FloatTensor([-1.]), requires_grad=True)
-            self.logsigma2 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad=True)
-        #independed for each component 
-        #self.mu1= torch.nn.Parameter(torch.DoubleTensor(*shapeList).normal_(), requires_grad=True)
-        #self.logsigma1 = torch.nn.Parameter(torch.DoubleTensor(*shapeList).zero_(), requires_grad=True)
-        #self.mu2 = torch.nn.Parameter(torch.DoubleTensor(*shapeList).normal_(), requires_grad=True)
-        #self.logsigma2 = torch.nn.Parameter(torch.DoubleTensor(*shapeList).zero_(), requires_grad=True)
-
-    def sample(self, batchSize, volatile=False, ifCuda=False, double=False):
-        """
-
-        This method gives variables sampled from prior distribution.
-        Args:
-            batchSize (int): size of batch of variables to sample.
-            volatile (bool): if only want forward, flag volatile to True to disable computation graph.
-        Return:
-            Samples (torch.autograd.Variable): sampled variables.
-
-        """
-        size = [batchSize] + self.shapeList
-        if ifCuda:
-            raise NotImplementedError(str(type(self)))
-        else:
-            if double:
-                selector = torch.from_numpy(np.random.choice(2, size=(batchSize,))).double()
-                selector = Variable(selector.view(batchSize, -1))
-                return selector * (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma1) + self.mu1) \
-                 + (1.-selector)* (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma2) + self.mu2)
-            else:
-                selector = torch.from_numpy(np.random.choice(2, size=(batchSize,)))
-                selector = Variable(selector.view(batchSize, -1))
-                return selector * (Variable(torch.FloatTensor(*size).normal_())*torch.exp(self.logsigma1) + self.mu1) \
-                 + (1.-selector)* (Variable(torch.FloatTensor(*size).normal_())*torch.exp(self.logsigma2) + self.mu2)
-
-    def __call__(self,*args,**kwargs):
-        return self.sample(*args,**kwargs)
-
-    def _log_normal(self, x, mu, sigma):
-        '''
-        log normal probability distribution 
-        '''
-        return (-0.5*((x-mu)/sigma)**2- 0.5* torch.log(2.*np.pi*sigma**2)).sum(dim=1)
-
-    def logProbability(self, x):
-        """
-
-        This method gives the log probability of z in prior distribution.
-        Args:
-            z (torch.autograd.Variable): variables to get log probability of.
-        Return:
-            logProbability (torch.autograd.Variable): log probability of input variables.
-
-        """
-        return torch.log( 0.5* torch.exp(self._log_normal(x, self.mu1, torch.exp(self.logsigma1)))
-                        + 0.5* torch.exp(self._log_normal(x, self.mu2, torch.exp(self.logsigma2)))
-                        )
-
-class Gaussian(PriorTemplate):
-    """
-
-    This is a class for Gaussian prior distribution.
-    Args:
-        name (PriorTemplate): name of this prior.
-        shapeList (int list): shape of sampled variables.
-
-    """
-
-    def __init__(self, shapeList, sigma=1, requires_grad=False, double = False, name="gaussian"):
-        """
-
-        This method initialise this class.
-        Args:
-            shapeList (int list): shape of sampled variables.
-            name (PriorTemplate): name of this prior.
-
-        """
-        super(Gaussian, self).__init__(name)
-        self.shapeList = shapeList
-        if double:
-            self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]), requires_grad=requires_grad)
-        else:
-            self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad=requires_grad)
-    def sample(self, batchSize, volatile=False, ifCuda=False, double=False):
-        """
-
-        This method gives variables sampled from prior distribution.
-        Args:
-            batchSize (int): size of batch of variables to sample.
-            volatile (bool): if only want forward, flag volatile to True to disable computation graph.
-        Return:
-            Samples (torch.autograd.Variable): sampled variables.
-
-        """
-        size = [batchSize] + self.shapeList
-        sigma = self.sigma.cpu() #??
-        if ifCuda:
-            if double:
-                return Variable(torch.randn(size).double().pin_memory(),volatile=volatile) * sigma
-            else:
-                return Variable(torch.randn(size).pin_memory(),volatile=volatile) * sigma
-        else:
-            if double:
-                return Variable(torch.randn(size).double(), volatile=volatile) * sigma
-            else:
-                return Variable(torch.randn(size), volatile=volatile) * sigma
-
-    def __call__(self,*args,**kwargs):
-        return self.sample(*args,**kwargs)
-
-    def logProbability(self, z):
-        """
-
-        This method gives the log probability of z in prior distribution.
-        Args:
-            z (torch.autograd.Variable): variables to get log probability of.
-        Return:
-            logProbability (torch.autograd.Variable): log probability of input variables.
-
-        """
-        tmp = -0.5 * (z/self.sigma)**2 
-        return tmp.view(z.data.shape[0],-1).sum(dim=1)  # sum all but the batch dimension
+from .template import RealNVPtemplate
 
 class RealNVP(RealNVPtemplate):
     """
@@ -240,7 +22,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, maskType="channel", name=None, double=False):
+    def __init__(self, shapeList, sList, tList, prior, maskType="channel", double=False, mode = 0, name=None):
         """
 
         This mehtod initialise this class.
@@ -260,6 +42,7 @@ class RealNVP(RealNVPtemplate):
             assert len(maskType) == self.NumLayers
         self.maskType = maskType
         self.createMask(maskType)
+        self.mode = mode
 
     def createMask(self, maskType, ifByte=0, double = False):
         """
@@ -346,7 +129,7 @@ class RealNVP(RealNVPtemplate):
         #self.register_buffer("mask_",1-mask)
         return mask
 
-    def generate(self, z):
+    def generate(self, *args, **kwargs):
         """
 
         This method generate complex distribution using variables sampled from prior distribution.
@@ -357,9 +140,16 @@ class RealNVP(RealNVPtemplate):
             x (torch.autograd.Variable): output Variable.
 
         """
-        return self._generate(z, self.mask, self.mask_)
+        if self.mode == 0 :
+            return self._generate(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 1:
+            return self._generateWithContraction(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 2:
+            return self._generateWithSlice(*args, **kwargs)
+        else:
+            raise NotImplementedError("Unknown work mode for realnvp")
 
-    def inference(self, x):
+    def inference(self, *args, **kwargs):
         """
 
         This method inference prior distribution using variable sampled from complex distribution.
@@ -370,9 +160,16 @@ class RealNVP(RealNVPtemplate):
             z (torch.autograd.Variable): output Variable.
 
         """
-        return self._inference(x, self.mask, self.mask_)
+        if self.mode == 0 :
+            return self._inference(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 1:
+            return self._inferenceWithContraction(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 2:
+            return self._inferenceWithSlice(*args, **kwargs)
+        else:
+            raise NotImplementedError("Unknown work mode for realnvp")
 
-    def logProbability(self, x):
+    def logProbability(self, *args, **kwargs):
         """
 
         This method gives the log of probability of x sampled from complex distribution.
@@ -383,11 +180,28 @@ class RealNVP(RealNVPtemplate):
             log-probability (torch.autograd.Variable): log-probability of x.
 
         """
-        return self._logProbability(x, self.mask, self.mask_)
+        if self.mode == 0 :
+            return self._logProbability(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 1:
+            return self._logProbabilityWithContraction(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 2:
+            return self._logProbabilityWithSlice(*args, **kwargs)
+        else:
+            raise NotImplementedError("Unknown work mode for realnvp")
 
-    def logProbabilityWithInference(self,x):
-        z = self._inference(x, self.mask, self.mask_, True)
-        return self.prior.logProbability(z) + self._inferenceLogjac,z
+    def logProbabilityWithInference(self,*args, **kwargs):
+        kwargs['ifLogjac'] = True
+        if self.mode == 0 :
+            z = self._inference(*args, self.mask, self.mask_, **kwargs)
+            return self.prior.logProbability(z) + self._inferenceLogjac,z
+        elif self.mode == 1:
+            z = self._inferenceWithContraction(*args, self.mask, self.mask_, **kwargs)
+            return self.prior.logProbability(z) + self._inferenceLogjac,z
+        elif self.mode == 2:
+            z = self._inferenceWithSlice(*args, **kwargs)
+            return self.prior.logProbability(z) + self._inferenceLogjac,z
+        else:
+            raise NotImplementedError("Unknown work mode for realnvp")
 
     def saveModel(self, saveDic):
         """
@@ -431,11 +245,7 @@ class RealNVP(RealNVPtemplate):
         return:
             samples: (torch.autograd.Variable): output Variable.
         """
-        if self.ifCuda:
-            cudaNo = self.mask.get_device()
-            z = self.prior(batchSize, ifCuda=True).cuda(cudaNo)
-        else:
-            z = self.prior(batchSize)
+        z = self.prior(batchSize)
         if useGenerate:
             return self.generate(z)
         else:

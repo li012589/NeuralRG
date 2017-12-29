@@ -67,6 +67,9 @@ class RealNVPtemplate(torch.nn.Module):
         """
         cudaModel = super(RealNVPtemplate, self).cuda(device)
         cudaModel.ifCuda = True
+        if device is None:
+            device = 0
+        cudaModel.prior.cudaNo = device
         return cudaModel
 
     def cpu(self):
@@ -79,6 +82,7 @@ class RealNVPtemplate(torch.nn.Module):
         """
         cpuModel = super(RealNVPtemplate, self).cpu()
         cpuModel.ifCuda = False
+        cpuModel.prior.cudaNo = None
         return cpuModel
 
     def _generate(self, y, mask, mask_, ifLogjac=False):
@@ -543,45 +547,6 @@ class RealNVPtemplate(torch.nn.Module):
 
     def forward(self,*args,**kwargs):
         return getattr(self,self.pointer)(*args,**kwargs)
-
-
-class PriorTemplate(torch.nn.Module):
-    """
-
-    This is the template class for prior, which will be used in realNVP class.
-    Args:
-        name (PriorTemplate): name of this prior.
-
-    """
-
-    def __init__(self, name="prior"):
-        super(PriorTemplate, self).__init__()
-
-        """
-
-        This method initialise this class.
-        Args:
-            name (PriorTemplate): name of this prior.
-
-        """
-        self.name = name
-
-    def __call__(self):
-        """
-
-        This method should return sampled variables in prior distribution.
-
-        """
-        raise NotImplementedError(str(type(self)))
-
-    def logProbability(self, x):
-        """
-
-        This method should return the probability of input variable in prior distribution.
-
-        """
-        raise NotImplementedError(str(type(self)))
-
 
 if __name__ == "__main__":
 

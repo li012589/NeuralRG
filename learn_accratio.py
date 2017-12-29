@@ -9,7 +9,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import Gaussian, Cauchy, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh
+from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from copy import deepcopy
@@ -299,8 +299,6 @@ if __name__=="__main__":
 
     if args.prior == 'gaussian':
         prior = Gaussian([1, args.L, args.L], requires_grad = args.train_prior)
-    elif args.prior == 'cauchy':
-        prior = Cauchy([Nvars], requires_grad = args.train_prior)
     elif args.prior == 'gmm':
         prior = GMM([Nvars])
     else:
