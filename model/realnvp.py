@@ -22,7 +22,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, maskType="channel", name=None, double=False):
+    def __init__(self, shapeList, sList, tList, prior, maskType="channel", double=False, mode = 0, name=None):
         """
 
         This mehtod initialise this class.
@@ -42,6 +42,7 @@ class RealNVP(RealNVPtemplate):
             assert len(maskType) == self.NumLayers
         self.maskType = maskType
         self.createMask(maskType)
+        self.mode = mode
 
     def createMask(self, maskType, ifByte=0, double = False):
         """
@@ -128,7 +129,7 @@ class RealNVP(RealNVPtemplate):
         #self.register_buffer("mask_",1-mask)
         return mask
 
-    def generate(self, z):
+    def generate(self, *args, **kwargs):
         """
 
         This method generate complex distribution using variables sampled from prior distribution.
@@ -139,9 +140,16 @@ class RealNVP(RealNVPtemplate):
             x (torch.autograd.Variable): output Variable.
 
         """
-        return self._generate(z, self.mask, self.mask_)
+        if self.mode == 0 :
+            return self._generate(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 1:
+            return self._generateWithContraction(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 2:
+            return self._generateWithSlice(*args, **kwargs)
+        else:
+            raise NotImplementedError("Unknown work mode for realnvp")
 
-    def inference(self, x):
+    def inference(self, *args, **kwargs):
         """
 
         This method inference prior distribution using variable sampled from complex distribution.
@@ -152,9 +160,16 @@ class RealNVP(RealNVPtemplate):
             z (torch.autograd.Variable): output Variable.
 
         """
-        return self._inference(x, self.mask, self.mask_)
+        if self.mode == 0 :
+            return self._inference(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 1:
+            return self._inferenceWithContraction(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 2:
+            return self._inferenceWithSlice(*args, **kwargs)
+        else:
+            raise NotImplementedError("Unknown work mode for realnvp")
 
-    def logProbability(self, x):
+    def logProbability(self, *args, **kwargs):
         """
 
         This method gives the log of probability of x sampled from complex distribution.
@@ -165,11 +180,28 @@ class RealNVP(RealNVPtemplate):
             log-probability (torch.autograd.Variable): log-probability of x.
 
         """
-        return self._logProbability(x, self.mask, self.mask_)
+        if self.mode == 0 :
+            return self._logProbability(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 1:
+            return self._logProbabilityWithContraction(*args, self.mask, self.mask_, **kwargs)
+        elif self.mode == 2:
+            return self._logProbabilityWithSlice(*args, **kwargs)
+        else:
+            raise NotImplementedError("Unknown work mode for realnvp")
 
-    def logProbabilityWithInference(self,x):
-        z = self._inference(x, self.mask, self.mask_, True)
-        return self.prior.logProbability(z) + self._inferenceLogjac,z
+    def logProbabilityWithInference(self,*args, **kwargs):
+        kwargs['ifLogjac'] = True
+        if self.mode == 0 :
+            z = self._inference(*args, self.mask, self.mask_, **kwargs)
+            return self.prior.logProbability(z) + self._inferenceLogjac,z
+        elif self.mode == 1:
+            z = self._inferenceWithContraction(*args, self.mask, self.mask_, **kwargs)
+            return self.prior.logProbability(z) + self._inferenceLogjac,z
+        elif self.mode == 2:
+            z = self._inferenceWithSlice(*args, **kwargs)
+            return self.prior.logProbability(z) + self._inferenceLogjac,z
+        else:
+            raise NotImplementedError("Unknown work mode for realnvp")
 
     def saveModel(self, saveDic):
         """
