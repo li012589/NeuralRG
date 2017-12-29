@@ -217,7 +217,10 @@ class Gaussian(PriorTemplate):
         """
         super(Gaussian, self).__init__(name)
         self.shapeList = shapeList
-        self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad=requires_grad)
+        if double:
+            self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]), requires_grad=requires_grad)
+        else:
+            self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad=requires_grad)
         self.double = double
     def sample(self, batchSize, volatile=False):
         """
