@@ -299,8 +299,6 @@ if __name__=="__main__":
 
     if args.prior == 'gaussian':
         prior = Gaussian([1, args.L, args.L], requires_grad = args.train_prior)
-    elif args.prior == 'cauchy':
-        prior = Cauchy([Nvars], requires_grad = args.train_prior)
     elif args.prior == 'gmm':
         prior = GMM([Nvars])
     else:
