@@ -49,7 +49,7 @@ def test_gaussian():
 
 @skipIfNoCuda
 def test_gaussian_cuda():
-    prior = Gaussian([2,4,4]).cuda
+    prior = Gaussian([2,4,4]).cuda()
     prior.cudaNo = 0
     a = prior.sample(5)
     assert a.data.shape[0] == 5
@@ -86,7 +86,7 @@ def test_GMM():
 
 @skipIfNoCuda
 def test_GMM_cuda():
-    prior = GMM([2]).cuda
+    prior = GMM([2]).cuda()
     prior.cudaNo = 0
     a = prior.sample(5)
     assert a.data.shape[0] == 5
