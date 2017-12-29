@@ -13,7 +13,7 @@ class PriorTemplate(torch.nn.Module):
 
     """
 
-    def __init__(self, name="prior"):
+    def __init__(self, shapeList, double = False, name="prior"):
         super(PriorTemplate, self).__init__()
 
         """
@@ -23,8 +23,10 @@ class PriorTemplate(torch.nn.Module):
             name (PriorTemplate): name of this prior.
 
         """
+        self.shapeList = shapeList
         self.name = name
         self.cudaNo = None
+        self.double = double
 
     def __call__(self):
         """
@@ -62,14 +64,13 @@ class Cauchy(PriorTemplate):
             name (PriorTemplate): name of this prior.
 
         """
-        super(Cauchy, self).__init__(name)
-        self.shapeList = shapeList
+        super(Cauchy, self).__init__(shapeList, double, name)
         if double:
             self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]), requires_grad= requires_grad)
         else:
             self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad= requires_grad)
 
-    def sample(self, batchSize, volatile=False, ifCuda=False, double=False):
+    def sample(self, batchSize, volatile=False):
         """
 
         This method gives variables sampled from prior distribution.
@@ -81,13 +82,13 @@ class Cauchy(PriorTemplate):
 
         """
         size = [batchSize] + self.shapeList
-        if ifCuda:
-            if double:
-                return Variable(torch.DoubleTensor(*size).cauchy_(sigma=self.sigma).pin_memory(),volatile=volatile)
+        if self.cudaNo is not None:
+            if self.double:
+                return Variable(torch.DoubleTensor(*size).cauchy_(sigma=self.sigma).pin_memory().cuda(self.cudaNo),volatile=volatile)
             else:
-                return Variable(torch.FloatTensor(*size).cauchy_(sigma=self.sigma).pin_memory(),volatile=volatile)
+                return Variable(torch.FloatTensor(*size).cauchy_(sigma=self.sigma).pin_memory().cuda(self.cudaNo),volatile=volatile)
         else:
-            if double:
+            if self.double:
                 return Variable(torch.DoubleTensor(*size).cauchy_(sigma=self.sigma), volatile=volatile)
             else:
                 return Variable(torch.FloatTensor(*size).cauchy_(sigma=self.sigma), volatile=volatile)
@@ -126,11 +127,8 @@ class GMM(PriorTemplate):
             name (PriorTemplate): name of this prior.
 
         """
-        super(GMM, self).__init__(name)
-        self.shapeList = shapeList
-        #now we can only have two centers 
-
-        #shared mu and sigma
+        super(GMM, self).__init__(shapeList, double ,name)
+        assert len(shapeList) == 1
         if double:
             self.mu1= torch.nn.Parameter(torch.DoubleTensor([1.]), requires_grad=True)
             self.logsigma1 = torch.nn.Parameter(torch.DoubleTensor([0.]), requires_grad=True)
@@ -141,13 +139,8 @@ class GMM(PriorTemplate):
             self.logsigma1 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad=True)
             self.mu2 = torch.nn.Parameter(torch.FloatTensor([-1.]), requires_grad=True)
             self.logsigma2 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad=True)
-        #independed for each component 
-        #self.mu1= torch.nn.Parameter(torch.DoubleTensor(*shapeList).normal_(), requires_grad=True)
-        #self.logsigma1 = torch.nn.Parameter(torch.DoubleTensor(*shapeList).zero_(), requires_grad=True)
-        #self.mu2 = torch.nn.Parameter(torch.DoubleTensor(*shapeList).normal_(), requires_grad=True)
-        #self.logsigma2 = torch.nn.Parameter(torch.DoubleTensor(*shapeList).zero_(), requires_grad=True)
 
-    def sample(self, batchSize, volatile=False, ifCuda=False, double=False):
+    def sample(self, batchSize, volatile=False):
         """
 
         This method gives variables sampled from prior distribution.
@@ -159,17 +152,23 @@ class GMM(PriorTemplate):
 
         """
         size = [batchSize] + self.shapeList
-        if ifCuda:
-            raise NotImplementedError(str(type(self)))
+        selector = Variable(torch.from_numpy(np.random.choice(2, size=(batchSize,))).view(batchSize,-1))
+        if self.cudaNo is not None:
+            if self.double:
+                selector = selector.double()
+                return selector * (Variable(torch.DoubleTensor(*size).normal_().pin_memory().cuda(self.cudaNo))*torch.exp(self.logsigma1) + self.mu1) \
+                 + (1.-selector)* (Variable(torch.DoubleTensor(*size).normal_()).pin_memory().cuda(self.cudaNo)*torch.exp(self.logsigma2) + self.mu2)
+            else:
+                selector = selector.float()
+                return selector * (Variable(torch.FloatTensor(*size).normal_().pin_memory().cuda(self.cudaNo))*torch.exp(self.logsigma1) + self.mu1) \
+                 + (1.-selector)* (Variable(torch.FloatTensor(*size).normal_().pin_memory().cuda(self.cudaNo))*torch.exp(self.logsigma2) + self.mu2)
         else:
-            if double:
-                selector = torch.from_numpy(np.random.choice(2, size=(batchSize,))).double()
-                selector = Variable(selector.view(batchSize, -1))
+            if self.double:
+                selector = selector.double()
                 return selector * (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma1) + self.mu1) \
                  + (1.-selector)* (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma2) + self.mu2)
             else:
-                selector = torch.from_numpy(np.random.choice(2, size=(batchSize,)))
-                selector = Variable(selector.view(batchSize, -1))
+                selector = selector.float()
                 return selector * (Variable(torch.FloatTensor(*size).normal_())*torch.exp(self.logsigma1) + self.mu1) \
                  + (1.-selector)* (Variable(torch.FloatTensor(*size).normal_())*torch.exp(self.logsigma2) + self.mu2)
 
@@ -215,13 +214,11 @@ class Gaussian(PriorTemplate):
             name (PriorTemplate): name of this prior.
 
         """
-        super(Gaussian, self).__init__(name)
-        self.shapeList = shapeList
+        super(Gaussian, self).__init__(shapeList, double,name)
         if double:
             self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]), requires_grad=requires_grad)
         else:
             self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad=requires_grad)
-        self.double = double
     def sample(self, batchSize, volatile=False):
         """
 
