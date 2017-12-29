@@ -12,7 +12,7 @@ torch.manual_seed(42)
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
-from model import Gaussian,MLP,RealNVP,CNN,GMM,Cauchy
+from model import Gaussian,MLP,RealNVP,CNN,GMM
 
 from subprocess import Popen, PIPE
 import pytest
@@ -107,4 +107,4 @@ def test_GMM_double():
     prior(5)
 
 if __name__ == "__main__":
-    test_GMM()
+    pass
