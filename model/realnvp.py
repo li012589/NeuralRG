@@ -213,11 +213,7 @@ class RealNVP(RealNVPtemplate):
         return:
             samples: (torch.autograd.Variable): output Variable.
         """
-        if self.ifCuda:
-            cudaNo = self.mask.get_device()
-            z = self.prior(batchSize, ifCuda=True).cuda(cudaNo)
-        else:
-            z = self.prior(batchSize)
+        z = self.prior(batchSize)
         if useGenerate:
             return self.generate(z)
         else:

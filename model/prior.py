@@ -169,7 +169,7 @@ class Gaussian(PriorTemplate):
 
     """
 
-    def __init__(self, shapeList, sigma=1, requires_grad=False, double = False, name="gaussian"):
+    def __init__(self, shapeList, sigma=1, requires_grad=False, name="gaussian"):
         """
 
         This method initialise this class.
@@ -180,11 +180,8 @@ class Gaussian(PriorTemplate):
         """
         super(Gaussian, self).__init__(name)
         self.shapeList = shapeList
-        if double:
-            self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]), requires_grad=requires_grad)
-        else:
-            self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad=requires_grad)
-    def sample(self, batchSize, volatile=False, ifCuda=False, double=False):
+        self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad=requires_grad)
+    def sample(self, batchSize, volatile=False):
         """
 
         This method gives variables sampled from prior distribution.
@@ -196,17 +193,7 @@ class Gaussian(PriorTemplate):
 
         """
         size = [batchSize] + self.shapeList
-        sigma = self.sigma.cpu() #??
-        if ifCuda:
-            if double:
-                return Variable(torch.randn(size).double().pin_memory(),volatile=volatile) * sigma
-            else:
-                return Variable(torch.randn(size).pin_memory(),volatile=volatile) * sigma
-        else:
-            if double:
-                return Variable(torch.randn(size).double(), volatile=volatile) * sigma
-            else:
-                return Variable(torch.randn(size), volatile=volatile) * sigma
+        return Variable(torch.randn(size),volatile=volatile) * self.sigma
 
     def __call__(self,*args,**kwargs):
         return self.sample(*args,**kwargs)
