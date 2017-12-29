@@ -258,9 +258,9 @@ class Gaussian(PriorTemplate):
         size = [batchSize] + self.shapeList
         if self.cudaNo is not None:
             if self.double:
-                return Variable(torch.randn(size).double().pin_memory().cuda(cudaNo),volatile=volatile) * self.sigma
+                return Variable(torch.randn(size).double().pin_memory().cuda(self.cudaNo),volatile=volatile) * self.sigma
             else:
-                return Variable(torch.randn(size).pin_memory().cuda(cudaNo),volatile=volatile) * self.sigma
+                return Variable(torch.randn(size).pin_memory().cuda(self.cudaNo),volatile=volatile) * self.sigma
         else:
             if self.double:
                 return Variable(torch.randn(size).double(),volatile=volatile) * self.sigma
