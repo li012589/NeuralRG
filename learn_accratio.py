@@ -238,7 +238,7 @@ if __name__=="__main__":
     group.add_argument("-Nepochs", type=int, default=500, help="")
     group.add_argument("-Batchsize", type=int, default=64, help="")
     group.add_argument("-cuda", action='store_true', help="use GPU")
-    group.add_argument("-float", action='store_false', help="use float32")
+    group.add_argument("-double", action='store_true', help="use float64")
 
     group.add_argument("-lr", type=float, default=0.001, help="learning rate")
     group.add_argument("-epsilon", type=float, default=1.0, help="acceptance term")
@@ -278,6 +278,11 @@ if __name__=="__main__":
     if args.cuda:
         cuda = 0
 
+    if args.double:
+        print ('use float64')
+    else:
+        print ('use float32')
+
     netDimension = 2
     if args.target == 'ring2d':
         target = Ring2D()
@@ -290,7 +295,7 @@ if __name__=="__main__":
     elif args.target == 'phi4':
         target = Phi4(4,2,0.15,1.145)
     elif args.target == 'ising':
-        target = Ising(args.L, args.d, args.T, cuda, not args.float)
+        target = Ising(args.L, args.d, args.T, cuda, args.double)
         netDimension = args.d+1
     else:
         print ('what target ?', args.target)
@@ -371,7 +376,7 @@ if __name__=="__main__":
         masktypelist = ['checkerboard', 'checkerboard'] * (args.Nlayers//2)
 
     model = RealNVP(input_size, sList, tList, prior, 
-                    masktypelist, name = key, double=not args.float)
+                    masktypelist, name = key, double=args.double)
 
     if args.modelname is not None:
         try:
