@@ -291,7 +291,7 @@ if __name__=="__main__":
         target = Phi4(4,2,0.15,1.145)
     elif args.target == 'ising':
         target = Ising(args.L, args.d, args.T, cuda, not args.float)
-        netDimension = 3
+        netDimension = args.d+1
     else:
         print ('what target ?', args.target)
         sys.exit(1)
