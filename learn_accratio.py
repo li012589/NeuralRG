@@ -24,7 +24,7 @@ from copy import deepcopy
 #    def forward(self, x):
 #        return x + self.offset
 
-def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, 
+def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
               epsilon = 1.0, beta=1.0, delta=0.0, omega=0.0, 
               lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None, 
               exact= None):
@@ -100,21 +100,20 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
         if (buff_samples.maximum > Batchsize):
             # draw starting state from the sampler buffer 
-            zinit = buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1, 1, args.L, args.L)
+            zinit = buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1, *shape)
         else:
             zinit = None
 
         samples, proposals, measurements, accratio, res, kld  = sampler.run(Batchsize, 
-                                                                                          Ntherm, 
-                                                                                          Nsteps, 
-                                                                                          Nskips,
-                                                                                          zinit,
-                                                                                          cuda=cuda
-                                                                                          )
+                                                                            Ntherm, 
+                                                                            Nsteps, 
+                                                                            Nskips,
+                                                                            zinit,
+                                                                            cuda=cuda)
 
 
         ######################################################
-        #push samples to buffer 
+        #push samples to buffer
         xy = samples.view(Batchsize*Nsteps,-1)
         #data argumentation using invertion symmetry
         xy_invert = deepcopy(xy)
@@ -143,7 +142,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
         #x_data = Variable(torch.from_numpy(np.array(x_data)))
         #x_data = torch.unsqueeze(x_data, 1)
 
-        x_data = Variable(buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1, 1, args.L, args.L))
+        x_data = Variable(buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1,*shape))
         #nll loss on the samples
         nll_samples = -model.logProbability(x_data)
         ######################################################
@@ -279,6 +278,7 @@ if __name__=="__main__":
     if args.cuda:
         cuda = 0
 
+    netDimension = 2
     if args.target == 'ring2d':
         target = Ring2D()
     elif args.target == 'ring5':
@@ -291,6 +291,7 @@ if __name__=="__main__":
         target = Phi4(4,2,0.15,1.145)
     elif args.target == 'ising':
         target = Ising(args.L, args.d, args.T, cuda, not args.float)
+        netDimension = 3
     else:
         print ('what target ?', args.target)
         sys.exit(1)
@@ -298,7 +299,10 @@ if __name__=="__main__":
     Nvars = target.nvars 
 
     if args.prior == 'gaussian':
-        prior = Gaussian([1, args.L, args.L], requires_grad = args.train_prior)
+        if netDimension == 3:
+            prior = Gaussian([1, args.L, args.L], requires_grad = args.train_prior)
+        else:
+            prior = Gaussian([Nvars], requires_grad = args.train_prior)
     elif args.prior == 'gmm':
         prior = GMM([Nvars])
     else:
@@ -330,42 +334,41 @@ if __name__=="__main__":
     cmd = ['mkdir', '-p', key]
     subprocess.check_call(cmd)
     
-    #MLP 
-    #sList = [MLP(Nvars//2, args.Hs, ScalableTanh(Nvars//2)) for i in range(args.Nlayers)]
-    #tList = [MLP(Nvars//2, args.Ht, F.linear) for i in range(args.Nlayers)]
+    #MLP
+    if netDimension == 2:
+        input_size= [Nvars]
+        sList = [MLP(Nvars, args.Hs) for i in range(args.Nlayers)]
+        tList = [MLP(Nvars, args.Ht) for i in range(args.Nlayers)]
 
-    input_size = [1, args.L, args.L]
-    #half_size = input_size.copy()
-    #half_size[args.slicedim] = half_size[args.slicedim]//2
+    else:
 
-    #CNN 
-    snet = [[args.Hs,3,1,1],
-            [args.Hs,1,1,0],
-            [1,3,1,1]
-            ]
+        input_size= [1, args.L, args.L]
+        #CNN 
+        snet = [[args.Hs,3,1,1],
+                [args.Hs,1,1,0],
+                [1,3,1,1]]
 
-    tnet = [[args.Ht,3,1,1],
-            [args.Ht,1,1,0],
-            [1,3,1,1]
-           ]
-    #[outchannel, filter_size, stride, padding]
-    #should be size peserving CNN
-    
-    sList = [CNN(snet, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
-    tList = [CNN(tnet) for i in range(args.Nlayers)]
+        tnet = [[args.Ht,3,1,1],
+                [args.Ht,1,1,0],
+                [1,3,1,1]]
+
+        sList = [CNN(snet, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
+        tList = [CNN(tnet) for i in range(args.Nlayers)]
    
-    #Resnet 
-    #sList = [ResNet(args.Hs, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
-    #tList = [ResNet(args.Ht) for i in range(args.Nlayers)]
-    #masktypelist = ['checkerboard0', 'checkerboard1', 
-    #                'leftright0', 'leftright1',
-    #                'updown0', 'updown1',
-    #                'bars0', 'bars1',
-    #                'stripes0', 'stripes1'
-    #                ]
-
-    #Resnet 
-    masktypelist = ['checkerboard', 'checkerboard'] * (args.Nlayers//2)
+        #Resnet 
+        #sList = [ResNet(args.Hs, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
+        #tList = [ResNet(args.Ht) for i in range(args.Nlayers)]
+        #masktypelist = ['checkerboard0', 'checkerboard1', 
+        #                'leftright0', 'leftright1',
+        #                'updown0', 'updown1',
+        #                'bars0', 'bars1',
+        #                'stripes0', 'stripes1'
+        #                ]
+        #Resnet
+    if netDimension == 2:
+        masktypelist = ['channel', 'channel'] * (args.Nlayers//2)
+    else:
+        masktypelist = ['checkerboard', 'checkerboard'] * (args.Nlayers//2)
 
     model = RealNVP(input_size, sList, tList, prior, 
                     masktypelist, name = key, double=not args.float)
@@ -384,10 +387,10 @@ if __name__=="__main__":
     if args.train_model:
         print("train model", key)
         model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
-                            args.Ntherm, args.Nsteps, args.Nskips,
-                            epsilon=args.epsilon,beta=args.beta, 
-                            delta=args.delta, omega=args.omega, lr=args.lr, 
-                            cuda = cuda, exact=args.exact)
+                                args.Ntherm, args.Nsteps, args.Nskips,input_size,
+                                epsilon=args.epsilon,beta=args.beta, 
+                                delta=args.delta, omega=args.omega, lr=args.lr, 
+                                cuda = cuda, exact=args.exact)
 
     sampler = MCMC(target, model, collectdata=True)
     
