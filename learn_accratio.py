@@ -261,7 +261,7 @@ if __name__=="__main__":
     group.add_argument("-Ntherm", type=int, default=10, help="")
     group.add_argument("-Nsteps", type=int, default=10, help="steps used in training")
     group.add_argument("-Nskips", type=int, default=10, help="")
-    group.add_argument("-Nsamples", type=int, default=100, help="")
+    group.add_argument("-Nsamples", type=int, default=10, help="")
 
     group = parser.add_argument_group('target parameters')
     group.add_argument("-target", default='ring2d', help="target distribution")
@@ -413,8 +413,8 @@ if __name__=="__main__":
     params.create_dataset("model", data=model.name)
     results = h5.create_group('results')
     results.create_dataset("obs", data=np.array(measurements))
-    results.create_dataset("samples", data=samples.numpy())
-    results.create_dataset("proposals", data=proposals.numpy())
+    results.create_dataset("samples", data=samples.cpu().numpy())
+    results.create_dataset("proposals", data=proposals.cpu().numpy())
     if args.train_model:
         results.create_dataset("loss", data=np.array(LOSS))
     h5.close()
