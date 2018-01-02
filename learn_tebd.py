@@ -9,221 +9,11 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh, TEBD
+from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from copy import deepcopy
 
-#class Offset(torch.nn.Module):
-#    '''
-#    offset a scalar 
-#    '''
-#    def __init__(self):
-#        super(Offset, self).__init__()
-#        self.offset = torch.nn.Parameter(torch.DoubleTensor([0]))    
-#    def forward(self, x):
-#        return x + self.offset
-
-def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
-              epsilon = 1.0, beta=1.0, delta=0.0, omega=0.0, 
-              lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None, 
-              exact= None):
-
-    LOSS = []
-    OBS = []
-
-    sampler = MCMC(target, model, collectdata=True)
-    
-    #offset = Offset()
-    #if cuda is not None:
-    #    offset = offset.cuda(cuda)
-    #buff_proposals = Buffer(10000)
-    buff_samples = Buffer(10*Batchsize)
-
-    params = list(model.parameters()) 
-    #if (gamma>0):
-    #    params += list(offset.parameters())
-    
-    #filter out those we do not want to train
-    params = list(filter(lambda p: p.requires_grad, params))
-    nparams = sum([np.prod(p.size()) for p in params])
-    print ('total nubmer of trainable parameters:', nparams)
-
-    optimizer = torch.optim.Adam(params, lr=lr, weight_decay=weight_decay)
-    #optimizer = torch.optim.SGD(params, lr=lr, momentum=0.9, weight_decay=weight_decay)
-    #scheduler = ReduceLROnPlateau(optimizer, 'min', verbose=True)
-
-    Nanneal = Nepochs//2
-    dbeta = (1.-beta)/Nanneal
-    
-    plt.ion() 
-
-    #samples 
-    fig1 = plt.figure()
-    ax1 = fig1.add_subplot(111)
-    l1, = ax1.plot([], [],'o', alpha=0.5, label='proposals')
-    l2, = ax1.plot([], [],'*', alpha=0.5, label='samples')
-    plt.xlabel('$x_1$')
-    plt.ylabel('$x_2$')
-    plt.legend()
-    fig1.canvas.draw()
-
-    #loss, acceptance, observable 
-    fig2 = plt.figure(figsize=(8, 8))
-    ax21 = fig2.add_subplot(311)
-    plt.title('$\epsilon=%g, \delta=%g, \omega=%g$'%(epsilon, delta, omega))
-    l3, = ax21.plot([], [], label='loss')
-    ax21.legend()
-
-    ax22 = fig2.add_subplot(312, sharex=ax21)
-    l4, = ax22.plot([], [], label='acc')
-    ax22.set_xlim([0, Nepochs])
-    ax22.legend()
-
-    ax23 = fig2.add_subplot(313, sharex=ax21)
-    l5, = ax23.plot([], [], label='obs')
-    if exact is not None:
-        ax23.axhline(exact, color='r')
-    ax23.set_xlim([0, Nepochs])
-    ax23.legend()
-
-    plt.xlabel('epochs')
-    fig2.canvas.draw()
-    
-    #parameter hist  
-    fig3 = plt.figure()
-    ax3 = fig3.add_subplot(111)
-    [n, X, V]=ax3.hist([], bins=50)
-    fig3.canvas.draw()
-
-    for epoch in range(Nepochs):
-
-        if (buff_samples.maximum > Batchsize):
-            # draw starting state from the sampler buffer 
-            zinit = buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1, *shape)
-        else:
-            zinit = None
-
-        samples, proposals, measurements, accratio, res, kld  = sampler.run(Batchsize, 
-                                                                            Ntherm, 
-                                                                            Nsteps, 
-                                                                            Nskips,
-                                                                            zinit,
-                                                                            cuda=cuda)
-
-
-        ######################################################
-        #push samples to buffer
-        xy = samples.view(Batchsize*Nsteps,-1)
-        #data argumentation using invertion symmetry
-        xy_invert = deepcopy(xy)
-        xy_invert[:, :-1] = -xy_invert[:, :-1] 
-        xy = torch.stack([xy, xy_invert],0).view(Batchsize*Nsteps*2,-1)
-        #print (xy) 
-        buff_samples.push(xy)
-        
-        #sample from buffer 
-        #traindata = buff_samples.draw(Batchsize)
-
-        #data argumentation via randomly symmetry transformation 
-        #x_data = []
-        #for i in range(Batchsize):
-        #    x = traindata[i, :-1].numpy()
-        #    x.shape = target.lattice.shape
-            #translation 
-            #shift = np.random.randint(x.shape[0], size=2)
-            #x = np.roll(x, shift[0], axis=0)
-            #x = np.roll(x, shift[1], axis=1)
-            #spin inversion 
-            #if (np.random.rand()<0.5):
-            #    x = -x 
-        #    x_data.append(x)
-        #    x_data.append(-x)
-        #x_data = Variable(torch.from_numpy(np.array(x_data)))
-        #x_data = torch.unsqueeze(x_data, 1)
-
-        x_data = Variable(buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1,*shape))
-        #nll loss on the samples
-        nll_samples = -model.logProbability(x_data)
-        ######################################################
-
-        loss = -epsilon*res.mean() + delta*nll_samples.mean()  + omega * kld.mean() 
-
-        if (epoch < Nanneal):
-            beta += dbeta
-        target.set_beta(beta)
-        
-        print ("epoch:",epoch
-               ,"loss:",loss.data[0], -res.mean().data[0], nll_samples.mean().data[0], kld.mean().data[0]
-               ,"acc:", accratio
-               ,"beta:", beta
-               #,"offset:", offset.offset.data[0]
-               ,"obs", np.array(measurements).mean()
-               #"mu", model.prior.mu1.data[0], model.prior.mu2.data[0]
-               )
-
-        LOSS.append([loss.data[0], accratio])
-        OBS.append(np.array(measurements).mean())
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        #scheduler.step(loss.data[0])
-
-        if save and epoch%saveSteps==0:
-            saveDict = model.saveModel({})
-            torch.save(saveDict, model.name+'/epoch'+str(epoch))
-
-            samples = samples.cpu().numpy()
-            samples.shape = (Batchsize*Nsteps, -1)
-
-            proposals = proposals.cpu().numpy()
-            proposals.shape = (Batchsize*Nsteps, -1)
-            
-            l1.set_xdata(proposals[:,0])
-            l1.set_ydata(proposals[:,1])
-
-            l2.set_xdata(samples[:,0])
-            l2.set_ydata(samples[:,1])
-            ax1.set_title('epoch=%g'%(epoch))
-
-            ax1.relim()
-            ax1.autoscale_view() 
-
-            fig1.canvas.draw()
-            fig1.savefig(model.name+'/epoch%g.png'%(epoch)) 
-
-            loss4plot = np.array(LOSS)
-            obs4plot = np.array(OBS)
-        
-            l3.set_xdata(range(len(LOSS)))
-            l4.set_xdata(range(len(LOSS)))
-            l5.set_xdata(range(len(OBS)))
-            l3.set_ydata(loss4plot[:,0])
-            l4.set_ydata(loss4plot[:,1])
-            l5.set_ydata(obs4plot)
-            ax21.relim()
-            ax21.autoscale_view() 
-            ax22.relim()
-            ax22.autoscale_view() 
-            ax23.relim()
-            ax23.autoscale_view() 
-
-            fig2.canvas.draw()
-
-            paramslist = []
-            for p in params:
-                paramslist += list(p.data.cpu().numpy().ravel()) # could be sppeed up
-            ax3.cla()
-            [n,X,V]=ax3.hist(paramslist)
-            ax3.relim()
-            ax3.autoscale_view() 
-            fig3.canvas.draw()
-
-            plt.pause(0.001)
-
-    fig2.savefig(model.name + '/loss.png')
-    return model, LOSS
 
 if __name__=="__main__":
     import h5py
@@ -339,6 +129,9 @@ if __name__=="__main__":
     cmd = ['mkdir', '-p', key]
     subprocess.check_call(cmd)
     
+ 
+
+
     input_size= [Nvars]
     #RNVP block
     Nlayers = 4
@@ -355,6 +148,7 @@ if __name__=="__main__":
                       masktypelist) for _ in range(args.Nlayers)] 
     
     model = TEBD(prior, layers)
+
 
     if args.modelname is not None:
         try:
@@ -397,3 +191,4 @@ if __name__=="__main__":
         results.create_dataset("loss", data=np.array(LOSS))
     h5.close()
     print ('#accratio:', accratio)
+
