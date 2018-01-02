@@ -1,8 +1,29 @@
-import math 
+import math
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
+
+class Roll(nn.Module):
+    def __init__(self,step,axis):
+        super(Roll,self).__init__()
+        if not isinstance(step,list):
+            assert not isinstance(axis,list)
+            step = [step]
+            axis = [axis]
+        assert len(step) == len(axis)
+        self.step = step
+        self.axis = axis
+    def forward(self,x):
+        for i,s in enumerate(step):
+            if s >=0:
+                x1 = x[:,0:s]
+                x2 = x[:,s:]
+            else:
+                x2 = x[:,s:]
+                x1 = x[:,0:s]
+            x = torch.cat([x2,x1],1)
+        return x
 
 class ScalableTanh(nn.Module):
     def __init__(self,input_size):
@@ -92,7 +113,7 @@ class FC(nn.Module):
             activation.append(nn.Tanh())
         self.activation = activation
         assert(len(dList) == len(activation))
-        fcList = []
+        fcList = [``]
         self.name = name
         for i, d in enumerate(dList):
             if i == 0:
