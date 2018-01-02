@@ -12,7 +12,7 @@ torch.manual_seed(42)
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
-from model import Gaussian,MLP,RealNVP,CNN,Squeezing
+from model import Gaussian,MLP,RealNVP,CNN,Squeezing,Roll
 
 from subprocess import Popen, PIPE
 import pytest
@@ -49,5 +49,25 @@ def test_squeeze():
     t = t.numpy()
     t3 = t3.numpy()
     assert_array_almost_equal(t,t3)
+
+def test_Roll():
+    #t = np.random.randn(2,4,4)
+    t = np.array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
+    r1 = np.roll(t,1,0)
+    r2 = np.roll(t,1,1)
+    r3 = np.roll(t,-1,0)
+    r4 = np.roll(t,-1,1)
+
+    tt = torch.from_numpy(t)
+    tt = tt.view(-1,4,4)
+    l1 = Roll(1,1).forward(tt)
+    l2 = Roll(1,2).forward(tt)
+    l3 = Roll(-1,1).forward(tt)
+    l4 = Roll(-1,2).forward(tt)
+
+    assert_array_almost_equal(r1,l3.numpy()[0])
+    assert_array_almost_equal(r2,l4.numpy()[0])
+    assert_array_almost_equal(r3,l1.numpy()[0])
+    assert_array_almost_equal(r4,l2.numpy()[0])
 if __name__ == "__main__":
-    test_squeeze()
+    test_Roll()
