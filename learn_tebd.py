@@ -129,16 +129,14 @@ if __name__=="__main__":
     cmd = ['mkdir', '-p', key]
     subprocess.check_call(cmd)
     
- 
-    input_size= [Nvars]
-
     #RNVP block
     Nlayers = 4 # number of layers of each RNVP block
-    sList = [MLP(2, args.Hs, activation=ScalableTanh(input_size)) for _ in range(Nlayers)]
+    sList = [MLP(2, args.Hs, activation=ScalableTanh([2])) for _ in range(Nlayers)]
     tList = [MLP(2, args.Ht) for _ in range(Nlayers)]
     masktypelist = ['channel', 'channel'] * (Nlayers//2)
     
     #assamble RNVP blocks into a TEBD layer
+    input_size= [Nvars]
     prior = Gaussian([Nvars])
     layers = [RealNVP([2], 
                       sList, 

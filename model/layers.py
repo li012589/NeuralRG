@@ -79,7 +79,7 @@ class MLP(nn.Module):
 
         """
         x = self.fc1(x)
-        x = F.relu(x)
+        x = F.elu(x)
         x = self.fc2(x)
         x = self.activation(x)
         return x

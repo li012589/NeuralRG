@@ -106,7 +106,7 @@ class TEBD(nn.Module):
 
     
     def logProbability(self, x):
-        z = self.inference(x, ifLogjec=True)
+        z = self.inference(x, ifLogjac=True)
         return self.prior.logProbability(z) + self._inferenceLogjac 
 
     def sample(self, batchsize):
