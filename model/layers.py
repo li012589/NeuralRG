@@ -15,15 +15,22 @@ class Roll(nn.Module):
         self.step = step
         self.axis = axis
     def forward(self,x):
+        shape = x.shape
         for i,s in enumerate(step):
             if s >=0:
-                x1 = x[:,0:s]
-                x2 = x[:,s:]
+                x1 = x.narrow(axis[i],0,s)
+                x2 = x.narrow(axis[i],s,shape[axis[i]]-s)
             else:
-                x2 = x[:,s:]
-                x1 = x[:,0:s]
-            x = torch.cat([x2,x1],1)
+                x2 = x.narrow(axis[i],shape[axis[i]]+s,-s)
+                x1 = x.narrow(axis[i],0,shape[axis[i]]+s)
+            x = torch.cat([x2,x1],axis[i])
         return x
+
+class Wide2bacth(nn.Module):
+    def __init__(self):
+        pass
+    def forward(self,x):
+        pass
 
 class ScalableTanh(nn.Module):
     def __init__(self,input_size):
