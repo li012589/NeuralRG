@@ -81,6 +81,14 @@ class RealNVP(RealNVPtemplate):
                 maskZero = torch.zeros(size)
             mask = torch.cat([maskOne, maskZero], 0)
 
+        elif maskType == "evenodd":
+            size[0] = size[0] // 2
+            if double:
+                unit = torch.DoubleTensor([1, 0])
+            else:
+                unit = torch.FloatTensor([1, 0])
+            mask = (unit.repeat(size[0]))
+
         elif maskType == "checkerboard":
             assert (size[1] % 2 == 0)
             assert (size[2] % 2 == 0)
@@ -120,6 +128,8 @@ class RealNVP(RealNVPtemplate):
                 size[0], size[1] // 2, size[2] // 2))
         else:
             raise ValueError("maskType not known.")
+
+        #print (mask)
         if ifByte:
             mask = mask.byte()
         if self.ifCuda:

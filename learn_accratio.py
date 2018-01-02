@@ -366,7 +366,7 @@ if __name__=="__main__":
         #                ]
         #Resnet
     if netDimension == 2:
-        masktypelist = ['channel', 'channel'] * (args.Nlayers//2)
+        masktypelist = ['evenodd', 'evenodd'] * (args.Nlayers//2)
     else:
         masktypelist = ['checkerboard', 'checkerboard'] * (args.Nlayers//2)
 
