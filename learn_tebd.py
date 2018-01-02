@@ -131,18 +131,18 @@ if __name__=="__main__":
     
     #RNVP block
     Nlayers = 4 # number of layers of each RNVP block
-    sList = [MLP(2, args.Hs, activation=ScalableTanh([2])) for _ in range(Nlayers)]
-    tList = [MLP(2, args.Ht) for _ in range(Nlayers)]
+    sList = [[MLP(2, args.Hs, activation=ScalableTanh([2])) for _ in range(Nlayers)] for l in range(args.Nlayers)]
+    tList = [[MLP(2, args.Ht) for _ in range(Nlayers)] for l in range(args.Nlayers)]
     masktypelist = ['channel', 'channel'] * (Nlayers//2)
     
     #assamble RNVP blocks into a TEBD layer
     input_size= [Nvars]
     prior = Gaussian([Nvars])
     layers = [RealNVP([2], 
-                      sList, 
-                      tList, 
+                      sList[l], 
+                      tList[l], 
                       Gaussian([2]), 
-                      masktypelist) for _ in range(args.Nlayers)] 
+                      masktypelist) for l in range(args.Nlayers)] 
     
     model = TEBD(prior, layers, name=key)
 
