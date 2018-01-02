@@ -298,8 +298,73 @@ def testCopyspeedCuda():
         t = torch.randn([3000,3000]).cuda()
         t = torch.randn([3000,3000]).pin_memory().cuda()
 
+def test_workmode1():
+    gaussian = Gaussian([2])
+
+    sList = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+    tList = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+
+    realNVP = RealNVP([2], sList, tList, gaussian,mode = 1)
+
+    z = realNVP.prior(10)
+
+    assert realNVP.mask.shape[0] == 4
+    assert realNVP.mask.shape[1] == 2
+
+    x = realNVP.generate(z,sliceDim=0)
+
+    zp = realNVP.inference(x,sliceDim=0)
+
+    assert_array_almost_equal(z.data.numpy(),zp.data.numpy())
+
+    saveDict = realNVP.saveModel({})
+    torch.save(saveDict, './saveNet.testSave')
+    # realNVP.loadModel({})
+    sListp = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+    tListp = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+
+    realNVPp = RealNVP([2], sListp, tListp, gaussian)
+    saveDictp = torch.load('./saveNet.testSave')
+    realNVPp.loadModel(saveDictp)
+
+    xx = realNVP.generate(z,sliceDim=0)
+    print("Forward after restore")
+
+    assert_array_almost_equal(xx.data.numpy(),x.data.numpy())
+
+def test_workmode2():
+    gaussian = Gaussian([2])
+
+    sList = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+    tList = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+
+    realNVP = RealNVP([2], sList, tList, gaussian,mode = 2)
+
+    z = realNVP.prior(10)
+
+    x = realNVP.generate(z,sliceDim=0)
+
+    zp = realNVP.inference(x,sliceDim=0)
+
+    assert_array_almost_equal(z.data.numpy(),zp.data.numpy())
+
+    saveDict = realNVP.saveModel({})
+    torch.save(saveDict, './saveNet.testSave')
+    # realNVP.loadModel({})
+    sListp = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+    tListp = [MLP(1, 10), MLP(1, 10), MLP(1, 10), MLP(1, 10)]
+
+    realNVPp = RealNVP([2], sListp, tListp, gaussian)
+    saveDictp = torch.load('./saveNet.testSave')
+    realNVPp.loadModel(saveDictp)
+
+    xx = realNVP.generate(z,sliceDim=0)
+    print("Forward after restore")
+
+    assert_array_almost_equal(xx.data.numpy(),x.data.numpy())
+
 if __name__ == "__main__":
-    test_logProbabilityWithInference()
+    test_workmode2()
     #test_checkerboardMask()
     #test_checkerboard_cuda_cudaNot0()
     #copyTest()

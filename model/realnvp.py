@@ -36,12 +36,24 @@ class RealNVP(RealNVPtemplate):
         """
         super(RealNVP, self).__init__(
             shapeList, sList, tList, prior, name,double)
-        if isinstance(maskType,str):
-            maskType = [maskType] * self.NumLayers
-        else:
-            assert len(maskType) == self.NumLayers
-        self.maskType = maskType
-        self.createMask(maskType)
+        if mode == 0:
+            if isinstance(maskType,str):
+                maskType = [maskType] * self.NumLayers
+            else:
+                assert len(maskType) == self.NumLayers
+            self.maskType = maskType
+            self.createMask(maskType,double = double)
+        elif mode == 1:
+            if isinstance(maskType,str):
+                maskType = [maskType] * self.NumLayers
+            else:
+                assert len(maskType) == self.NumLayers
+            self.maskType = maskType
+            self.createMask(maskType,ifByte=1,double=double)
+        elif mode == 2:
+            self.maskType = None
+            self.mask = None
+            self.mask_ = None
         self.mode = mode
 
     def createMask(self, maskType, ifByte=0, double = False):
@@ -224,9 +236,11 @@ class RealNVP(RealNVPtemplate):
 
         """
         self._saveModel(saveDic)
-        saveDic["mask"] = self.mask.cpu()  # Do check if exist !!
-        saveDic["mask_"] = self.mask_.cpu()
+        if self.mask is not None:
+            saveDic["mask"] = self.mask.cpu()  # Do check if exist !!
+            saveDic["mask_"] = self.mask_.cpu()
         saveDic["shapeList"] = self.shapeList
+        saveDic["mode"] = self.mode
         return saveDic
 
     def loadModel(self, saveDic):
@@ -240,8 +254,10 @@ class RealNVP(RealNVPtemplate):
 
         """
         self._loadModel(saveDic)
-        self.register_buffer("mask",saveDic["mask"])
-        self.register_buffer("mask_",saveDic["mask_"])
+        self.mode = saveDic['mode']
+        if self.mode != 2:
+            self.register_buffer("mask",saveDic["mask"])
+            self.register_buffer("mask_",saveDic["mask_"])
         self.shapeList = saveDic["shapeList"]
         return saveDic
 
