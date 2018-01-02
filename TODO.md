@@ -1,10 +1,10 @@
-- [ ] add GPU support for realNVP(if needed).
+- [x] add GPU support for realNVP(if needed).
 
 - [ ] add parallel between GPUs features to RealNVP.
 
 - [x] a saver for RealNVP model.
 
-- [ ] In _model/realNVP.py_, `saveModel` method of `RealNVP` class add check when add to save Dic.
+- [x] In _model/realNVP.py_, `saveModel` method of `RealNVP` class add check when add to save Dic.
 
 - [ ] how to create mask with channel%2 != 0 
 
@@ -31,6 +31,6 @@
 
 - [x] make `metropolis.py` nicer: either use gaussian model or trained model for proposal 
 - [ ] report acceptance ratio, autocorrelation time etc of the improved approach 
-- [ ] bootstrap training, plot training results for each bootstrap iteration
+- [x] bootstrap training, plot training results for each bootstrap iteration
 
 
