@@ -120,7 +120,7 @@ class FC(nn.Module):
             activation.append(nn.Tanh())
         self.activation = activation
         assert(len(dList) == len(activation))
-        fcList = [``]
+        fcList = []
         self.name = name
         for i, d in enumerate(dList):
             if i == 0:
