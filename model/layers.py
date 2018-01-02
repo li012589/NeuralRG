@@ -16,14 +16,14 @@ class Roll(nn.Module):
         self.axis = axis
     def forward(self,x):
         shape = x.shape
-        for i,s in enumerate(step):
+        for i,s in enumerate(self.step):
             if s >=0:
-                x1 = x.narrow(axis[i],0,s)
-                x2 = x.narrow(axis[i],s,shape[axis[i]]-s)
+                x1 = x.narrow(self.axis[i],0,s)
+                x2 = x.narrow(self.axis[i],s,shape[self.axis[i]]-s)
             else:
-                x2 = x.narrow(axis[i],shape[axis[i]]+s,-s)
-                x1 = x.narrow(axis[i],0,shape[axis[i]]+s)
-            x = torch.cat([x2,x1],axis[i])
+                x2 = x.narrow(self.axis[i],shape[self.axis[i]]+s,-s)
+                x1 = x.narrow(self.axis[i],0,shape[self.axis[i]]+s)
+            x = torch.cat([x2,x1],self.axis[i])
         return x
 
 class Wide2bacth(nn.Module):
