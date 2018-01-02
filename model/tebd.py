@@ -106,13 +106,12 @@ class TEBD(nn.Module):
 
     
     def logProbability(self, x):
-        z = self.inference(x, True)
+        z = self.inference(x, ifLogjec=True)
         return self.prior.logProbability(z) + self._inferenceLogjac 
 
     def sample(self, batchsize):
         z = self.prior(batchsize)
         return self.generate(z)
-
 
     def saveModel(self, saveDic):
         'should recursively call saveModel of all RNVP blocks'

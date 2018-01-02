@@ -130,12 +130,11 @@ if __name__=="__main__":
     subprocess.check_call(cmd)
     
  
-
-
     input_size= [Nvars]
+
     #RNVP block
-    Nlayers = 4
-    sList = [MLP(2, args.Hs) for _ in range(Nlayers)]
+    Nlayers = 4 # number of layers of each RNVP block
+    sList = [MLP(2, args.Hs, activation=ScalableTanh(input_size)) for _ in range(Nlayers)]
     tList = [MLP(2, args.Ht) for _ in range(Nlayers)]
     masktypelist = ['channel', 'channel'] * (Nlayers//2)
     
@@ -190,4 +189,3 @@ if __name__=="__main__":
         results.create_dataset("loss", data=np.array(LOSS))
     h5.close()
     print ('#accratio:', accratio)
-
