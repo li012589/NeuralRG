@@ -6,14 +6,14 @@ torch.manual_seed(42)
 from torch.autograd import Variable
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau 
+from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh
+from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh, TEBD
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
-from copy import deepcopy
-
+from learn_realnvp import learn_acc # FIXME 
 
 if __name__=="__main__":
     import h5py
@@ -147,8 +147,7 @@ if __name__=="__main__":
                       Gaussian([2]), 
                       masktypelist) for _ in range(args.Nlayers)] 
     
-    model = TEBD(prior, layers)
-
+    model = TEBD(prior, layers, name=key)
 
     if args.modelname is not None:
         try:

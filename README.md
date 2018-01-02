@@ -6,13 +6,16 @@
 
 ```python
 #ring2D
-python learn_accratio.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 10 -Nlayers 4 -Hs 10 -Ht 10 -target ring2d -epsilon 1.0 -alpha 0.0 -beta 1.0 -delta 1.0 -omega 1.0 -Nepoch 5000 
+python learn_realnvp.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 10 -Nlayers 4 -Hs 10 -Ht 10 -target ring2d -epsilon 1.0 -alpha 0.0 -beta 1.0 -delta 1.0 -omega 1.0 -Nepoch 5000 
 
 #Ising
-python learn_accratio.py -Batch 64 -Ntherm 5 -Nsteps 1 -Nskip 0 -Nlayers 10 -Hs 4 -Ht 4 -target ising -T 2.5 -L 8 -d 2 -epsilon 1.0 -beta 1.0  -delta 1.0 -omega 0.0  -Nepoch 5000 -lr 0.001 -exact 0.177921 -train_model 
+python learn_realnvp.py -Batch 64 -Ntherm 5 -Nsteps 1 -Nskip 0 -Nlayers 10 -Hs 4 -Ht 4 -target ising -T 2.5 -L 8 -d 2 -epsilon 1.0 -beta 1.0  -delta 1.0 -omega 0.0  -Nepoch 5000 -lr 0.001 -exact 0.177921 -train_model 
 
 #or 
-python learn_accratio.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Nlayers 8 -Hs 16 -Ht 16 -target ising -T 2.5 -L 8 -d 2 -epsilon 0.0 -beta 1.0  -delta 0.0 -omega 1.0  -Nepoch 1000 -lr 0.001 -exact 0.177921 -train_model
+python learn_realnvp.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Nlayers 8 -Hs 16 -Ht 16 -target ising -T 2.5 -L 8 -d 2 -epsilon 0.0 -beta 1.0  -delta 0.0 -omega 1.0  -Nepoch 1000 -lr 0.001 -exact 0.177921 -train_model
+
+#or 
+python learn_tebd.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Nlayers 8 -Hs 16 -Ht 16 -target ising -T 2.5 -L 16 -d 1 -epsilon 0.0 -beta 1.0  -delta 0.0 -omega 1.0  -Nepoch 1000 -lr 0.001 -exact 0.138871 -train_model
 ```
 
 To check the results 

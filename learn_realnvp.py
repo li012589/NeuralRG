@@ -14,16 +14,6 @@ from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from copy import deepcopy
 
-#class Offset(torch.nn.Module):
-#    '''
-#    offset a scalar 
-#    '''
-#    def __init__(self):
-#        super(Offset, self).__init__()
-#        self.offset = torch.nn.Parameter(torch.DoubleTensor([0]))    
-#    def forward(self, x):
-#        return x + self.offset
-
 def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
               epsilon = 1.0, beta=1.0, delta=0.0, omega=0.0, 
               lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None, 

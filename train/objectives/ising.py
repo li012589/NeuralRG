@@ -12,7 +12,7 @@ class Ising(Target):
     def __init__(self, L, d, T, cuda=None, double = False):
         super(Ising, self).__init__(L**d,'Ising')
 
-        self.lattice = Hypercube(L, d, 'open')
+        self.lattice = Hypercube(L, d, 'periodic')
         self.Nvars = self.lattice.Nsite
         self.K = self.lattice.Adj/T
     
