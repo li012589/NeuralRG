@@ -9,7 +9,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh
+from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh, TEBD
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from copy import deepcopy
@@ -339,44 +339,22 @@ if __name__=="__main__":
     cmd = ['mkdir', '-p', key]
     subprocess.check_call(cmd)
     
-    #MLP
-    if netDimension == 2:
-        input_size= [Nvars]
-        sList = [MLP(Nvars, args.Hs) for i in range(args.Nlayers)]
-        tList = [MLP(Nvars, args.Ht) for i in range(args.Nlayers)]
-
-    else:
-
-        input_size= [1, args.L, args.L]
-        #CNN 
-        snet = [[args.Hs,3,1,1],
-                [args.Hs,1,1,0],
-                [1,3,1,1]]
-
-        tnet = [[args.Ht,3,1,1],
-                [args.Ht,1,1,0],
-                [1,3,1,1]]
-
-        sList = [CNN(snet, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
-        tList = [CNN(tnet) for i in range(args.Nlayers)]
-   
-        #Resnet 
-        #sList = [ResNet(args.Hs, activation=ScalableTanh(input_size)) for i in range(args.Nlayers)]
-        #tList = [ResNet(args.Ht) for i in range(args.Nlayers)]
-        #masktypelist = ['checkerboard0', 'checkerboard1', 
-        #                'leftright0', 'leftright1',
-        #                'updown0', 'updown1',
-        #                'bars0', 'bars1',
-        #                'stripes0', 'stripes1'
-        #                ]
-        #Resnet
-    if netDimension == 2:
-        masktypelist = ['evenodd', 'evenodd'] * (args.Nlayers//2)
-    else:
-        masktypelist = ['checkerboard', 'checkerboard'] * (args.Nlayers//2)
-
-    model = RealNVP(input_size, sList, tList, prior, 
-                    masktypelist, name = key, double=args.double)
+    input_size= [Nvars]
+    #RNVP block
+    Nlayers = 4
+    sList = [MLP(2, args.Hs) for _ in range(Nlayers)]
+    tList = [MLP(2, args.Ht) for _ in range(Nlayers)]
+    masktypelist = ['channel', 'channel'] * (Nlayers//2)
+    
+    #assamble RNVP blocks into a TEBD layer
+    prior = Gaussian([Nvars])
+    layers = [RealNVP([2], 
+                      sList, 
+                      tList, 
+                      Gaussian([2]), 
+                      masktypelist) for _ in range(args.Nlayers)] 
+    
+    model = TEBD(prior, layers)
 
     if args.modelname is not None:
         try:
