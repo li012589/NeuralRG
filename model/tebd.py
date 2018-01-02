@@ -52,8 +52,11 @@ class TEBD(nn.Module):
                     xout[:, b*2:(b+1)*2] = self.layers[l].inference(xin,ifLogjac=ifLogjac)
                     if ifLogjac:
                         self._inferenceLogjac += self.layers[l]._inferenceLogjac
+
+                y = Variable(torch.zeros(batchsize, nbit))
                 for i in range(nbit):
-                    x[:, (i+1)%nbit] = xout[:, i]
+                    y[:, (i+1)%nbit] = xout[:, i]
+                x = y 
         return x 
 
     def generate(self, x, ifLogjac=False):
@@ -94,9 +97,12 @@ class TEBD(nn.Module):
                     if ifLogjac:
                         self._generateLogjac += layer._generateLogjac
 
+                y = Variable(torch.zeros(batchsize, nbit))
                 for i in range(nbit):
-                    x[:, (i+1)%nbit] = xout[:, i]
-        return x 
+                    y[:, (i+1)%nbit] = xout[:, i]
+                x = y 
+
+        return x
 
     
     def logProbability(self, x):
@@ -111,13 +117,15 @@ class TEBD(nn.Module):
     def saveModel(self, saveDic):
         'should recursively call saveModel of all RNVP blocks'
         pass 
+        #for layer in self.layers: 
+        #    layer.saveModel(saveDic)
 
 
 if __name__=='__main__':
     from model import Gaussian, MLP, RealNVP
 
     #RNVP block
-    Nlayers = 4
+    Nlayers = 4 
     Hs = 10 
     Ht = 10 
     sList = [MLP(2, Hs) for _ in range(Nlayers)]
@@ -141,11 +149,11 @@ if __name__=='__main__':
     print (z)
     print (tebd.generate(z))
 
-    logp = tebd.logProbability(x)
+    #logp = tebd.logProbability(x)
 
-    print (logp)
+    #print (logp)
 
-    params = list(tebd.parameters()) 
-    print (params)
+    #params = list(tebd.parameters()) 
+    #print (params)
 
     
