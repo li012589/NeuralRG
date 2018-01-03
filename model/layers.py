@@ -4,6 +4,12 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 
+class Identical(nn.Module):
+    def __init__(self):
+        super(Identical,self).__init__()
+    def forward(self,x):
+        return x
+
 class Roll(nn.Module):
     def __init__(self,step,axis):
         super(Roll,self).__init__()
