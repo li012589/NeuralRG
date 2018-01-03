@@ -115,7 +115,13 @@ class TEBD(nn.Module):
 
     def saveModel(self, saveDic):
         'should recursively call saveModel of all RNVP blocks'
-        pass 
+        for i,layer in enumerate(self.layers):
+            saveDic[str(i)+"th_layer"] = layer.saveModel({})
+        return saveDic
+    def loadModel(self,saveDict):
+        for i,layers in enumerate(self.layers):
+            layers.loadModel(saveDict[str(i)+"th_layer"])
+        return saveDict
         #for layer in self.layers: 
         #    layer.saveModel(saveDic)
 

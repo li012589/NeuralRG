@@ -67,11 +67,26 @@ def test_invertible():
     print("Backward")
     assert_array_almost_equal(z.data.numpy(),zp.data.numpy())
 
-    #saveDict = model.saveModel({})
-    #torch.save(saveDict, './saveNet.testSave')
-    # model.loadModel({})
-    #sListp = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
-    #tListp = [MLP(2, 10), MLP(2, 10), MLP(2, 10), MLP(2, 10)]
+    saveDict = model.saveModel({})
+    torch.save(saveDict, './saveNet.testSave')
+
+    sListp = [MLP(2, Hs) for _ in range(Nlayers)]
+    tListp = [MLP(2, Ht) for _ in range(Nlayers)]
+    masktypelistp = ['channel', 'channel'] * (Nlayers//2)
+    
+    #assamble RNVP blocks into a TEBD layer
+    priorp = Gaussian([8])
+    layersp = [RealNVP([2], 
+                      sListp, 
+                      tListp, 
+                      Gaussian([2]), 
+                       masktypelistp) for _ in range(4)] 
+    
+    modelp = TEBD(priorp, layersp)
+    saveDictp = torch.load('./saveNet.testSave')
+    modelp.loadModel(saveDictp)
+
+    xp = modelp.generate(z)
 
     #modelp = RealNVP([2], sListp, tListp, gaussian)
     #saveDictp = torch.load('./saveNet.testSave')
@@ -80,7 +95,7 @@ def test_invertible():
     #xx = model.generate(z)
     #print("Forward after restore")
 
-    #assert_array_almost_equal(xx.data.numpy(),x.data.numpy())
+    assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
 
 if __name__=='__main__':
     test_invertible()
