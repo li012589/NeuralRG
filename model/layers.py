@@ -52,8 +52,9 @@ class Wide2bacth(nn.Module):
         return x
 
 class Batch2wide(nn.Module):
-    def __init__(self,filterSize,dims):
-        self.filterSize = filterSize
+    def __init__(self,originalSize):
+        self.originalSize = originalSize
+        dims = len(originalSize)
         if (dims == 1):
             self.pointer = "_forward2d"
         elif (dims == 2):
@@ -63,9 +64,17 @@ class Batch2wide(nn.Module):
     def forward(self,*args,**kwargs):
         return getattr(self,self.pointer)(*args,**kwargs)
     def _forward2d(self,x):
-        pass
+        shape = x.shape
+        x = x.view(-1,self.originalSize[0])
+        return x
     def _forward3d(self,x):
-        pass
+        shape = x.shape
+        outSize0 = self.originalSize[0]//shape[1]
+        outSize1 = self.originalSize[1]//shape[2]
+        x = x.view(-1,outSize0,outSize1,shape[1],shape[2])
+        x = x.permute(0,1,3,2,4).contiguous()
+        x = x.view(-1,self.originalSize[0],self.originalSize[1])
+        return x
 
 class ScalableTanh(nn.Module):
     def __init__(self,input_size):
