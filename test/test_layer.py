@@ -88,6 +88,9 @@ def test_Wide2bacth():
     ll = Wide2bacth([2,2])
     bb = ll.forward(aa)
     print(bb)
+    assert bb.shape[0] == 8
+    assert bb.shape[1] == 2
+    assert bb.shape[2] == 2
 
 if __name__ == "__main__":
     test_Wide2bacth()
