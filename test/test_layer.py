@@ -71,19 +71,18 @@ def test_Roll():
     assert_array_almost_equal(r4,l2.numpy()[0])
 def test_Wide2bacth():
     a = torch.FloatTensor([[0,1,2,3,4,5,6,7],[1,2,3,4,5,6,7,8]])
-    ashape = a.shape
-    batchSize = ashape[0]
     print(a)
     l = Wide2bacth([2])
     b = l.forward(a)
     print(b)
     assert b.shape[0] == 8
     assert b.shape[1] == 2
-    #lb = Batch2wide([])
+    lb = Batch2wide([8])
+    ab = lb.forward(b)
+    print(ab)
+    assert_array_equal(a.numpy(),ab.numpy())
 
     aa = torch.FloatTensor([[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]],[[2,3,4,5],[6,7,8,9],[10,11,12,13],[14,15,16,17]]])
-    aashape = aa.shape
-    batchSize = aashape[0]
     print(aa)
     ll = Wide2bacth([2,2])
     bb = ll.forward(aa)
@@ -91,6 +90,10 @@ def test_Wide2bacth():
     assert bb.shape[0] == 8
     assert bb.shape[1] == 2
     assert bb.shape[2] == 2
+    llb = Batch2wide([4,4])
+    aab = llb.forward(bb)
+    print(aab)
+    assert_array_equal(aa.numpy(),aab.numpy())
 
 if __name__ == "__main__":
     test_Wide2bacth()
