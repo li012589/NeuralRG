@@ -12,7 +12,7 @@ torch.manual_seed(42)
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
-from model import Gaussian,MLP,RealNVP,CNN,Squeezing,Roll
+from model import Gaussian,MLP,RealNVP,CNN,Squeezing,Roll,Wide2bacth,Batch2wide
 
 from subprocess import Popen, PIPE
 import pytest
@@ -69,5 +69,25 @@ def test_Roll():
     assert_array_almost_equal(r2,l4.numpy()[0])
     assert_array_almost_equal(r3,l1.numpy()[0])
     assert_array_almost_equal(r4,l2.numpy()[0])
+def test_Wide2bacth():
+    a = torch.FloatTensor([[0,1,2,3,4,5,6,7],[1,2,3,4,5,6,7,8]])
+    ashape = a.shape
+    batchSize = ashape[0]
+    print(a)
+    l = Wide2bacth([2])
+    b = l.forward(a)
+    print(b)
+    assert b.shape[0] == 8
+    assert b.shape[1] == 2
+    #lb = Batch2wide([])
+
+    aa = torch.FloatTensor([[[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]],[[2,3,4,5],[6,7,8,9],[10,11,12,13],[14,15,16,17]]])
+    aashape = aa.shape
+    batchSize = aashape[0]
+    print(aa)
+    ll = Wide2bacth([2,2])
+    bb = ll.forward(aa)
+    print(bb)
+
 if __name__ == "__main__":
-    test_Roll()
+    test_Wide2bacth()
