@@ -27,9 +27,44 @@ class Roll(nn.Module):
         return x
 
 class Wide2bacth(nn.Module):
-    def __init__(self):
+    def __init__(self,filterSize):
+        self.filterSize = filterSize
+        dims = len(filterSize)
+        if (dims == 1):
+            self.pointer = "_forward2d"
+        elif (dims == 2):
+            self.pointer = "_forward3d"
+        else:
+            raise NotImplementedError("Filter size not implemneted")
+    def forward(self,*args,**kwargs):
+        return getattr(self,self.pointer)(*args,**kwargs)
+    def _forward2d(self,x):
+        shape = x.shape
+        x = x.view(-1,self.filterSize[0])
+        return x
+    def _forward3d(self,x):
+        shape = x.shape
+        outSize0 = shape[1]//self.filterSize[0]
+        outSize1 = shape[2]//self.filterSize[1]
+        x = x.view(-1,outSize0,outSize1,self.filterSize[0],self.filterSize[1])
+        x = x.permute(0,1,3,2,4).contiguous()
+        x = x.view(-1,self.filterSize[0],self.filterSize[1])
+        return x
+
+class Batch2wide(nn.Module):
+    def __init__(self,filterSize,dims):
+        self.filterSize = filterSize
+        if (dims == 1):
+            self.pointer = "_forward2d"
+        elif (dims == 2):
+            self.pointer = "_forward3d"
+        else:
+            raise NotImplementedError("Filter size not implemneted")
+    def forward(self,*args,**kwargs):
+        return getattr(self,self.pointer)(*args,**kwargs)
+    def _forward2d(self,x):
         pass
-    def forward(self,x):
+    def _forward3d(self,x):
         pass
 
 class ScalableTanh(nn.Module):
