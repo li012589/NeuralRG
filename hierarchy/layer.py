@@ -127,6 +127,7 @@ class MLP2d(MLP):
     def __init__(self,*args,**kwargs):
         super(MLP2d,self).__init__(*args,**kwargs)
     def forward(self,x):
-        x = x.view(x.shape[0],-1)
+        shape = x.shape
+        x = x.view(shape[0],-1)
         x = super(MLP2d,self).forward(x)
-        return x
+        return x.view(shape)
