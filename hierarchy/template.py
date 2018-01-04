@@ -25,6 +25,7 @@ class HierarchyBijector(nn.Module):
         self.NumLayers = len(bijectors)
 
         self.kernalSizeList = kernalSizeList
+        self.dimension = dimension
         self.W2B = Wide2bacth(dimension)
         self.B2W = Batch2wide(dimension)
 
@@ -37,10 +38,20 @@ class HierarchyBijector(nn.Module):
             self.register_buffer('_inferenceLogjac',torch.zeros(x.shape[0]))
         for i in range(self.NumLayers):
             x,x_ = self.maskList[i].forward(x)
+
             shape = x.shape
-            shape = shape[1:]
-            if len(shape) == 1:
-                shape = shape[0]
+            if len(shape) == 3:
+                shape = shape[1:]
+            else:
+                shape = shape[1]
+                if self.dimension == 2:
+                    shape = [int((shape)**1/2) for _ in range(2)]
+                    x = x.view(-1,*shape)
+                elif self.dimension ==1:
+                    pass
+                else:
+                    raise NotImplementedError("Operation corresponding to dimension is not implemneted")
+
             x = self.rollList[i].forward(x)
 
             x = self.W2B.forward(x,self.kernalSizeList[i])
@@ -62,10 +73,19 @@ class HierarchyBijector(nn.Module):
             self.register_buffer('_generateLogjac',torch.zeros(x.shape[0]))
         for i in reversed(range(self.NumLayers)):
             x,x_ = self.maskList[i].forward(x)
+
             shape = x.shape
-            shape = shape[1:]
-            if len(shape) == 1:
-                shape = shape[0]
+            if len(shape) == 3:
+                shape = shape[1:]
+            else:
+                shape = shape[1]
+                if self.dimension == 2:
+                    shape = [int((shape)**1/2) for _ in range(2)]
+                    x = x.view(-1,*shape)
+                elif self.dimension ==1:
+                    pass
+                else:
+                    raise NotImplementedError("Operation corresponding to dimension is not implemneted")
 
             x = self.W2B.forward(x,self.kernalSizeList[i])
             x = self.bijectors[i].generate(x,ifLogjac = ifLogjac)

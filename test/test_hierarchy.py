@@ -11,7 +11,7 @@ torch.manual_seed(42)
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 from model import RealNVPtemplate,MLP,CNN,RealNVP,Gaussian
-from hierarchy import Roll, Wide2bacth, Batch2wide, Placeholder, Mask
+from hierarchy import Roll, Wide2bacth, Batch2wide, Placeholder, Mask, MLP2d
 
 from hierarchy import HierarchyBijector
 
@@ -37,7 +37,6 @@ skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "NO cuda insatllation, fo
 skipIfOnlyOneGPU = pytest.mark.skipif(maxGPU < 2,reason = "Only one gpu")
 
 def test_mera_1d():
-    mask = Variable(torch.zeros(2).byte())
     masks = [Variable(torch.ByteTensor([1,0,1,0,1,0,1,0])),Variable(torch.ByteTensor([1,0,0,0,1,0,0,0]))]
     masks_ = [Variable(torch.ByteTensor([0,1,0,1,0,1,0,1])),Variable(torch.ByteTensor([0,1,1,1,0,1,1,1]))]
 
@@ -72,11 +71,43 @@ def test_mera_1d():
     assert_array_almost_equal(fLog.numpy(),-bLog.numpy())
 
 def test_mera_2d():
-    pass
+    masks = [Variable(torch.ByteTensor([[1,0,1,0],[0,0,0,0],[1,0,1,0],[0,0,0,0]]))]
+    masks_ = [Variable(torch.ByteTensor([[0,1,0,1],[1,1,1,1],[0,1,0,1],[1,1,1,1]]))]
+
+    rollList = [Placeholder(),Roll([1,1],[1,2]),Placeholder(),Roll([1,1],[1,2])]
+    maskList = [Placeholder(2),Placeholder(2),Mask(masks[0],masks_[0]),Mask(masks[0],masks_[0])]
+    Nlayers = 4
+    Hs = 10
+    Ht = 10
+    sList = [MLP2d(4, Hs) for _ in range(Nlayers)]
+    tList = [MLP2d(4, Ht) for _ in range(Nlayers)]
+    masktypelist = ['channel', 'channel'] * (Nlayers//2)
+    #assamble RNVP blocks into a TEBD layer
+    prior = Gaussian([4,4])
+    layers = [RealNVP([2,2],
+                      sList,
+                      tList,
+                      Gaussian([2,2]),
+                      masktypelist) for _ in range(4)]
+    model = HierarchyBijector(2,[[2,2] for _ in range(4)],rollList,layers,maskList,None)
+    z = prior(2)
+    print(z)
+    x = model.inference(z,True)
+    print(x)
+    fLog = model._inferenceLogjac
+    print(model._inferenceLogjac)
+    zz = model.generate(x,True)
+    print(zz)
+    bLog = model._generateLogjac
+    print(model._generateLogjac)
+
+    assert_array_almost_equal(z.data.numpy(),zz.data.numpy())
+    assert_array_almost_equal(fLog.numpy(),-bLog.numpy())
 
 @skipIfNoCuda
 def test_mera_1d_cuda():
     pass
 
+
 if __name__ == "__main__":
-    test_mera_1d()
+    test_mera_2d()
