@@ -74,6 +74,7 @@ def test_mera_1d():
 def test_mera_2d():
     pass
 
+@skipIfNoCuda
 def test_mera_1d_cuda():
     pass
 

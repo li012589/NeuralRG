@@ -3,6 +3,7 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
+from model import MLP
 
 class Placeholder(nn.Module):
     def __init__(self,output = 1):
@@ -120,4 +121,12 @@ class Batch2wide(nn.Module):
         x = x.view(-1,outSize0,outSize1,shape[1],shape[2])
         x = x.permute(0,1,3,2,4).contiguous()
         x = x.view(-1,kernalSize[0],kernalSize[1])
+        return x
+
+class MLP2d(MLP):
+    def __init__(self,*args,**kwargs):
+        super(MLP2d,self).__init__(*args,**kwargs)
+    def forward(self,x):
+        x = x.view(x.shape[0],-1)
+        x = super(MLP2d,self).forward(x)
         return x
