@@ -117,7 +117,8 @@ def test_MLP2d():
     bb = model.forward(aa)
     print(bb)
     assert bb.shape[0] == 2
-    assert bb.shape[1] == 4
+    assert bb.shape[1] == 2
+    assert bb.shape[2] == 2
 
 if __name__ == "__main__":
     #test_Wide2bacth()
