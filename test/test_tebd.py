@@ -12,7 +12,7 @@ torch.manual_seed(42)
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
-from model import RealNVP, TEBD , Gaussian, MLP 
+from model import RealNVP, TEBD , Gaussian, MLP, Roll 
 
 from subprocess import Popen, PIPE
 import pytest
@@ -59,13 +59,14 @@ def test_invertible():
 
     print("original")
 
-    x = model.generate(z)
+    x = model.generate(z, ifLogjac=True)
     print("Forward")
 
-    zp = model.inference(x)
+    zp = model.inference(x, ifLogjac=True)
 
     print("Backward")
     assert_array_almost_equal(z.data.numpy(),zp.data.numpy())
+    assert_array_almost_equal(model._generateLogjac.data.numpy(), -model._inferenceLogjac.data.numpy())
 
     saveDict = model.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
@@ -97,5 +98,35 @@ def test_invertible():
 
     assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
 
+
+def test_translationalinvariance():
+
+    #RNVP block
+    Nlayers = 4 
+    Hs = 10 
+    Ht = 10 
+    sList = [MLP(2, Hs) for _ in range(Nlayers)]
+    tList = [MLP(2, Ht) for _ in range(Nlayers)]
+    masktypelist = ['channel', 'channel'] * (Nlayers//2)
+    
+    #assamble RNVP blocks into a TEBD layer
+    prior = Gaussian([8])
+    layers = [RealNVP([2], 
+                      sList, 
+                      tList, 
+                      Gaussian([2]), 
+                      masktypelist) for _ in range(4)] 
+    
+    model = TEBD(prior, layers)
+
+    x = model.sample(10)
+    xright = Roll(1,1).forward(x)
+    xleft = Roll(-1,1).forward(x)
+
+    logp = model.logProbability(x)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=4)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xright).data.numpy(), decimal=4)
+
 if __name__=='__main__':
     test_invertible()
+    test_translationalinvariance()
