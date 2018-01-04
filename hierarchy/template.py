@@ -1,51 +1,84 @@
+import os
+import sys
+sys.path.append(os.getcwd())
+
 import numpy as np
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 
-#from .realnvp import RealNVP
-from model import Roll, Wide2bacth, Batch2wide, Indentical
-
+from model import Roll, Wide2bacth, Batch2wide, Placeholder, Mask
 
 class HierarchyBijector(nn.Module):
-    def __init__(self,layerSizeList,sizeList,rollList,bijectors,maskList,prior,name = None,double = False):
+    def __init__(self,dimension,kernalSizeList,rollList,bijectors,maskList,prior,name = None,double = False):
         # ONLY work for one dimension!!!!
         super(HierarchyBijector,self).__init__()
-        assert len(layerSizeList) == len(sizeList)
-        assert len(sizeList) == len(bijectors)
+        assert len(kernalSizeList) == len(bijectors)
         assert len(bijectors) == len(maskList)
-        assert maskList.shape[0] == len(rollList)
+        assert len(maskList) == len(rollList)
 
-        if double:
-            self.bijectors = torch.nn.ModuleList(bijectors).double()
-        else:
-            self.bijectors = torch.nn.ModuleList(bijectors).float()
+        self.bijectors = torch.nn.ModuleList(bijectors)
+        self.maskList = torch.nn.ModuleList(maskList)
+        self.rollList = torch.nn.ModuleList(rollList)
 
-        self.NumLayers = len(maskList)
-        self.maskList = maskList
+        self.NumLayers = len(bijectors)
 
-        RollLayers = []
-        ReshapeLayers = []
-        for i in range(self.NumLayers):
-            if i % 2 == 0:
-                ReshapesLayers.append(Wide2bacth(layerSizeList[i]))
-            else:
-                ReshapesLayers.append(Batch2wide(layerSizeList[i]))
-            if i == 0:
-                RollLayers.append(Identical())
-            else:
-                RollLayers.append(Roll(rollList[i][0],rollList[i][1]))
-        self.RollLayers = torch.nn.ModuleList(RollLayers)
-        self.ReshapeLayers = torch.nn.ModuleList(ReshapeLayers)
-        self.register_buffer(maskList)
+        self.kernalSizeList = kernalSizeList
+        self.W2B = Wide2bacth(dimension)
+        self.B2W = Batch2wide(dimension)
+
+        self.prior = prior
 
     def inference(self,x,ifLogjac = False):
-        for layer in layers:
-            pass
+        batchSize = x.shape[0]
+
+        if ifLogjac:
+            self.register_buffer('_inferenceLogjac',torch.zeros(x.shape[0]))
+        for i in range(self.NumLayers):
+            x,x_ = self.maskList[i].forward(x)
+            shape = x.shape
+            shape = shape[1:]
+            if len(shape) == 1:
+                shape = shape[0]
+            x = self.rollList[i].forward(x)
+
+            x = self.W2B.forward(x,self.kernalSizeList[i])
+            x = self.bijectors[i].inference(x,ifLogjac = ifLogjac)
+            x = self.B2W.forward(x,shape)
+
+            x = self.maskList[i].reverse(x,x_)
+            #print("in "+str(i)+"th layer")
+            #print(x)
+            if ifLogjac:
+                self._inferenceLogjac += self.bijectors[i]._inferenceLogjac.data.view(batchSize,-1).sum(1)
+
+        return x
 
     def generate(self,x,ifLogjac = False):
-        pass
+        batchSize = x.shape[0]
+
+        if ifLogjac:
+            self.register_buffer('_generateLogjac',torch.zeros(x.shape[0]))
+        for i in reversed(range(self.NumLayers)):
+            x,x_ = self.maskList[i].forward(x)
+            shape = x.shape
+            shape = shape[1:]
+            if len(shape) == 1:
+                shape = shape[0]
+
+            x = self.W2B.forward(x,self.kernalSizeList[i])
+            x = self.bijectors[i].generate(x,ifLogjac = ifLogjac)
+            x = self.B2W.forward(x,shape)
+
+            x = self.rollList[i].reverse(x)
+            x = self.maskList[i].reverse(x,x_)
+            #print("in "+str(i)+"th layer")
+            #print(x)
+            if ifLogjac:
+                self._generateLogjac += self.bijectors[i]._generateLogjac.data.view(batchSize,-1).sum(1)
+
+        return x
 
     def cuda(self,device = None, async = False):
         pass
