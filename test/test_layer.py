@@ -12,7 +12,8 @@ torch.manual_seed(42)
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
-from model import Gaussian,MLP,RealNVP,CNN,Squeezing,Roll,Wide2bacth,Batch2wide
+from model import Gaussian,MLP,RealNVP,CNN,Squeezing
+from hierarchy import Roll,Wide2bacth,Batch2wide
 
 from subprocess import Popen, PIPE
 import pytest
@@ -111,5 +112,5 @@ def test_Wide2bacth():
     assert_array_equal(aa.numpy(),aab.numpy())
 
 if __name__ == "__main__":
-    #test_Wide2bacth()
-    test_Roll()
+    test_Wide2bacth()
+    #test_Roll()

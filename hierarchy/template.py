@@ -8,7 +8,7 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 
-from model import Roll, Wide2bacth, Batch2wide, Placeholder, Mask
+from .layer import Roll, Wide2bacth, Batch2wide, Placeholder, Mask
 
 class HierarchyBijector(nn.Module):
     def __init__(self,dimension,kernalSizeList,rollList,bijectors,maskList,prior,name = None,double = False):

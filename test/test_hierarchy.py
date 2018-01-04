@@ -11,7 +11,7 @@ torch.manual_seed(42)
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 from model import RealNVPtemplate,MLP,CNN,RealNVP,Gaussian
-from model import Roll, Wide2bacth, Batch2wide, Placeholder, Mask
+from hierarchy import Roll, Wide2bacth, Batch2wide, Placeholder, Mask
 
 from hierarchy import HierarchyBijector
 

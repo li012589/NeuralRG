@@ -1,6 +1,6 @@
 from .template import RealNVPtemplate
 from .realnvp import RealNVP
-from .layers import MLP, CNN, FC, ScalableTanh,Squeezing,Roll,Wide2bacth,Batch2wide,Placeholder,Mask
+from .layers import MLP, CNN, FC, ScalableTanh,Squeezing
 from .resnet import ResNet
 from .prior import Gaussian, GMM, PriorTemplate
 from .tebd import TEBD
