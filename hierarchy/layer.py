@@ -81,7 +81,7 @@ class Mask(nn.Module):
 
 class Wide2bacth(nn.Module):
     def __init__(self,dims):
-        super(Mask,self).__init__()
+        super(Wide2bacth,self).__init__()
         if (dims == 1):
             self.pointer = "_forward2d"
         elif (dims == 2):
@@ -104,7 +104,7 @@ class Wide2bacth(nn.Module):
 
 class Batch2wide(nn.Module):
     def __init__(self,dims):
-        super(Mask,self).__init__()
+        super(Batch2wide,self).__init__()
         if (dims == 1):
             self.pointer = "_forward2d"
         elif (dims == 2):
