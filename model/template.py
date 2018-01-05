@@ -100,10 +100,12 @@ class RealNVPtemplate(torch.nn.Module):
         """
         mask = Variable(mask)
         mask_ = Variable(mask_)
-        if self.ifCuda:
-            cudaNo = y.get_device()
         if ifLogjac:
-            self.register_buffer('_generateLogjac',torch.zeros(y.shape[0]).type(y.data.type()))
+            if y.is_cuda:
+                cudaNo = y.get_device()
+                self.register_buffer('_generateLogjac',torch.zeros(y.shape[0]).cuda(cudaNo).type(y.data.type()))
+            else:
+                self.register_buffer('_generateLogjac',torch.zeros(y.shape[0]).type(y.data.type()))
         for i in range(self.NumLayers):
             if (i % 2 == 0):
                 y_ = mask[i] * y
@@ -177,10 +179,12 @@ class RealNVPtemplate(torch.nn.Module):
         """
         mask = Variable(mask)
         mask_ = Variable(mask_)
-        if self.ifCuda:
-            cudaNo = y.get_device()
         if ifLogjac:
-            self.register_buffer('_generateLogjac',torch.zeros(y.shape[0]).type(y.data.type()))
+            if self.ifCuda:
+                cudaNo = y.get_device()
+                self.register_buffer('_generateLogjac',torch.zeros(y.shape[0]).cuda(cudaNo).type(y.data.type()))
+            else:
+                self.register_buffer('_generateLogjac',torch.zeros(y.shape[0]).type(y.data.type()))
 
         size = [-1] + self.shapeList
         size[sliceDim + 1] = size[sliceDim + 1] // 2
@@ -225,10 +229,12 @@ class RealNVPtemplate(torch.nn.Module):
             output (torch.autograd.Variable): output Variable.
 
         """
-        if self.ifCuda:
-            cudaNo = y.get_device()
         if ifLogjac:
-            self.register_buffer('_generateLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
+            if self.ifCuda:
+                cudaNo = y.get_device()
+                self.register_buffer('_generateLogjac',torch.zeros(y.data.shape[0]).cuda(cudaNo).type(y.data.type()))
+            else:
+                self.register_buffer('_generateLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
         y1 = y.narrow(
             sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim] - 1)
@@ -251,10 +257,12 @@ class RealNVPtemplate(torch.nn.Module):
         """
         mask = Variable(mask)
         mask_ = Variable(mask_)
-        if self.ifCuda:
-            cudaNo = y.get_device()
         if ifLogjac:
-            self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
+            if self.ifCuda:
+                cudaNo = y.get_device()
+                self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).cuda(cudaNo).type(y.data.type()))
+            else:
+                self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
         for i in list(range(self.NumLayers))[::-1]:
             if (i % 2 == 0):
                 y_ = mask[i] * y
@@ -328,10 +336,12 @@ class RealNVPtemplate(torch.nn.Module):
         """
         mask = Variable(mask)
         mask_ = Variable(mask_)
-        if self.ifCuda:
-            cudaNo = y.get_device()
         if ifLogjac:
-            self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
+            if self.ifCuda:
+                cudaNo = y.get_device()
+                self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).cuda(cudaNo).type(y.data.type()))
+            else:
+                self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
         size = [-1] + self.shapeList
         size[sliceDim + 1] = size[sliceDim + 1] // 2
         for i in list(range(self.NumLayers))[::-1]:
@@ -375,10 +385,12 @@ class RealNVPtemplate(torch.nn.Module):
             output (torch.autograd.Variable): output Variable.
 
         """
-        if self.ifCuda:
-            cudaNo = y.get_device()
         if ifLogjac:
-            self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
+            if self.ifCuda:
+                cudaNo = y.get_device()
+                self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).cuda(cudaNo).type(y.data.type()))
+            else:
+                self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
         y1 = y.narrow(
             sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim] - 1)
