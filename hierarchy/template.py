@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from .layer import Roll, Wide2bacth, Batch2wide, Placeholder, Mask
 
 class HierarchyBijector(nn.Module):
-    def __init__(self,dimension,kernalSizeList,rollList,bijectors,maskList,prior,name = None,double = False):
+    def __init__(self,dimension,kernalSizeList,rollList,bijectors,maskList,prior,name = None):
         if name is None:
             name = "HierarchyBijector"
         super(HierarchyBijector,self).__init__()
