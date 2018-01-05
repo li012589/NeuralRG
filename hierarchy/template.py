@@ -35,7 +35,10 @@ class HierarchyBijector(nn.Module):
         batchSize = x.shape[0]
 
         if ifLogjac:
-            self.register_buffer('_inferenceLogjac',torch.zeros(x.shape[0]).type(x.data.type())) # has to be pytorch 0.3 above to make this work
+            if x.is_cuda:
+                self.register_buffer('_inferenceLogjac',torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type())) # has to be pytorch 0.3 above to make this work
+            else:
+                self.register_buffer('_inferenceLogjac',torch.zeros(x.shape[0]).type(x.data.type())) # has to be pytorch 0.3 above to make this work
         for i in range(self.NumLayers):
             x,x_ = self.maskList[i].forward(x)
 
@@ -70,7 +73,10 @@ class HierarchyBijector(nn.Module):
         batchSize = x.shape[0]
 
         if ifLogjac:
-            self.register_buffer('_generateLogjac',torch.zeros(x.shape[0]).type(x.data.type()))# has to be pytorch 0.3 above to make this work
+            if x.is_cuda:
+                self.register_buffer('_generateLogjac',torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))# has to be pytorch 0.3 above to make this work
+            else:
+                self.register_buffer('_generateLogjac',torch.zeros(x.shape[0]).type(x.data.type()))# has to be pytorch 0.3 above to make this work
         for i in reversed(range(self.NumLayers)):
             x,x_ = self.maskList[i].forward(x)
 
