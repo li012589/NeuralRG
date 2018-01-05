@@ -62,7 +62,7 @@ class HierarchyBijector(nn.Module):
             #print("in "+str(i)+"th layer")
             #print(x)
             if ifLogjac:
-                self._inferenceLogjac += self.bijectors[i]._inferenceLogjac.data.view(batchSize,-1).sum(1)
+                self._inferenceLogjac += self.bijectors[i]._inferenceLogjac.view(batchSize,-1).sum(1)
 
         return x
 
@@ -96,7 +96,7 @@ class HierarchyBijector(nn.Module):
             #print("in "+str(i)+"th layer")
             #print(x)
             if ifLogjac:
-                self._generateLogjac += self.bijectors[i]._generateLogjac.data.view(batchSize,-1).sum(1)
+                self._generateLogjac += self.bijectors[i]._generateLogjac.view(batchSize,-1).sum(1)
 
         return x
 

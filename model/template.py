@@ -103,18 +103,7 @@ class RealNVPtemplate(torch.nn.Module):
         if self.ifCuda:
             cudaNo = y.get_device()
         if ifLogjac:
-            if self.ifCuda:
-                if self.double:
-                    self._generateLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).double().pin_memory().cuda(cudaNo))
-                else:
-                    self._generateLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).pin_memory().cuda(cudaNo))
-            else:
-                if self.double:
-                    self._generateLogjac = Variable(torch.zeros(y.data.shape[0]).double())
-                else:
-                    self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
+            self.register_buffer('_generateLogjac',torch.zeros(y.shape[0]).type(y.data.type()))
         for i in range(self.NumLayers):
             if (i % 2 == 0):
                 y_ = mask[i] * y
@@ -125,7 +114,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._generateLogjac += s
+                    self._generateLogjac += s.data
             else:
                 y_ = mask_[i] * y
                 s = self.sList[i](y_) * mask[i]
@@ -135,7 +124,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._generateLogjac += s
+                    self._generateLogjac += s.data
         return y
 
     def _generateMeta(self, y0, y1, ifLogjac):
@@ -160,7 +149,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._generateLogjac += s
+                    self._generateLogjac += s.data
             else:
                 s = self.sList[i](y1)
                 t = self.tList[i](y1)
@@ -169,7 +158,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._generateLogjac += s
+                    self._generateLogjac += s.data
         return y0, y1
 
     def _generateWithContraction(self, y, mask, mask_, sliceDim, ifLogjac=False):
@@ -191,18 +180,8 @@ class RealNVPtemplate(torch.nn.Module):
         if self.ifCuda:
             cudaNo = y.get_device()
         if ifLogjac:
-            if self.ifCuda:
-                if self.double:
-                    self._generateLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).double().pin_memory().cuda(cudaNo))
-                else:
-                    self._generateLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).pin_memory().cuda(cudaNo))
-            else:
-                if self.double:
-                    self._generateLogjac = Variable(torch.zeros(y.data.shape[0]).double())
-                else:
-                    self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
+            self.register_buffer('_generateLogjac',torch.zeros(y.shape[0]).type(y.data.type()))
+
         size = [-1] + self.shapeList
         size[sliceDim + 1] = size[sliceDim + 1] // 2
         for i in range(self.NumLayers):
@@ -216,7 +195,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._generateLogjac += s
+                    self._generateLogjac += s.data
             else:
                 s = self.sList[i](y1)
                 t = self.tList[i](y1)
@@ -225,17 +204,8 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._generateLogjac += s
-            if self.ifCuda:
-                if self.double:
-                    output = Variable(torch.zeros(y.data.shape).double().pin_memory().cuda(cudaNo))
-                else:
-                    output = Variable(torch.zeros(y.data.shape).pin_memory().cuda(cudaNo))
-            else:
-                if self.double:
-                    output = Variable(torch.zeros(y.data.shape).double())
-                else:
-                    output = Variable(torch.zeros(y.data.shape))
+                    self._generateLogjac += s.data
+            output = Variable(torch.zeros(y.data.shape).type(y.data.type()))
             output.masked_scatter_(mask[i], y0)
             output.masked_scatter_(mask_[i], y1)
             y = output
@@ -258,18 +228,7 @@ class RealNVPtemplate(torch.nn.Module):
         if self.ifCuda:
             cudaNo = y.get_device()
         if ifLogjac:
-            if self.ifCuda:
-                if self.double:
-                    self._generateLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).double().pin_memory().cuda(cudaNo))
-                else:
-                    self._generateLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).pin_memory().cuda(cudaNo))
-            else:
-                if self.double:
-                    self._generateLogjac = Variable(torch.zeros(y.data.shape[0]).double())
-                else:
-                    self._generateLogjac = Variable(torch.zeros(y.data.shape[0]))
+            self.register_buffer('_generateLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
         y1 = y.narrow(
             sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim] - 1)
@@ -295,18 +254,7 @@ class RealNVPtemplate(torch.nn.Module):
         if self.ifCuda:
             cudaNo = y.get_device()
         if ifLogjac:
-            if self.ifCuda:
-                if self.double:
-                    self._inferenceLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).double().pin_memory().cuda(cudaNo))
-                else:
-                    self._inferenceLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).pin_memory().cuda(cudaNo))
-            else:
-                if self.double:
-                    self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]).double())
-                else:
-                    self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
+            self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
         for i in list(range(self.NumLayers))[::-1]:
             if (i % 2 == 0):
                 y_ = mask[i] * y
@@ -317,7 +265,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._inferenceLogjac -= s
+                    self._inferenceLogjac -= s.data
             else:
                 y_ = mask_[i] * y
                 s = self.sList[i](y_) * mask[i]
@@ -327,7 +275,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._inferenceLogjac -= s
+                    self._inferenceLogjac -= s.data
         return y
 
     def _inferenceMeta(self, y0, y1, ifLogjac):
@@ -352,7 +300,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._inferenceLogjac -= s
+                    self._inferenceLogjac -= s.data
             else:
                 s = self.sList[i](y1)
                 t = self.tList[i](y1)
@@ -361,7 +309,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._inferenceLogjac -= s
+                    self._inferenceLogjac -= s.data
         return y0, y1
 
     def _inferenceWithContraction(self, y, mask, mask_, sliceDim, ifLogjac=False):
@@ -383,18 +331,7 @@ class RealNVPtemplate(torch.nn.Module):
         if self.ifCuda:
             cudaNo = y.get_device()
         if ifLogjac:
-            if self.ifCuda:
-                if self.double:
-                    self._inferenceLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).double().pin_memory().cuda(cudaNo))
-                else:
-                    self._inferenceLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).pin_memory().cuda(cudaNo))
-            else:
-                if self.double:
-                    self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]).double())
-                else:
-                    self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
+            self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
         size = [-1] + self.shapeList
         size[sliceDim + 1] = size[sliceDim + 1] // 2
         for i in list(range(self.NumLayers))[::-1]:
@@ -408,7 +345,7 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._inferenceLogjac -= s
+                    self._inferenceLogjac -= s.data
             else:
                 s = self.sList[i](y1)
                 t = self.tList[i](y1)
@@ -417,17 +354,8 @@ class RealNVPtemplate(torch.nn.Module):
                 if ifLogjac:
                     for _ in self.shapeList:
                         s = s.sum(dim=-1)
-                    self._inferenceLogjac -= s
-            if self.ifCuda:
-                if self.double:
-                    output = Variable(torch.zeros(y.data.shape).double().pin_memory().cuda(cudaNo))
-                else:
-                    output = Variable(torch.zeros(y.data.shape).pin_memory().cuda(cudaNo))
-            else:
-                if self.double:
-                    output = Variable(torch.zeros(y.data.shape).double())
-                else:
-                    output = Variable(torch.zeros(y.data.shape))
+                    self._inferenceLogjac -= s.data
+            output = Variable(torch.zeros(y.data.shape).type(y.data.type()))
             output.masked_scatter_(mask[i], y0)
             output.masked_scatter_(mask_[i], y1)
             y = output
@@ -450,18 +378,7 @@ class RealNVPtemplate(torch.nn.Module):
         if self.ifCuda:
             cudaNo = y.get_device()
         if ifLogjac:
-            if self.ifCuda:
-                if self.double:
-                    self._inferenceLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).double().pin_memory().cuda(cudaNo))
-                else:
-                    self._inferenceLogjac = Variable(
-                        torch.zeros(y.data.shape[0]).pin_memory().cuda(cudaNo))
-            else:
-                if self.double:
-                    self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]).double())
-                else:
-                    self._inferenceLogjac = Variable(torch.zeros(y.data.shape[0]))
+            self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
         y1 = y.narrow(
             sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim] - 1)
@@ -481,7 +398,7 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         z = self._inference(x, mask, mask_, True)
-        return self.prior.logProbability(z) + self._inferenceLogjac
+        return self.prior.logProbability(z) + Variable(self._inferenceLogjac)
 
     def _logProbabilityWithSlice(self, x, sliceDim):
         """
@@ -495,7 +412,7 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         z = self._inferenceWithSlice(x, sliceDim, True)
-        return self.prior.logProbability(z) + self._inferenceLogjac
+        return self.prior.logProbability(z).data + Variable(self._inferenceLogjac)
 
     def _logProbabilityWithContraction(self, x, mask, mask_, sliceDim):
         """
@@ -511,7 +428,7 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         z = self._inferenceWithContraction(x, mask, mask_, sliceDim, True)
-        return self.prior.logProbability(z) + self._inferenceLogjac
+        return self.prior.logProbability(z).data + Variable(self._inferenceLogjac)
 
     def _saveModel(self, saveDic):
         """

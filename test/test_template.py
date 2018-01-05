@@ -58,7 +58,7 @@ def test_tempalte_invertibleMLP():
     print("Backward")
     #print(zp)
 
-    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.numpy(),-realNVP._inferenceLogjac.numpy())
 
     print("logProbability")
     print(realNVP._logProbability(z,realNVP.mask,realNVP.mask_))
@@ -93,7 +93,7 @@ def test_tempalte_invertibleCNN():
     print("Backward")
     #print(zp3d)
 
-    assert_array_almost_equal(realNVP3d._generateLogjac.data.numpy(),-realNVP3d._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP3d._generateLogjac.numpy(),-realNVP3d._inferenceLogjac.numpy())
 
     print("3d logProbability")
     print(realNVP3d._logProbability(z3d,realNVP3d.mask,realNVP3d.mask_))
@@ -138,7 +138,7 @@ def test_template_slice_function():
     assert_array_almost_equal(x.data.numpy(),zz.data.numpy())
     #print(realNVP._generateLogjac.data.numpy())
     #print(realNVP._inferenceLogjac.data.numpy())
-    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.numpy(),-realNVP._inferenceLogjac.numpy())
 
 def test_tempalte_contraction_mlp():
     gaussian = Gaussian([2])
@@ -162,7 +162,7 @@ def test_tempalte_contraction_mlp():
 
     print("Backward")
     #print(zp)
-    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.numpy(),-realNVP._inferenceLogjac.numpy())
 
     x_data = realNVP.prior(10)
     y_data = realNVP.prior.logProbability(x_data)
@@ -198,7 +198,7 @@ def test_template_contraction_function_with_checkerboard():
     #print(zz)
 
     assert_array_almost_equal(x.data.numpy(),zz.data.numpy())
-    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.numpy(),-realNVP._inferenceLogjac.numpy())
 
 def test_template_contraction_function_with_channel():
     gaussian3d = Gaussian([2,4,4])
@@ -222,7 +222,7 @@ def test_template_contraction_function_with_channel():
     #print(zz)
 
     assert_array_almost_equal(x.data.numpy(),zz.data.numpy())
-    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.numpy(),-realNVP._inferenceLogjac.numpy())
 
 @skipIfNoCuda
 def test_contraction_cuda():
@@ -246,7 +246,7 @@ def test_contraction_cuda():
     zz = realNVP._inferenceWithContraction(z,realNVP.mask,realNVP.mask_,2,True)
 
     assert_array_almost_equal(x.cpu().data.numpy(),zz.cpu().data.numpy())
-    assert_array_almost_equal(realNVP._generateLogjac.cpu().data.numpy(),-realNVP._inferenceLogjac.cpu().data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.cpu().numpy(),-realNVP._inferenceLogjac.cpu().numpy())
 
 @skipIfNoCuda
 def test_slice_cuda():
@@ -262,7 +262,7 @@ def test_slice_cuda():
     print(realNVP._logProbabilityWithSlice(z,0))
     zz = realNVP._inferenceWithSlice(z,0,True)
     assert_array_almost_equal(x.cpu().data.numpy(),zz.cpu().data.numpy())
-    assert_array_almost_equal(realNVP._generateLogjac.cpu().data.numpy(),-realNVP._inferenceLogjac.cpu().data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.cpu().numpy(),-realNVP._inferenceLogjac.cpu().numpy())
 
 @skipIfNoCuda
 def test_tempalte_contractionCNN_cuda():
@@ -279,7 +279,7 @@ def test_tempalte_contractionCNN_cuda():
     zp3d = realNVP3d._inference(z3d,realNVP3d.mask,realNVP3d.mask_,True)
     print(realNVP3d._logProbability(z3d,realNVP3d.mask,realNVP3d.mask_))
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
-    assert_array_almost_equal(realNVP3d._generateLogjac.cpu().data.numpy(),-realNVP3d._inferenceLogjac.cpu().data.numpy())
+    assert_array_almost_equal(realNVP3d._generateLogjac.cpu().numpy(),-realNVP3d._inferenceLogjac.cpu().numpy())
 
 @skipIfNoCuda
 def test_tempalte_contractionCNN_checkerboard_cuda():
@@ -296,7 +296,7 @@ def test_tempalte_contractionCNN_checkerboard_cuda():
     zp3d = realNVP3d._inference(z3d,realNVP3d.mask,realNVP3d.mask_,True)
     print(realNVP3d._logProbability(z3d,realNVP3d.mask,realNVP3d.mask_))
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
-    assert_array_almost_equal(realNVP3d._generateLogjac.cpu().data.numpy(),-realNVP3d._inferenceLogjac.cpu().data.numpy())
+    assert_array_almost_equal(realNVP3d._generateLogjac.cpu().numpy(),-realNVP3d._inferenceLogjac.cpu().numpy())
 
 @skipIfOnlyOneGPU
 def test_slice_cudaNo0():
@@ -312,7 +312,7 @@ def test_slice_cudaNo0():
     print(realNVP._logProbabilityWithSlice(z,0))
     zz = realNVP._inferenceWithSlice(z,0,True)
     assert_array_almost_equal(x.cpu().data.numpy(),zz.cpu().data.numpy())
-    assert_array_almost_equal(realNVP._generateLogjac.cpu().data.numpy(),-realNVP._inferenceLogjac.cpu().data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.cpu().numpy(),-realNVP._inferenceLogjac.cpu().numpy())
 
 def test_forward():
     gaussian3d = Gaussian([2,4,4])
@@ -372,7 +372,7 @@ def test_multiplyMask_generate_CNN():
     print("Backward")
     #print(zp3d)
 
-    assert_array_almost_equal(realNVP3d._generateLogjac.data.numpy(),-realNVP3d._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP3d._generateLogjac.numpy(),-realNVP3d._inferenceLogjac.numpy())
 
     print("3d logProbability")
     print(realNVP3d._logProbability(z3d,realNVP3d.mask,realNVP3d.mask_))
@@ -416,7 +416,7 @@ def test_multiplyMask_generateWithContraction_CNN():
     #print(zz)
 
     assert_array_almost_equal(x.data.numpy(),zz.data.numpy())
-    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.numpy(),-realNVP._inferenceLogjac.numpy())
 
 def test_multiplyMask_generateWithSlice_CNN():
     gaussian3d = Gaussian([2,4,4])
@@ -442,7 +442,7 @@ def test_multiplyMask_generateWithSlice_CNN():
     assert_array_almost_equal(x.data.numpy(),zz.data.numpy())
     #print(realNVP._generateLogjac.data.numpy())
     #print(realNVP._inferenceLogjac.data.numpy())
-    assert_array_almost_equal(realNVP._generateLogjac.data.numpy(),-realNVP._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.numpy(),-realNVP._inferenceLogjac.numpy())
 
 @skipIfNoCuda
 def test_contraction_cuda_withDifferentMasks():
@@ -466,7 +466,7 @@ def test_contraction_cuda_withDifferentMasks():
     zz = realNVP._inferenceWithContraction(z,realNVP.mask,realNVP.mask_,2,True)
 
     assert_array_almost_equal(x.cpu().data.numpy(),zz.cpu().data.numpy())
-    assert_array_almost_equal(realNVP._generateLogjac.cpu().data.numpy(),-realNVP._inferenceLogjac.cpu().data.numpy())
+    assert_array_almost_equal(realNVP._generateLogjac.cpu().numpy(),-realNVP._inferenceLogjac.cpu().numpy())
 
 
 
