@@ -366,8 +366,9 @@ if __name__=="__main__":
         masktypelist = ['checkerboard', 'checkerboard'] * (args.Nlayers//2)
 
     model = RealNVP(input_size, sList, tList, prior, 
-                    masktypelist, name = key, double=args.double)
-
+                    masktypelist, name = key)
+    if args.double:
+        model = model.double()
     if args.modelname is not None:
         try:
             model.loadModel(torch.load(args.modelname))
