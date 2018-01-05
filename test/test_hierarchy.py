@@ -190,7 +190,7 @@ def test_mera_2d_cuda():
                       tList,
                       Gaussian([2,2]),
                       masktypelist) for _ in range(4)]
-    model = HierarchyBijector(2,[[2,2] for _ in range(4)],rollList,layers,maskList,None).cuda()
+    model = HierarchyBijector(2,[[2,2] for _ in range(4)],rollList,layers,maskList,Gaussian([4,4])).cuda()
     z = prior(2).cuda()
     print(z)
     x = model.inference(z,True)
@@ -202,8 +202,41 @@ def test_mera_2d_cuda():
     bLog = model._generateLogjac
     print(model._generateLogjac)
 
+    print(model.sample(10))
+
+    saveDict = model.saveModel({})
+    torch.save(saveDict,'./savetest.testSave')
+
+    masksp = [Variable(torch.ByteTensor([[1,0,1,0],[0,0,0,0],[1,0,1,0],[0,0,0,0]]))]
+    masks_p = [Variable(torch.ByteTensor([[0,1,0,1],[1,1,1,1],[0,1,0,1],[1,1,1,1]]))]
+
+    rollListp = [Placeholder(),Roll([1,1],[1,2]),Placeholder(),Roll([1,1],[1,2])]
+    maskListp = [Placeholder(2),Placeholder(2),Mask(masksp[0],masks_p[0]),Mask(masksp[0],masks_p[0])]
+    Nlayersp = 4
+    Hsp = 10
+    Htp = 10
+    sListp = [MLP2d(4, Hsp) for _ in range(Nlayersp)]
+    tListp = [MLP2d(4, Htp) for _ in range(Nlayersp)]
+    masktypelistp = ['channel', 'channel'] * (Nlayersp//2)
+    #assamble RNVP blocks into a TEBD layer
+    priorp = Gaussian([4,4])
+    layersp = [RealNVP([2,2],
+                      sListp,
+                      tListp,
+                      Gaussian([2,2]),
+                       masktypelistp) for _ in range(4)]
+    modelp = HierarchyBijector(2,[[2,2] for _ in range(4)],rollListp,layersp,maskListp,Gaussian([4,4]))
+
+    saveDictp = torch.load('./savetest.testSave')
+    modelp.loadModel(saveDictp)
+
+    xp = modelp.inference(z.cpu())
+
+    print(xp)
+
     assert_array_almost_equal(z.data.cpu().numpy(),zz.data.cpu().numpy())
     assert_array_almost_equal(fLog.cpu().numpy(),-bLog.cpu().numpy())
+    assert_array_almost_equal(xp.data.numpy(),x.data.cpu().numpy())
 
 @skipIfOnlyOneGPU
 def test_mera_2d_cudaNotOne():
@@ -225,8 +258,8 @@ def test_mera_2d_cudaNotOne():
                       tList,
                       Gaussian([2,2]),
                       masktypelist) for _ in range(4)]
-    model = HierarchyBijector(2,[[2,2] for _ in range(4)],rollList,layers,maskList,None).cuda(2)
-    z = prior(2).cuda(2)
+    model = HierarchyBijector(2,[[2,2] for _ in range(4)],rollList,layers,maskList,Gaussian([4,4])).cuda(1)
+    z = prior(2).cuda(1)
     print(z)
     x = model.inference(z,True)
     print(x)
@@ -237,9 +270,42 @@ def test_mera_2d_cudaNotOne():
     bLog = model._generateLogjac
     print(model._generateLogjac)
 
+    print(model.sample(10))
+
+    saveDict = model.saveModel({})
+    torch.save(saveDict,'./savetest.testSave')
+
+    masksp = [Variable(torch.ByteTensor([[1,0,1,0],[0,0,0,0],[1,0,1,0],[0,0,0,0]]))]
+    masks_p = [Variable(torch.ByteTensor([[0,1,0,1],[1,1,1,1],[0,1,0,1],[1,1,1,1]]))]
+
+    rollListp = [Placeholder(),Roll([1,1],[1,2]),Placeholder(),Roll([1,1],[1,2])]
+    maskListp = [Placeholder(2),Placeholder(2),Mask(masksp[0],masks_p[0]),Mask(masksp[0],masks_p[0])]
+    Nlayersp = 4
+    Hsp = 10
+    Htp = 10
+    sListp = [MLP2d(4, Hsp) for _ in range(Nlayersp)]
+    tListp = [MLP2d(4, Htp) for _ in range(Nlayersp)]
+    masktypelistp = ['channel', 'channel'] * (Nlayersp//2)
+    #assamble RNVP blocks into a TEBD layer
+    priorp = Gaussian([4,4])
+    layersp = [RealNVP([2,2],
+                      sListp,
+                      tListp,
+                      Gaussian([2,2]),
+                       masktypelistp) for _ in range(4)]
+    modelp = HierarchyBijector(2,[[2,2] for _ in range(4)],rollListp,layersp,maskListp,Gaussian([4,4]))
+
+    saveDictp = torch.load('./savetest.testSave')
+    modelp.loadModel(saveDictp)
+    modelp = modelp.cuda(0)
+
+    xp = modelp.inference(z.cuda(0))
+
+    print(xp)
+
     assert_array_almost_equal(z.data.cpu().numpy(),zz.data.cpu().numpy())
     assert_array_almost_equal(fLog.cpu().numpy(),-bLog.cpu().numpy())
-
+    assert_array_almost_equal(xp.data.cpu().numpy(),x.data.cpu().numpy())
 
 if __name__ == "__main__":
     #test_mera_1d()
