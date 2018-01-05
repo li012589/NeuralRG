@@ -12,7 +12,8 @@ torch.manual_seed(42)
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
-from model import RealNVP, TEBD , Gaussian, MLP 
+from model import RealNVP, Gaussian, MLP
+from hierarchy import TEBD
 
 from subprocess import Popen, PIPE
 import pytest
@@ -53,7 +54,7 @@ def test_invertible():
                       Gaussian([2]), 
                       masktypelist) for _ in range(4)] 
     
-    model = TEBD(prior, layers)
+    model = TEBD(1,2,4,layers,prior)
 
     z = model.prior(10)
 
@@ -82,20 +83,122 @@ def test_invertible():
                       Gaussian([2]), 
                        masktypelistp) for _ in range(4)] 
     
-    modelp = TEBD(priorp, layersp)
+    modelp = TEBD(1,2,4,layersp,priorp)
     saveDictp = torch.load('./saveNet.testSave')
     modelp.loadModel(saveDictp)
 
     xp = modelp.generate(z)
 
-    #modelp = RealNVP([2], sListp, tListp, gaussian)
-    #saveDictp = torch.load('./saveNet.testSave')
-    #modelp.loadModel(saveDictp)
+    assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
 
-    #xx = model.generate(z)
-    #print("Forward after restore")
+def test_invertible_2d():
+    #RNVP block
+    Nlayers = 4 
+    Hs = 10 
+    Ht = 10 
+    sList = [MLP(2, Hs) for _ in range(Nlayers)]
+    tList = [MLP(2, Ht) for _ in range(Nlayers)]
+    masktypelist = ['channel', 'channel'] * (Nlayers//2)
+    
+    #assamble RNVP blocks into a TEBD layer
+    prior = Gaussian([4,4])
+    layers = [RealNVP([2,2],
+                      sList,
+                      tList,
+                      Gaussian([2,2]),
+                      masktypelist) for _ in range(4)]
+
+    model = TEBD(2,[2,2],4,layers,prior)
+
+    z = model.prior(10)
+
+    print("original")
+
+    x = model.generate(z)
+    print("Forward")
+
+    zp = model.inference(x)
+
+    print("Backward")
+    assert_array_almost_equal(z.data.numpy(),zp.data.numpy())
+
+    saveDict = model.saveModel({})
+    torch.save(saveDict, './saveNet.testSave')
+
+    sListp = [MLP(2, Hs) for _ in range(Nlayers)]
+    tListp = [MLP(2, Ht) for _ in range(Nlayers)]
+    masktypelistp = ['channel', 'channel'] * (Nlayers//2)
+    
+    #assamble RNVP blocks into a TEBD layer
+    priorp = Gaussian([4,4])
+    layersp = [RealNVP([2,2],
+                      sList,
+                      tList,
+                      Gaussian([2,2]),
+                      masktypelist) for _ in range(4)]
+
+    modelp = TEBD(2,[2,2],4,layersp,priorp)
+    saveDictp = torch.load('./saveNet.testSave')
+    modelp.loadModel(saveDictp)
+
+    xp = modelp.generate(z)
 
     assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
 
+@skipIfNoCuda
+def test_invertible_2d_cuda():
+    Nlayers = 4 
+    Hs = 10 
+    Ht = 10 
+    sList = [MLP(2, Hs) for _ in range(Nlayers)]
+    tList = [MLP(2, Ht) for _ in range(Nlayers)]
+    masktypelist = ['channel', 'channel'] * (Nlayers//2)
+    
+    #assamble RNVP blocks into a TEBD layer
+    prior = Gaussian([4,4])
+    layers = [RealNVP([2,2],
+                      sList,
+                      tList,
+                      Gaussian([2,2]),
+                      masktypelist) for _ in range(4)]
+
+    model = TEBD(2,[2,2],4,layers,prior).cuda()
+
+    z = model.prior(10).cuda()
+
+    print("original")
+
+    x = model.generate(z)
+    print("Forward")
+
+    zp = model.inference(x)
+
+    print("Backward")
+    assert_array_almost_equal(z.data.cpu().numpy(),zp.data.cpu().numpy())
+
+    saveDict = model.saveModel({})
+    torch.save(saveDict, './saveNet.testSave')
+
+    sListp = [MLP(2, Hs) for _ in range(Nlayers)]
+    tListp = [MLP(2, Ht) for _ in range(Nlayers)]
+    masktypelistp = ['channel', 'channel'] * (Nlayers//2)
+    
+    #assamble RNVP blocks into a TEBD layer
+    priorp = Gaussian([4,4])
+    layersp = [RealNVP([2,2],
+                      sList,
+                      tList,
+                      Gaussian([2,2]),
+                      masktypelist) for _ in range(4)]
+
+    modelp = TEBD(2,[2,2],4,layersp,priorp)
+    saveDictp = torch.load('./saveNet.testSave')
+    modelp.loadModel(saveDictp)
+
+    xp = modelp.generate(z.cpu())
+
+    assert_array_almost_equal(xp.data.numpy(),x.data.cpu().numpy())
+
 if __name__=='__main__':
-    test_invertible()
+    #test_invertible()
+    test_invertible_2d()
