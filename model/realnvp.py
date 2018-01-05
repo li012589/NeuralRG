@@ -144,9 +144,6 @@ class RealNVP(RealNVPtemplate):
         #print (mask)
         if ifByte:
             mask = mask.byte()
-        if self.ifCuda:
-            cudaNo = self.mask.get_device()
-            mask = mask.pin_memory().cuda(cudaNo)
         #self.register_buffer("mask",mask)
         #self.register_buffer("mask_",1-mask)
         return mask

@@ -65,16 +65,10 @@ class GMM(PriorTemplate):
         """
         super(GMM, self).__init__(shapeList, double ,name)
         assert len(shapeList) == 1
-        if double:
-            self.mu1= torch.nn.Parameter(torch.DoubleTensor([1.]), requires_grad=True)
-            self.logsigma1 = torch.nn.Parameter(torch.DoubleTensor([0.]), requires_grad=True)
-            self.mu2 = torch.nn.Parameter(torch.DoubleTensor([-1.]), requires_grad=True)
-            self.logsigma2 = torch.nn.Parameter(torch.DoubleTensor([0.]), requires_grad=True)
-        else:
-            self.mu1= torch.nn.Parameter(torch.FloatTensor([1.]), requires_grad=True)
-            self.logsigma1 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad=True)
-            self.mu2 = torch.nn.Parameter(torch.FloatTensor([-1.]), requires_grad=True)
-            self.logsigma2 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad=True)
+        self.mu1= torch.nn.Parameter(torch.FloatTensor([1.]), requires_grad=True)
+        self.logsigma1 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad=True)
+        self.mu2 = torch.nn.Parameter(torch.FloatTensor([-1.]), requires_grad=True)
+        self.logsigma2 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad=True)
 
     def sample(self, batchSize, volatile=False):
         """
@@ -88,25 +82,14 @@ class GMM(PriorTemplate):
 
         """
         size = [batchSize] + self.shapeList
-        selector = Variable(torch.from_numpy(np.random.choice(2, size=(batchSize,))).view(batchSize,-1))
-        if self.cudaNo is not None:
-            if self.double:
-                selector = selector.double().cuda(self.cudaNo)
-                return selector * (Variable(torch.DoubleTensor(*size).normal_().pin_memory().cuda(self.cudaNo))*torch.exp(self.logsigma1) + self.mu1) \
-                 + (1.-selector)* (Variable(torch.DoubleTensor(*size).normal_()).pin_memory().cuda(self.cudaNo)*torch.exp(self.logsigma2) + self.mu2)
-            else:
-                selector = selector.float().cuda(self.cudaNo)
-                return selector * (Variable(torch.FloatTensor(*size).normal_().pin_memory().cuda(self.cudaNo))*torch.exp(self.logsigma1) + self.mu1) \
-                 + (1.-selector)* (Variable(torch.FloatTensor(*size).normal_().pin_memory().cuda(self.cudaNo))*torch.exp(self.logsigma2) + self.mu2)
+        if self.mu1.is_cuda:
+            selector = Variable(torch.from_numpy(np.random.choice(2, size=(batchSize,))).cuda(self.mu1.get_device()).type(self.mu1.data.type()).view(batchSize,-1))
+            return selector * (Variable(torch.FloatTensor(*size).normal_().cuda(self.mu1.get_device()).type(self.mu1.data.type()))*torch.exp(self.logsigma1) + self.mu1) \
+                 + (1.-selector)* (Variable(torch.FloatTensor(*size).normal_().cuda(self.mu1.get_device()).type(self.mu1.data.type()))*torch.exp(self.logsigma2) + self.mu2)
         else:
-            if self.double:
-                selector = selector.double()
-                return selector * (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma1) + self.mu1) \
-                 + (1.-selector)* (Variable(torch.DoubleTensor(*size).normal_())*torch.exp(self.logsigma2) + self.mu2)
-            else:
-                selector = selector.float()
-                return selector * (Variable(torch.FloatTensor(*size).normal_())*torch.exp(self.logsigma1) + self.mu1) \
-                 + (1.-selector)* (Variable(torch.FloatTensor(*size).normal_())*torch.exp(self.logsigma2) + self.mu2)
+            selector = Variable(torch.from_numpy(np.random.choice(2, size=(batchSize,))).type(self.mu1.data.type()).view(batchSize,-1))
+            return selector * (Variable(torch.FloatTensor(*size).normal_().type(self.mu1.data.type()))*torch.exp(self.logsigma1) + self.mu1) \
+                 + (1.-selector)* (Variable(torch.FloatTensor(*size).normal_().type(self.mu1.data.type()))*torch.exp(self.logsigma2) + self.mu2)
 
     def __call__(self,*args,**kwargs):
         return self.sample(*args,**kwargs)
@@ -151,10 +134,7 @@ class Gaussian(PriorTemplate):
 
         """
         super(Gaussian, self).__init__(shapeList, double,name)
-        if double:
-            self.sigma = torch.nn.Parameter(torch.DoubleTensor([sigma]), requires_grad=requires_grad)
-        else:
-            self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad=requires_grad)
+        self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad=requires_grad)
     def sample(self, batchSize, volatile=False):
         """
 
@@ -167,16 +147,10 @@ class Gaussian(PriorTemplate):
 
         """
         size = [batchSize] + self.shapeList
-        if self.cudaNo is not None:
-            if self.double:
-                return Variable(torch.randn(size).double().pin_memory().cuda(self.cudaNo),volatile=volatile) * self.sigma
-            else:
-                return Variable(torch.randn(size).pin_memory().cuda(self.cudaNo),volatile=volatile) * self.sigma
+        if self.sigma.is_cuda:
+            return Variable(torch.randn(size).cuda(self.sigma.get_device()).type(self.sigma.data.type()))
         else:
-            if self.double:
-                return Variable(torch.randn(size).double(),volatile=volatile) * self.sigma
-            else:
-                return Variable(torch.randn(size),volatile=volatile) * self.sigma
+            return Variable(torch.randn(size).type(self.sigma.data.type()))
 
     def __call__(self,*args,**kwargs):
         return self.sample(*args,**kwargs)

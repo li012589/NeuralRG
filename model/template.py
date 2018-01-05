@@ -57,34 +57,6 @@ class RealNVPtemplate(torch.nn.Module):
             self.name = name
         self.double = double
 
-    def cuda(self,device=None,async=False):
-        """
-
-        This method move everything in RealNVPtemplate to GPU.
-        Return:
-            cudaModel (nn.Module.cuda): the instance in GPU.
-
-        """
-        cudaModel = super(RealNVPtemplate, self).cuda(device)
-        cudaModel.ifCuda = True
-        if device is None:
-            device = 0
-        cudaModel.prior.cudaNo = device
-        return cudaModel
-
-    def cpu(self):
-        """
-
-        This method move everything in RealNVPtemplate to CPU.
-        Return:
-            cudaModel (nn.Module): the instance in CPU.
-
-        """
-        cpuModel = super(RealNVPtemplate, self).cpu()
-        cpuModel.ifCuda = False
-        cpuModel.prior.cudaNo = None
-        return cpuModel
-
     def _generate(self, y, mask, mask_, ifLogjac=False):
         """
 
