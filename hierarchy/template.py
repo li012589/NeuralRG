@@ -100,12 +100,6 @@ class HierarchyBijector(nn.Module):
 
         return x
 
-    def cuda(self,device = None, async = False):
-        pass
-
-    def cpu(self,device = None, async = False):
-        pass
-
     def logProbability(self,x):
         z = self.inference(x,True)
         return self.prior.probability(z) +self._inferenceLogjac
