@@ -23,7 +23,7 @@ class RealNVPtemplate(torch.nn.Module):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, name=None, double=False):
+    def __init__(self, shapeList, sList, tList, prior, name=None):
         """
 
         This mehtod initialise this class.
@@ -38,16 +38,11 @@ class RealNVPtemplate(torch.nn.Module):
         super(RealNVPtemplate, self).__init__()
 
         assert len(tList) == len(tList)
-        if double:
-            self.tList = torch.nn.ModuleList(tList).double()
-            self.sList = torch.nn.ModuleList(sList).double()
-        else:
-            self.tList = torch.nn.ModuleList(tList)
-            self.sList = torch.nn.ModuleList(sList)
+        self.tList = torch.nn.ModuleList(tList)
+        self.sList = torch.nn.ModuleList(sList)
         self.NumLayers = len(self.tList)
         self.prior = prior
         self.shapeList = shapeList
-        self.ifCuda = False
         self.pointer = "logProbability"
         if name is None:
             self.name = "realNVP_" + \
@@ -55,7 +50,6 @@ class RealNVPtemplate(torch.nn.Module):
                 "layers_" + self.prior.name + "Prior"
         else:
             self.name = name
-        self.double = double
 
     def _generate(self, y, mask, mask_, ifLogjac=False):
         """

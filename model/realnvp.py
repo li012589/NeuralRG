@@ -22,7 +22,7 @@ class RealNVP(RealNVPtemplate):
 
     """
 
-    def __init__(self, shapeList, sList, tList, prior, maskType="channel", double=False, mode = 0, name=None):
+    def __init__(self, shapeList, sList, tList, prior, maskType="channel", mode = 0, name=None):
         """
 
         This mehtod initialise this class.
@@ -35,7 +35,7 @@ class RealNVP(RealNVPtemplate):
 
         """
         super(RealNVP, self).__init__(
-            shapeList, sList, tList, prior, name,double)
+            shapeList, sList, tList, prior, name)
         if mode == 0:
             if isinstance(maskType,str):
                 maskType = [maskType] * self.NumLayers
