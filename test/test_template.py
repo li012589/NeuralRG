@@ -239,7 +239,7 @@ def test_contraction_cuda():
 
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     realNVP = realNVP.cuda()
-    mask = realNVP.createMask(["checkerboard"]*4,1)
+    mask = realNVP.createMask(["checkerboard"]*4,1,cuda = 0)
 
     z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2,True)
     print(realNVP._logProbabilityWithContraction(z,realNVP.mask,realNVP.mask_,2))
@@ -273,8 +273,8 @@ def test_tempalte_contractionCNN_cuda():
     tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask(["channel"]*4,ifByte=0)
     realNVP3d = realNVP3d.cuda()
+    mask3d = realNVP3d.createMask(["channel"]*4,ifByte=0, cuda = 0)
     z3d = realNVP3d._generate(x3d,realNVP3d.mask,realNVP3d.mask_,True)
     zp3d = realNVP3d._inference(z3d,realNVP3d.mask,realNVP3d.mask_,True)
     print(realNVP3d._logProbability(z3d,realNVP3d.mask,realNVP3d.mask_))
@@ -290,8 +290,8 @@ def test_tempalte_contractionCNN_checkerboard_cuda():
     tList3d = [CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2),CNN(netStructure,inchannel = 2)]
 
     realNVP3d = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
-    mask3d = realNVP3d.createMask(["checkerboard"]*4,ifByte=0)
     realNVP3d = realNVP3d.cuda()
+    mask3d = realNVP3d.createMask(["checkerboard"]*4,ifByte=0,cuda = 0)
     z3d = realNVP3d._generate(x3d,realNVP3d.mask,realNVP3d.mask_,True)
     zp3d = realNVP3d._inference(z3d,realNVP3d.mask,realNVP3d.mask_,True)
     print(realNVP3d._logProbability(z3d,realNVP3d.mask,realNVP3d.mask_))
@@ -445,7 +445,7 @@ def test_multiplyMask_generateWithSlice_CNN():
     assert_array_almost_equal(realNVP._generateLogjac.numpy(),-realNVP._inferenceLogjac.numpy())
 
 @skipIfNoCuda
-def test_contraction_cuda_withDifferentMasks():
+def test_contraction_cuda_withDifferentMasks ():
     gaussian3d = Gaussian([2,4,4])
     x = gaussian3d(3).cuda()
     #z3dp = z3d[:,0,:,:].view(10,-1,4,4)
@@ -459,7 +459,7 @@ def test_contraction_cuda_withDifferentMasks():
 
     realNVP = RealNVP([2,4,4], sList3d, tList3d, gaussian3d)
     realNVP = realNVP.cuda()
-    mask = realNVP.createMask(["channel","checkerboard","channel","checkerboard"],1)
+    mask = realNVP.createMask(["channel","checkerboard","channel","checkerboard"],1,cuda = 0)
 
     z = realNVP._generateWithContraction(x,realNVP.mask,realNVP.mask_,2,True)
     print(realNVP._logProbabilityWithContraction(z,realNVP.mask,realNVP.mask_,2))
