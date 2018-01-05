@@ -171,7 +171,7 @@ def test_mera_2d():
     assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
 
 @skipIfNoCuda
-def test_mera_1d_cuda():
+def test_mera_2d_cuda():
     masks = [Variable(torch.ByteTensor([[1,0,1,0],[0,0,0,0],[1,0,1,0],[0,0,0,0]]))]
     masks_ = [Variable(torch.ByteTensor([[0,1,0,1],[1,1,1,1],[0,1,0,1],[1,1,1,1]]))]
 
@@ -190,8 +190,8 @@ def test_mera_1d_cuda():
                       tList,
                       Gaussian([2,2]),
                       masktypelist) for _ in range(4)]
-    model = HierarchyBijector(2,[[2,2] for _ in range(4)],rollList,layers,maskList,None)
-    z = prior(2)
+    model = HierarchyBijector(2,[[2,2] for _ in range(4)],rollList,layers,maskList,None).cuda()
+    z = prior(2).cuda()
     print(z)
     x = model.inference(z,True)
     print(x)
@@ -202,10 +202,10 @@ def test_mera_1d_cuda():
     bLog = model._generateLogjac
     print(model._generateLogjac)
 
-    assert_array_almost_equal(z.data.numpy(),zz.data.numpy())
-    assert_array_almost_equal(fLog.numpy(),-bLog.numpy())
+    assert_array_almost_equal(z.data.cpu().numpy(),zz.data.cpu().numpy())
+    assert_array_almost_equal(fLog.cpu().numpy(),-bLog.cpu().numpy())
 
 
 if __name__ == "__main__":
     #test_mera_1d()
-    test_mera_2d()
+    test_mera_2d_cuda()
