@@ -12,7 +12,8 @@ from .layer import Roll, Wide2bacth, Batch2wide, Placeholder, Mask
 
 class HierarchyBijector(nn.Module):
     def __init__(self,dimension,kernalSizeList,rollList,bijectors,maskList,prior,name = None,double = False):
-        # ONLY work for one dimension!!!!
+        if name is None:
+            name = "HierarchyBijector"
         super(HierarchyBijector,self).__init__()
         assert len(kernalSizeList) == len(bijectors)
         assert len(bijectors) == len(maskList)
