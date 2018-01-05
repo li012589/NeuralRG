@@ -42,21 +42,21 @@ class RealNVP(RealNVPtemplate):
             else:
                 assert len(maskType) == self.NumLayers
             self.maskType = maskType
-            self.createMask(maskType,double = double)
+            self.createMask(maskType)
         elif mode == 1:
             if isinstance(maskType,str):
                 maskType = [maskType] * self.NumLayers
             else:
                 assert len(maskType) == self.NumLayers
             self.maskType = maskType
-            self.createMask(maskType,ifByte=1,double=double)
+            self.createMask(maskType,ifByte=1)
         elif mode == 2:
             self.maskType = None
             self.mask = None
             self.mask_ = None
         self.mode = mode
 
-    def createMask(self, maskType, ifByte=0, double = False):
+    def createMask(self, maskType, ifByte=0, cuda = None):
         """
 
         This method create mask for x, and save it in self.mask for later use.
@@ -70,7 +70,7 @@ class RealNVP(RealNVPtemplate):
         maskList = None
         mask_List = None
         for iterm in maskType:
-            mask = self._createMaskMeta(iterm,ifByte,double)
+            mask = self._createMaskMeta(iterm,ifByte)
             mask_ = 1 - mask
             if maskList is None:
                 maskList = mask.view(1,*mask.shape)
@@ -78,64 +78,47 @@ class RealNVP(RealNVPtemplate):
             else:
                 maskList = torch.cat([maskList,mask.view(1,*mask.shape)],0)
                 mask_List = torch.cat([mask_List,mask_.view(1,*mask_.shape)],0)
+        if cuda is not None:
+            maskList = maskList.cuda(cuda)
+            mask_List = mask_List.cuda(cuda)
         self.register_buffer("mask",maskList)
         self.register_buffer("mask_",mask_List)
 
-    def _createMaskMeta(self,maskType,ifByte, double):
+    def _createMaskMeta(self,maskType,ifByte):
         size = self.shapeList.copy()
         if maskType == "channel":
             size[0] = size[0] // 2
-            if double:
-                maskOne = torch.ones(size).double()
-                maskZero = torch.zeros(size).double()
-            else:
-                maskOne = torch.ones(size)
-                maskZero = torch.zeros(size)
+            maskOne = torch.ones(size)
+            maskZero = torch.zeros(size)
             mask = torch.cat([maskOne, maskZero], 0)
 
         elif maskType == "evenodd":
             size[0] = size[0] // 2
-            if double:
-                unit = torch.DoubleTensor([1, 0])
-            else:
-                unit = torch.FloatTensor([1, 0])
+            unit = torch.FloatTensor([1, 0])
             mask = (unit.repeat(size[0]))
 
         elif maskType == "checkerboard":
             assert (size[1] % 2 == 0)
             assert (size[2] % 2 == 0)
-            if double:
-                unit = torch.DoubleTensor([[1, 0], [0, 1]])
-            else:
-                unit = torch.FloatTensor([[1, 0], [0, 1]])
+            unit = torch.FloatTensor([[1, 0], [0, 1]])
             mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
         elif ('updown' in maskType) or ('leftright' in maskType):
             slicedim = 1 if ("updown" in maskType) else 2
             size[slicedim] = size[slicedim] // 2
-            if double:
-                maskOne = torch.ones(size).double()
-                maskZero = torch.zeros(size).double()
-            else:
-                maskOne = torch.ones(size)
-                maskZero = torch.zeros(size)
+            maskOne = torch.ones(size)
+            maskZero = torch.zeros(size)
             mask = torch.cat([maskOne, maskZero], slicedim)
         elif ('bars' in maskType):
             assert (size[1] % 2 == 0)
             assert (size[2] % 2 == 0)
-            if double:
-                unit = torch.DoubleTensor([[1, 0], [1, 0]])
-            else:
-                unit = torch.FloatTensor([[1, 0], [1, 0]])
+            unit = torch.FloatTensor([[1, 0], [1, 0]])
             mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
         elif ('stripes' in maskType):
             assert (size[1] % 2 == 0)
             assert (size[2] % 2 == 0)
-            if double:
-                unit = torch.DoubleTensor([[1, 1], [0, 0]])
-            else:
-                unit = torch.FloatTensor([[1, 1], [0, 0]])
+            unit = torch.FloatTensor([[1, 1], [0, 0]])
             mask = (unit.repeat(
                 size[0], size[1] // 2, size[2] // 2))
         else:
