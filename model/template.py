@@ -412,7 +412,7 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         z = self._inferenceWithSlice(x, sliceDim, True)
-        return self.prior.logProbability(z).data + Variable(self._inferenceLogjac)
+        return self.prior.logProbability(z) + Variable(self._inferenceLogjac)
 
     def _logProbabilityWithContraction(self, x, mask, mask_, sliceDim):
         """
@@ -428,7 +428,7 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         z = self._inferenceWithContraction(x, mask, mask_, sliceDim, True)
-        return self.prior.logProbability(z).data + Variable(self._inferenceLogjac)
+        return self.prior.logProbability(z) + Variable(self._inferenceLogjac)
 
     def _saveModel(self, saveDic):
         """
