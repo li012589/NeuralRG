@@ -107,13 +107,19 @@ class HierarchyBijector(nn.Module):
         pass
 
     def logProbability(self,x):
-        pass
+        z = self.inference(x,True)
+        return self.prior.probability(z) +self._inferenceLogjac
 
     def sample(self,batchSize):
-        pass
+        z = self.prior(batchSize)
+        return self.generate(z)
 
     def saveModel(self, saveDict):
-        pass
+        for i, layer in enumerate(self.bijectors):
+            saveDict[str(i)+"th_bijector"] = layer.saveModel({})
+        return saveDict
 
     def loadModel(self, saveDict):
-        pass
+        for i,layer in enumerate(self.bijectors):
+            layer.loadModel(saveDict[str(i)+"th_bijector"])
+        return saveDict
