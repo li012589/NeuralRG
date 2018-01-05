@@ -205,6 +205,41 @@ def test_mera_2d_cuda():
     assert_array_almost_equal(z.data.cpu().numpy(),zz.data.cpu().numpy())
     assert_array_almost_equal(fLog.cpu().numpy(),-bLog.cpu().numpy())
 
+@skipIfOnlyOneGPU
+def test_mera_2d_cudaNotOne():
+    masks = [Variable(torch.ByteTensor([[1,0,1,0],[0,0,0,0],[1,0,1,0],[0,0,0,0]]))]
+    masks_ = [Variable(torch.ByteTensor([[0,1,0,1],[1,1,1,1],[0,1,0,1],[1,1,1,1]]))]
+
+    rollList = [Placeholder(),Roll([1,1],[1,2]),Placeholder(),Roll([1,1],[1,2])]
+    maskList = [Placeholder(2),Placeholder(2),Mask(masks[0],masks_[0]),Mask(masks[0],masks_[0])]
+    Nlayers = 4
+    Hs = 10
+    Ht = 10
+    sList = [MLP2d(4, Hs) for _ in range(Nlayers)]
+    tList = [MLP2d(4, Ht) for _ in range(Nlayers)]
+    masktypelist = ['channel', 'channel'] * (Nlayers//2)
+    #assamble RNVP blocks into a TEBD layer
+    prior = Gaussian([4,4])
+    layers = [RealNVP([2,2],
+                      sList,
+                      tList,
+                      Gaussian([2,2]),
+                      masktypelist) for _ in range(4)]
+    model = HierarchyBijector(2,[[2,2] for _ in range(4)],rollList,layers,maskList,None).cuda(2)
+    z = prior(2).cuda(2)
+    print(z)
+    x = model.inference(z,True)
+    print(x)
+    fLog = model._inferenceLogjac
+    print(model._inferenceLogjac)
+    zz = model.generate(x,True)
+    print(zz)
+    bLog = model._generateLogjac
+    print(model._generateLogjac)
+
+    assert_array_almost_equal(z.data.cpu().numpy(),zz.data.cpu().numpy())
+    assert_array_almost_equal(fLog.cpu().numpy(),-bLog.cpu().numpy())
+
 
 if __name__ == "__main__":
     #test_mera_1d()
