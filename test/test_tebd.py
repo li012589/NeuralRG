@@ -186,10 +186,10 @@ def test_invertible_2d_cuda():
     #assamble RNVP blocks into a TEBD layer
     priorp = Gaussian([4,4])
     layersp = [RealNVP([2,2],
-                      sList,
-                      tList,
+                      sListp,
+                      tListp,
                       Gaussian([2,2]),
-                      masktypelist) for _ in range(4)]
+                       masktypelistp) for _ in range(4)]
 
     modelp = TEBD(2,[2,2],4,layersp,priorp)
     saveDictp = torch.load('./saveNet.testSave')
