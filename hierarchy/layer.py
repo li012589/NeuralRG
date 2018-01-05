@@ -74,7 +74,10 @@ class Mask(nn.Module):
         return torch.masked_select(x,self.mask).view(*size),torch.masked_select(x,self.mask_).view(batchSize,-1)
     def reverse(self,x,x_):
         batchSize = x.shape[0]
-        output = Variable(torch.zeros(batchSize,*self.mask.shape))
+        if x.is_cuda:
+            output = Variable(torch.zeros(batchSize,*self.mask.shape).cuda(x.get_device()).type(x.data.type()))
+        else:
+            output = Variable(torch.zeros(batchSize,*self.mask.shape).type(x.data.type()))
         output.masked_scatter_(self.mask,x)
         output.masked_scatter_(self.mask_,x_)
         return output
