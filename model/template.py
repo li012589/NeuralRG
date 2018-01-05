@@ -180,7 +180,7 @@ class RealNVPtemplate(torch.nn.Module):
         mask = Variable(mask)
         mask_ = Variable(mask_)
         if ifLogjac:
-            if self.ifCuda:
+            if y.is_cuda:
                 cudaNo = y.get_device()
                 self.register_buffer('_generateLogjac',torch.zeros(y.shape[0]).cuda(cudaNo).type(y.data.type()))
             else:
@@ -230,7 +230,7 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         if ifLogjac:
-            if self.ifCuda:
+            if y.is_cuda:
                 cudaNo = y.get_device()
                 self.register_buffer('_generateLogjac',torch.zeros(y.data.shape[0]).cuda(cudaNo).type(y.data.type()))
             else:
@@ -258,7 +258,7 @@ class RealNVPtemplate(torch.nn.Module):
         mask = Variable(mask)
         mask_ = Variable(mask_)
         if ifLogjac:
-            if self.ifCuda:
+            if y.is_cuda:
                 cudaNo = y.get_device()
                 self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).cuda(cudaNo).type(y.data.type()))
             else:
@@ -337,7 +337,7 @@ class RealNVPtemplate(torch.nn.Module):
         mask = Variable(mask)
         mask_ = Variable(mask_)
         if ifLogjac:
-            if self.ifCuda:
+            if y.is_cuda:
                 cudaNo = y.get_device()
                 self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).cuda(cudaNo).type(y.data.type()))
             else:
@@ -386,7 +386,7 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         if ifLogjac:
-            if self.ifCuda:
+            if y.is_cuda:
                 cudaNo = y.get_device()
                 self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).cuda(cudaNo).type(y.data.type()))
             else:
