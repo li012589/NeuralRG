@@ -159,7 +159,7 @@ def test_invertible_2d_cuda():
     print(zz)
     print(z)
 
-    assert_array_almost_equal(z.data.numpy(),zz.data.numpy(),decimal=4) # don't work for decimal >=5, maybe caz by float
+    assert_array_almost_equal(z.data.cpu().numpy(),zz.data.cpu().numpy(),decimal=4) # don't work for decimal >=5, maybe caz by float
 
     saveDict = model.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
@@ -185,7 +185,7 @@ def test_invertible_2d_cuda():
 
     xp = modelp.generate(z.cuda(1))
 
-    assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
+    assert_array_almost_equal(xp.data.cpu().numpy(),x.data.cpu().numpy())
 
 if __name__ == "__main__":
     test_invertible_2d_cuda()
