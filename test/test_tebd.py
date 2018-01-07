@@ -13,10 +13,7 @@ torch.manual_seed(42)
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 from model import RealNVP, Gaussian, MLP
-from hierarchy import TEBD
-=======
-from model import RealNVP, TEBD , Gaussian, MLP, Roll 
->>>>>>> 0b5adaf9065360ed823a3f968ae7e38159ca8e19
+from hierarchy import TEBD,Roll
 
 from subprocess import Popen, PIPE
 import pytest
@@ -70,7 +67,7 @@ def test_invertible():
 
     print("Backward")
     assert_array_almost_equal(z.data.numpy(),zp.data.numpy())
-    assert_array_almost_equal(model._generateLogjac.data.numpy(), -model._inferenceLogjac.data.numpy())
+    assert_array_almost_equal(model._generateLogjac.numpy(), -model._inferenceLogjac.numpy())
 
     saveDict = model.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
@@ -207,6 +204,14 @@ def test_invertible_2d_cuda():
 def test_translationalinvariance():
 
     #RNVP block
+    Nlayers = 4 
+    Hs = 10 
+    Ht = 10 
+    sList = [MLP(2, Hs) for _ in range(Nlayers)]
+    tList = [MLP(2, Ht) for _ in range(Nlayers)]
+    masktypelist = ['channel', 'channel'] * (Nlayers//2)
+    
+    #assamble RNVP blocks into a TEBD layer
     prior = Gaussian([8])
     layers = [RealNVP([2], 
                       sList, 
@@ -214,16 +219,16 @@ def test_translationalinvariance():
                       Gaussian([2]), 
                       masktypelist) for _ in range(4)] 
     
-    model = TEBD(prior, layers)
+    model = TEBD(1,2,4,layers,prior)
 
     x = model.sample(10)
     xright = Roll(1,1).forward(x)
     xleft = Roll(-1,1).forward(x)
 
     logp = model.logProbability(x)
-    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=4)
-    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xright).data.numpy(), decimal=4)
+    assert_array_almost_equal(logp.numpy(),model.logProbability(xleft).numpy(), decimal=4)
+    assert_array_almost_equal(logp.numpy(),model.logProbability(xright).numpy(), decimal=4)
 
 if __name__=='__main__':
     #test_invertible()
-    test_invertible_2d()
+    test_translationalinvariance()
