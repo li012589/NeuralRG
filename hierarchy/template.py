@@ -95,7 +95,6 @@ class HierarchyBijector(nn.Module):
                     raise NotImplementedError("Operation corresponding to dimension is not implemneted")
 
             x = self.W2B.forward(x,self.kernalSizeList[i])
-            print(x)
             x = self.bijectors[i].inference(x,ifLogjac = ifLogjac)
             x = self.B2W.forward(x,shape)
 
