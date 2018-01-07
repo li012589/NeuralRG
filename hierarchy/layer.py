@@ -133,7 +133,7 @@ class Batch2wide(nn.Module):
         shape = x.shape
         outSize0 = kernalSize[0]//shape[1]
         outSize1 = kernalSize[1]//shape[2]
-        x = x.view(-1,outSize0,shape[1],outSize1,shape[2])
+        x = x.view(-1,outSize0,outSize1,shape[1],shape[2])
         x = x.permute(0,1,3,2,4).contiguous()
         x = x.view(-1,kernalSize[0],kernalSize[1])
         return x
