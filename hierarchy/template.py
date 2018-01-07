@@ -32,14 +32,14 @@ class HierarchyBijector(nn.Module):
 
         self.prior = prior
 
-    def inference(self,x,ifLogjac = False):
+    def generate(self,x,ifLogjac = False):
         batchSize = x.shape[0]
 
         if ifLogjac:
             if x.is_cuda:
-                self.register_buffer('_inferenceLogjac',torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type())) # has to be pytorch 0.3 above to make this work
+                self.register_buffer('_generateLogjac',torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type())) # has to be pytorch 0.3 above to make this work
             else:
-                self.register_buffer('_inferenceLogjac',torch.zeros(x.shape[0]).type(x.data.type())) # has to be pytorch 0.3 above to make this work
+                self.register_buffer('_generateLogjac',torch.zeros(x.shape[0]).type(x.data.type())) # has to be pytorch 0.3 above to make this work
         for i in range(self.NumLayers):
             x,x_ = self.maskList[i].forward(x)
 
@@ -59,25 +59,25 @@ class HierarchyBijector(nn.Module):
             x = self.rollList[i].forward(x)
 
             x = self.W2B.forward(x,self.kernalSizeList[i])
-            x = self.bijectors[i].inference(x,ifLogjac = ifLogjac)
+            x = self.bijectors[i].generate(x,ifLogjac = ifLogjac)
             x = self.B2W.forward(x,shape)
 
             x = self.maskList[i].reverse(x,x_)
             #print("in "+str(i)+"th layer")
             #print(x)
             if ifLogjac:
-                self._inferenceLogjac += self.bijectors[i]._inferenceLogjac.view(batchSize,-1).sum(1)
+                self._generateLogjac += self.bijectors[i]._generateLogjac.view(batchSize,-1).sum(1)
 
         return x
 
-    def generate(self,x,ifLogjac = False):
+    def inference(self,x,ifLogjac = False):
         batchSize = x.shape[0]
 
         if ifLogjac:
             if x.is_cuda:
-                self.register_buffer('_generateLogjac',torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))# has to be pytorch 0.3 above to make this work
+                self.register_buffer('_inferenceLogjac',torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))# has to be pytorch 0.3 above to make this work
             else:
-                self.register_buffer('_generateLogjac',torch.zeros(x.shape[0]).type(x.data.type()))# has to be pytorch 0.3 above to make this work
+                self.register_buffer('_inferenceLogjac',torch.zeros(x.shape[0]).type(x.data.type()))# has to be pytorch 0.3 above to make this work
         for i in reversed(range(self.NumLayers)):
             x,x_ = self.maskList[i].forward(x)
 
@@ -95,7 +95,8 @@ class HierarchyBijector(nn.Module):
                     raise NotImplementedError("Operation corresponding to dimension is not implemneted")
 
             x = self.W2B.forward(x,self.kernalSizeList[i])
-            x = self.bijectors[i].generate(x,ifLogjac = ifLogjac)
+            print(x)
+            x = self.bijectors[i].inference(x,ifLogjac = ifLogjac)
             x = self.B2W.forward(x,shape)
 
             x = self.rollList[i].reverse(x)
@@ -103,7 +104,7 @@ class HierarchyBijector(nn.Module):
             #print("in "+str(i)+"th layer")
             #print(x)
             if ifLogjac:
-                self._generateLogjac += self.bijectors[i]._generateLogjac.view(batchSize,-1).sum(1)
+                self._inferenceLogjac += self.bijectors[i]._inferenceLogjac.view(batchSize,-1).sum(1)
 
         return x
 
