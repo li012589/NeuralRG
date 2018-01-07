@@ -15,7 +15,7 @@ python learn_realnvp.py -Batch 64 -Ntherm 5 -Nsteps 1 -Nskip 0 -Nlayers 10 -Hs 4
 python learn_realnvp.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Nlayers 8 -Hs 16 -Ht 16 -target ising -T 2.5 -L 8 -d 2 -epsilon 0.0 -beta 1.0  -delta 0.0 -omega 1.0  -Nepoch 1000 -lr 0.001 -exact 0.177921 -train_model
 
 #or 
-python learn_tebd.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Nlayers 8 -Hs 16 -Ht 16 -target ising -T 2.5 -L 16 -d 1 -epsilon 0.0 -beta 1.0  -delta 0.0 -omega 1.0  -Nepoch 1000 -lr 0.001 -exact 0.138871 -train_model
+python learn_tebd.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Nscales 8 -Nlayers 8 -Hs 100 -Ht 100 -target ising -T 2.5 -L 16 -d 1 -epsilon 0.0 -beta 1.0  -delta 0.0 -omega 1.0  -Nepoch 100 -lr 0.001 -exact 0.138871 -train_model
 ```
 
 To check the results 
@@ -31,11 +31,11 @@ python plot_configs.py -f data/learn_acc/ising_L4_d2_K0.44068679350977147_Nl10_H
 
 ### Exact Ising results 
 
-| $d=2,T=2.5$ | PBC                   | OBC                  |
-| :---------: | --------------------- | -------------------- |
-|    L=16     | 0.138871+/-0.000273   | 0.130933+/-0.000262  |
-|    L=64     | 0.0344761+/-0.0001465 | 0.0341328+/-0.000158 |
-|             |                       |                      |
+| $d=1,T=2.5$ |          PBC          |         OBC          |
+| :---------: | :-------------------: | :------------------: |
+|    $L=8$    |  0.277838+/-0.000294  |                      |
+|   $L=16$    |  0.138871+/-0.000273  | 0.130933+/-0.000262  |
+|   $L=64$    | 0.0344761+/-0.0001465 | 0.0341328+/-0.000158 |
 
 
 

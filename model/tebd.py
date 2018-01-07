@@ -154,11 +154,11 @@ if __name__=='__main__':
     print (z)
     print (tebd.generate(z))
 
-    #logp = tebd.logProbability(x)
+    logp = tebd.logProbability(x)
 
-    #print (logp)
+    print (logp)
 
-    #params = list(tebd.parameters()) 
-    #print (params)
+    params = list(tebd.parameters()) 
+    print (params)
 
     

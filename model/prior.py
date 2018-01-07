@@ -165,5 +165,5 @@ class Gaussian(PriorTemplate):
             logProbability (torch.autograd.Variable): log probability of input variables.
 
         """
-        tmp = -0.5 * (z/self.sigma)**2
+        tmp = -0.5 * (z/self.sigma)**2 -0.5* torch.log(2.*np.pi*self.sigma**2)
         return tmp.view(z.data.shape[0],-1).sum(dim=1)  # sum all but the batch dimension

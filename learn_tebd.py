@@ -41,7 +41,8 @@ if __name__=="__main__":
     group = parser.add_argument_group('network parameters')
     group.add_argument("-modelname", default=None, help="load model")
     group.add_argument("-prior", default='gaussian', help="prior distribution")
-    group.add_argument("-Nlayers", type=int, default=8, help="")
+    group.add_argument("-Nscales", type=int, default=8, help="# of layers in the multi-scale network")
+    group.add_argument("-Nlayers", type=int, default=8, help="# of layers in RNVP block")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
     group.add_argument("-train_model", action='store_true', help="actually train model")
@@ -113,7 +114,8 @@ if __name__=="__main__":
               + '_d' + str(args.d) \
               + '_T' + str(args.T)
 
-    key+=  '_Nl' + str(args.Nlayers) \
+    key+=  '_Ns' + str(args.Nscales) \
+          +'_Nl' + str(args.Nlayers) \
           + '_Hs' + str(args.Hs) \
           + '_Ht' + str(args.Ht) \
           + '_epsilon' + str(args.epsilon) \
@@ -130,10 +132,9 @@ if __name__=="__main__":
     subprocess.check_call(cmd)
     
     #RNVP block
-    Nlayers = 4 # number of layers of each RNVP block
-    sList = [[MLP(2, args.Hs, activation=ScalableTanh([2])) for _ in range(Nlayers)] for l in range(args.Nlayers)]
-    tList = [[MLP(2, args.Ht) for _ in range(Nlayers)] for l in range(args.Nlayers)]
-    masktypelist = ['channel', 'channel'] * (Nlayers//2)
+    sList = [[MLP(2, args.Hs, activation=ScalableTanh([2])) for _ in range(args.Nlayers)] for l in range(args.Nscales)]
+    tList = [[MLP(2, args.Ht) for _ in range(args.Nlayers)] for l in range(args.Nscales)]
+    masktypelist = ['channel', 'channel'] * (args.Nlayers//2)
     
     #assamble RNVP blocks into a TEBD layer
     input_size= [Nvars]
@@ -142,7 +143,7 @@ if __name__=="__main__":
                       sList[l], 
                       tList[l], 
                       Gaussian([2]), 
-                      masktypelist) for l in range(args.Nlayers)] 
+                      masktypelist) for l in range(args.Nscales)] 
     
     model = TEBD(prior, layers, name=key)
 

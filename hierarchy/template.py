@@ -109,7 +109,7 @@ class HierarchyBijector(nn.Module):
 
     def logProbability(self,x):
         z = self.inference(x,True)
-        return self.prior.probability(z) +self._inferenceLogjac
+        return self.prior.logProbability(z).data +self._inferenceLogjac
 
     def sample(self,batchSize):
         z = self.prior(batchSize)
