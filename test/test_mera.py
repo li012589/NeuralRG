@@ -134,9 +134,58 @@ def test_invertible_2d():
 
     assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
 
-@skipIfNoCuda
+@skipIfOnlyOneGPU
 def test_invertible_2d_cuda():
-    pass
+    Nlayers = 4
+    Hs = 10
+    Ht = 10
+    sList = [MLP2d(4, Hs) for _ in range(Nlayers)]
+    tList = [MLP2d(4, Ht) for _ in range(Nlayers)]
+    masktypelist = ['channel', 'channel'] * (Nlayers//2)
+    #assamble RNVP blocks into a TEBD layer
+    prior = Gaussian([8,8])
+    layers = [RealNVP([2,2],
+                      sList,
+                      tList,
+                      Gaussian([2,2]),
+                      masktypelist) for _ in range(6)]
+    #layers = [debugRealNVP() for _ in range(6)]
+    model = MERA(2,[2,2],64,layers,prior).cuda()
+    #z = prior(1)
+    z = Variable(torch.from_numpy(np.arange(64)).float().view(1,8,8)).cuda()
+    x = model.generate(z)
+    zz = model.inference(x)
+
+    print(zz)
+    print(z)
+
+    assert_array_almost_equal(z.data.numpy(),zz.data.numpy(),decimal=4) # don't work for decimal >=5, maybe caz by float
+
+    saveDict = model.saveModel({})
+    torch.save(saveDict, './saveNet.testSave')
+
+    Nlayersp = 4
+    Hsp = 10
+    Htp = 10
+    sListp = [MLP2d(4, Hsp) for _ in range(Nlayersp)]
+    tListp = [MLP2d(4, Htp) for _ in range(Nlayersp)]
+    masktypelistp = ['channel', 'channel'] * (Nlayersp//2)
+    #assamble RNVP blocks into a TEBD layer
+    priorp = Gaussian([8,8])
+    layersp = [RealNVP([2,2],
+                      sListp,
+                      tListp,
+                      Gaussian([2,2]),
+                       masktypelistp) for _ in range(6)]
+    modelp = MERA(2,[2,2],64,layersp,priorp)
+
+    saveDictp = torch.load('./saveNet.testSave')
+    modelp.loadModel(saveDictp)
+    modelp = modelp.cuda(1)
+
+    xp = modelp.generate(z.cuda(1))
+
+    assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
 
 if __name__ == "__main__":
-    test_invertible_2d()
+    test_invertible_2d_cuda()
