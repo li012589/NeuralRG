@@ -27,6 +27,16 @@ class Placeholder(nn.Module):
     def reverse2(self,x,other):
         return x
 
+class debugRealNVP(nn.Module):
+        def __init__(self):
+            super(debugRealNVP,self).__init__()
+        def forward(self,x,ifLogjac):
+            return x
+        def generate(self,x,ifLogjac):
+            return x
+        def inference(self,x,ifLogjac):
+            return x
+
 class Roll(nn.Module):
     def __init__(self,step,axis):
         super(Roll,self).__init__()
@@ -100,7 +110,7 @@ class Wide2bacth(nn.Module):
         shape = x.shape
         outSize0 = shape[1]//kernalSize[0]
         outSize1 = shape[2]//kernalSize[1]
-        x = x.view(-1,outSize0,outSize1,kernalSize[0],kernalSize[1])
+        x = x.view(-1,outSize0,kernalSize[0],outSize1,kernalSize[1])
         x = x.permute(0,1,3,2,4).contiguous()
         x = x.view(-1,kernalSize[0],kernalSize[1])
         return x
@@ -123,7 +133,7 @@ class Batch2wide(nn.Module):
         shape = x.shape
         outSize0 = kernalSize[0]//shape[1]
         outSize1 = kernalSize[1]//shape[2]
-        x = x.view(-1,outSize0,outSize1,shape[1],shape[2])
+        x = x.view(-1,outSize0,shape[1],outSize1,shape[2])
         x = x.permute(0,1,3,2,4).contiguous()
         x = x.view(-1,kernalSize[0],kernalSize[1])
         return x
