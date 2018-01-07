@@ -49,7 +49,7 @@ class HierarchyBijector(nn.Module):
             else:
                 shape = shape[1]
                 if self.dimension == 2:
-                    shape = [int((shape)**1/2) for _ in range(2)]
+                    shape = [int(shape**(1/2)) for _ in range(2)]
                     x = x.view(-1,*shape)
                 elif self.dimension ==1:
                     pass
@@ -87,7 +87,7 @@ class HierarchyBijector(nn.Module):
             else:
                 shape = shape[1]
                 if self.dimension == 2:
-                    shape = [int((shape)**1/2) for _ in range(2)]
+                    shape = [int(shape**(1/2)) for _ in range(2)]
                     x = x.view(-1,*shape)
                 elif self.dimension ==1:
                     pass
