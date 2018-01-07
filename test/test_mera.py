@@ -97,7 +97,7 @@ def test_invertible_2d():
                       tList,
                       Gaussian([2,2]),
                       masktypelist) for _ in range(6)]
-    layers = [debugRealNVP() for _ in range(6)]
+    #layers = [debugRealNVP() for _ in range(6)]
     model = MERA(2,[2,2],64,layers,prior)
     #z = prior(1)
     z = Variable(torch.from_numpy(np.arange(64)).float().view(1,8,8))
@@ -111,21 +111,21 @@ def test_invertible_2d():
 
     saveDict = model.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
-    '''
+
     Nlayersp = 4
     Hsp = 10
     Htp = 10
-    sListp = [MLP(2, Hsp) for _ in range(Nlayersp)]
-    tListp = [MLP(2, Htp) for _ in range(Nlayersp)]
+    sListp = [MLP2d(4, Hsp) for _ in range(Nlayersp)]
+    tListp = [MLP2d(4, Htp) for _ in range(Nlayersp)]
     masktypelistp = ['channel', 'channel'] * (Nlayersp//2)
     #assamble RNVP blocks into a TEBD layer
-    priorp = Gaussian([8])
-    layersp = [RealNVP([2],
+    priorp = Gaussian([8,8])
+    layersp = [RealNVP([2,2],
                       sListp,
                       tListp,
-                      Gaussian([2]),
+                      Gaussian([2,2]),
                        masktypelistp) for _ in range(6)]
-    modelp = MERA(1,2,8,layersp,priorp)
+    modelp = MERA(2,[2,2],64,layersp,priorp)
 
     saveDictp = torch.load('./saveNet.testSave')
     modelp.loadModel(saveDictp)
@@ -133,7 +133,6 @@ def test_invertible_2d():
     xp = modelp.generate(z)
 
     assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
-    '''
 
 @skipIfNoCuda
 def test_invertible_2d_cuda():
