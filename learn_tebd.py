@@ -22,7 +22,7 @@ if __name__=="__main__":
     import argparse
     parser = argparse.ArgumentParser(description='')
 
-    parser.add_argument("-folder", default='data/learn_acc/',
+    parser.add_argument("-folder", default='data/learn_tebd/',
                     help="where to store results")
 
     group = parser.add_argument_group('learning  parameters')
