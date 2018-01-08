@@ -67,7 +67,7 @@ def test_invertible():
 
     print("Backward")
     assert_array_almost_equal(z.data.numpy(),zp.data.numpy())
-    assert_array_almost_equal(model._generateLogjac.numpy(), -model._inferenceLogjac.numpy())
+    assert_array_almost_equal(model._generateLogjac.data.numpy(), -model._inferenceLogjac.data.numpy())
 
     saveDict = model.saveModel({})
     torch.save(saveDict, './saveNet.testSave')

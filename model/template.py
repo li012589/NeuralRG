@@ -147,11 +147,9 @@ class RealNVPtemplate(torch.nn.Module):
         mask_ = Variable(mask_)
         if ifLogjac:
             if y.is_cuda:
-                cudaNo = y.get_device()
-                self.register_buffer('_generateLogjac',torch.zeros(y.shape[0]).cuda(cudaNo).type(y.data.type()))
+                self._generateLogjac= Variable(torch.zeros(y.shape[0]).cuda(y.get_device()).type(y.data.type()))
             else:
-                self.register_buffer('_generateLogjac',torch.zeros(y.shape[0]).type(y.data.type()))
-
+                self._generateLogjac= Variable(torch.zeros(y.shape[0]).type(y.data.type()))
         size = [-1] + self.shapeList
         size[sliceDim + 1] = size[sliceDim + 1] // 2
         for i in range(self.NumLayers):
@@ -197,10 +195,10 @@ class RealNVPtemplate(torch.nn.Module):
         """
         if ifLogjac:
             if y.is_cuda:
-                cudaNo = y.get_device()
-                self.register_buffer('_generateLogjac',torch.zeros(y.data.shape[0]).cuda(cudaNo).type(y.data.type()))
+                self._generateLogjac= Variable(torch.zeros(y.shape[0]).cuda(y.get_device()).type(y.data.type()))
             else:
-                self.register_buffer('_generateLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
+                self._generateLogjac= Variable(torch.zeros(y.shape[0]).type(y.data.type()))
+
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
         y1 = y.narrow(
             sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim] - 1)
@@ -305,10 +303,9 @@ class RealNVPtemplate(torch.nn.Module):
         mask_ = Variable(mask_)
         if ifLogjac:
             if y.is_cuda:
-                cudaNo = y.get_device()
-                self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).cuda(cudaNo).type(y.data.type()))
+                self._inferenceLogjac= Variable(torch.zeros(y.shape[0]).cuda(y.get_device()).type(y.data.type()))
             else:
-                self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
+                self._inferenceLogjac= Variable(torch.zeros(y.shape[0]).type(y.data.type()))
         size = [-1] + self.shapeList
         size[sliceDim + 1] = size[sliceDim + 1] // 2
         for i in list(range(self.NumLayers))[::-1]:
@@ -354,10 +351,10 @@ class RealNVPtemplate(torch.nn.Module):
         """
         if ifLogjac:
             if y.is_cuda:
-                cudaNo = y.get_device()
-                self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).cuda(cudaNo).type(y.data.type()))
+                self._inferenceLogjac= Variable(torch.zeros(y.shape[0]).cuda(y.get_device()).type(y.data.type()))
             else:
-                self.register_buffer('_inferenceLogjac',torch.zeros(y.data.shape[0]).type(y.data.type()))
+                self._inferenceLogjac= Variable(torch.zeros(y.shape[0]).type(y.data.type()))
+
         y0 = y.narrow(sliceDim + 1, 0, self.shapeList[sliceDim] // 2)
         y1 = y.narrow(
             sliceDim + 1, self.shapeList[sliceDim] // 2, self.shapeList[sliceDim] - 1)
@@ -391,7 +388,7 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         z = self._inferenceWithSlice(x, sliceDim, True)
-        return self.prior.logProbability(z) + Variable(self._inferenceLogjac)
+        return self.prior.logProbability(z) + self._inferenceLogjac
 
     def _logProbabilityWithContraction(self, x, mask, mask_, sliceDim):
         """
@@ -407,7 +404,7 @@ class RealNVPtemplate(torch.nn.Module):
 
         """
         z = self._inferenceWithContraction(x, mask, mask_, sliceDim, True)
-        return self.prior.logProbability(z) + Variable(self._inferenceLogjac)
+        return self.prior.logProbability(z) + self._inferenceLogjac
 
     def _saveModel(self, saveDic):
         """

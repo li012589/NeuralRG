@@ -100,7 +100,7 @@ def test_mera_1d():
     print(xp)
 
     assert_array_almost_equal(z.data.numpy(),zz.data.numpy())
-    assert_array_almost_equal(fLog.numpy(),-bLog.numpy())
+    assert_array_almost_equal(fLog.data.numpy(),-bLog.data.numpy())
     assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
 
 def test_mera_2d():
@@ -167,7 +167,7 @@ def test_mera_2d():
     print(xp)
 
     assert_array_almost_equal(z.data.numpy(),zz.data.numpy())
-    assert_array_almost_equal(fLog.numpy(),-bLog.numpy())
+    assert_array_almost_equal(fLog.data.numpy(),-bLog.data.numpy())
     assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
 
 @skipIfNoCuda
@@ -235,7 +235,7 @@ def test_mera_2d_cuda():
     print(xp)
 
     assert_array_almost_equal(z.data.cpu().numpy(),zz.data.cpu().numpy())
-    assert_array_almost_equal(fLog.cpu().numpy(),-bLog.cpu().numpy())
+    assert_array_almost_equal(fLog.data.cpu().numpy(),-bLog.data.cpu().numpy())
     assert_array_almost_equal(xp.data.numpy(),x.data.cpu().numpy())
 
 @skipIfOnlyOneGPU
@@ -304,7 +304,7 @@ def test_mera_2d_cudaNotOne():
     print(xp)
 
     assert_array_almost_equal(z.data.cpu().numpy(),zz.data.cpu().numpy())
-    assert_array_almost_equal(fLog.cpu().numpy(),-bLog.cpu().numpy())
+    assert_array_almost_equal(fLog.data.cpu().numpy(),-bLog.data.cpu().numpy())
     assert_array_almost_equal(xp.data.cpu().numpy(),x.data.cpu().numpy())
 
 if __name__ == "__main__":
