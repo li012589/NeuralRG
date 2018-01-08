@@ -88,10 +88,9 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
 
     for epoch in range(Nepochs):
 
-        for epoch in range(Nepochs):
-            if (buff_samples.maximum > Batchsize):
-                # draw starting state from the sampler buffer
-                zinit = buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1, *shape)
+        if (buff_samples.maximum > Batchsize):
+            # draw starting state from the sampler buffer
+            zinit = buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1, *shape)
         else:
             zinit = None
 
