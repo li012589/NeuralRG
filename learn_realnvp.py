@@ -109,17 +109,20 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
         xy_invert[:, :-1] = -xy_invert[:, :-1]
         xy = torch.stack([xy, xy_invert],0).view(Batchsize*Nsteps*2,-1)
         buff_samples.push(xy)
+
+        x_data = Variable(buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1,*shape))
+        #nll loss on the samples
+        nll_samples = -model.logProbability(x_data)
         ######################################################
 
-
-        loss = kld.mean() 
+        loss = -epsilon*res.mean() + delta*nll_samples.mean()  + omega * kld.mean()
 
         if (epoch < Nanneal):
             beta += dbeta
         target.set_beta(beta)
         
         print ("epoch:",epoch
-               ,"loss:",loss.data[0]
+               ,"loss:",loss.data[0], -res.mean().data[0], nll_samples.mean().data[0], kld.mean().data[0]
                ,"acc:", accratio
                ,"beta:", beta
                #,"offset:", offset.offset.data[0]
