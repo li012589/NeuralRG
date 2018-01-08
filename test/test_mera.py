@@ -13,8 +13,7 @@ torch.manual_seed(42)
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 from model import RealNVP, Gaussian, MLP
-from hierarchy import MERA, MLPreshape,debugRealNVP
-
+from hierarchy import MERA, MLPreshape,debugRealNVP, Roll
 from subprocess import Popen, PIPE
 import pytest
 
@@ -84,6 +83,30 @@ def test_invertible_1d():
     xp = modelp.generate(z)
 
     assert_array_almost_equal(xp.data.numpy(),x.data.numpy())
+
+def test_translationalinvariance_1d():
+    Nlayers = 2 
+    Hs = 10
+    Ht = 10
+    sList = [MLP(2, Hs) for _ in range(Nlayers)]
+    tList = [MLP(2, Ht) for _ in range(Nlayers)]
+    masktypelist = ['evenodd', 'evenodd'] * (Nlayers//2)
+    #assamble RNVP blocks into a TEBD layer
+    prior = Gaussian([8])
+    layers = [RealNVP([2],
+                      sList,
+                      tList,
+                      Gaussian([2]),
+                      masktypelist) for _ in range(6)]
+    model = MERA(1,2,8,layers,prior)
+
+    x = model.sample(10)
+    xright = Roll(2,1).forward(x)
+    xleft = Roll(-2,1).forward(x)
+
+    logp = model.logProbability(x)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=3)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xright).data.numpy(), decimal=3)
 
 def test_invertible_2d():
 
@@ -191,4 +214,5 @@ def test_invertible_2d_cuda():
     assert_array_almost_equal(xp.data.cpu().numpy(),x.data.cpu().numpy())
 
 if __name__ == "__main__":
-    test_invertible_2d_cuda()
+    test_translationalinvariance_1d()
+    #test_invertible_2d_cuda()
