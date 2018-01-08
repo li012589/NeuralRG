@@ -213,6 +213,29 @@ def test_invertible_2d_cuda():
 
     assert_array_almost_equal(xp.data.cpu().numpy(),x.data.cpu().numpy())
 
+def test_invertible_2d_metaDepth3():
+    Nlayers = 4
+    Hs = 10
+    Ht = 10
+    sList = [MLPreshape(4, Hs) for _ in range(Nlayers)]
+    tList = [MLPreshape(4, Ht) for _ in range(Nlayers)]
+    masktypelist = ['channel', 'channel'] * (Nlayers//2)
+    #assamble RNVP blocks into a TEBD layer
+    prior = Gaussian([8,8])
+    layers = [RealNVP([2,2],
+                      sList,
+                      tList,
+                      Gaussian([2,2]),
+                      masktypelist) for _ in range(9)]
+    #layers = [debugRealNVP() for _ in range(6)]
+    model = MERA(2,[2,2],64,layers,prior,metaDepth = 3)
+    z = Variable(torch.from_numpy(np.arange(64)).float().view(1,8,8))
+    x = model.generate(z)
+    zz = model.inference(x)
+
+    assert_array_almost_equal(z.data.numpy(),zz.data.numpy(),decimal=4) # don't work for decimal >=5, maybe caz by float
+
 if __name__ == "__main__":
-    test_translationalinvariance_1d()
+    #test_translationalinvariance_1d()
     #test_invertible_2d_cuda()
+    test_invertible_2d_metaDepth3()
