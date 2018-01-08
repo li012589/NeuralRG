@@ -62,7 +62,7 @@ def test_gaussian_cuda():
     prior(5)
 
 def test_gaussian_double():
-    prior = Gaussian([2,4,4],double = True)
+    prior = Gaussian([2,4,4]).double()
     a = prior.sample(5)
     assert a.data.shape[0] == 5
     assert a.data.shape[1] == 2
@@ -97,7 +97,7 @@ def test_GMM_cuda():
     prior(5)
 
 def test_GMM_double():
-    prior = GMM([2],double = True)
+    prior = GMM([2]).double()
     a = prior.sample(5)
     assert a.data.shape[0] == 5
     assert a.data.shape[1] == 2

@@ -13,7 +13,7 @@ torch.manual_seed(42)
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 from model import RealNVP, Gaussian, MLP
-from hierarchy import TEBD,Roll
+from hierarchy import TEBD,Roll,MLPreshape
 
 from subprocess import Popen, PIPE
 import pytest
@@ -67,7 +67,7 @@ def test_invertible():
 
     print("Backward")
     assert_array_almost_equal(z.data.numpy(),zp.data.numpy())
-    assert_array_almost_equal(model._generateLogjac.numpy(), -model._inferenceLogjac.numpy())
+    assert_array_almost_equal(model._generateLogjac.data.numpy(), -model._inferenceLogjac.data.numpy())
 
     saveDict = model.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
@@ -97,8 +97,11 @@ def test_invertible_2d():
     Nlayers = 4 
     Hs = 10 
     Ht = 10 
-    sList = [MLP(2, Hs) for _ in range(Nlayers)]
-    tList = [MLP(2, Ht) for _ in range(Nlayers)]
+    #sList = [MLPreshape(4, Hs) for _ in range(Nlayers)]
+    #tList = [MLPreshape(4, Ht) for _ in range(Nlayers)]
+
+    sList = [MLPreshape(4, Hs) for _ in range(Nlayers)]
+    tList = [MLPreshape(4, Ht) for _ in range(Nlayers)]
     masktypelist = ['channel', 'channel'] * (Nlayers//2)
     
     #assamble RNVP blocks into a TEBD layer
@@ -108,10 +111,12 @@ def test_invertible_2d():
                       tList,
                       Gaussian([2,2]),
                       masktypelist) for _ in range(4)]
+    print(layers[0])
+    print(layers[0].generate(Variable(torch.FloatTensor([1,2,3,4]).view(1,2,2))))
 
     model = TEBD(2,[2,2],4,layers,prior)
 
-    z = model.prior(10)
+    z = model.prior(1)
 
     print("original")
 
@@ -126,8 +131,8 @@ def test_invertible_2d():
     saveDict = model.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
 
-    sListp = [MLP(2, Hs) for _ in range(Nlayers)]
-    tListp = [MLP(2, Ht) for _ in range(Nlayers)]
+    sListp = [MLPreshape(4, Hs) for _ in range(Nlayers)]
+    tListp = [MLPreshape(4, Ht) for _ in range(Nlayers)]
     masktypelistp = ['channel', 'channel'] * (Nlayers//2)
     
     #assamble RNVP blocks into a TEBD layer
@@ -231,4 +236,5 @@ def test_translationalinvariance():
 
 if __name__=='__main__':
     #test_invertible()
-    test_translationalinvariance()
+    test_invertible_2d()
+    #test_translationalinvariance()

@@ -18,6 +18,8 @@ class TEBD(HierarchyBijector):
         maskList = [Placeholder(2)]*depth
         rollList = [Placeholder()]
         if dimension == 1:
+            if isinstance(kernalSize,list):
+                kernalSize = kernalSize[0]
             tmp = [Roll(1,1),Roll(-1,1)] * (depth//2)
         else:
             tmp = [Roll([1,1],[1,2]),Roll([-1,-1],[1,2])] * (depth//2)

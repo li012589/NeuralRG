@@ -195,13 +195,13 @@ class RealNVP(RealNVPtemplate):
         kwargs['ifLogjac'] = True
         if self.mode == 0 :
             z = self._inference(*args, self.mask, self.mask_, **kwargs)
-            return self.prior.logProbability(z) + Variable(self._inferenceLogjac),z
+            return self.prior.logProbability(z) + self._inferenceLogjac,z
         elif self.mode == 1:
             z = self._inferenceWithContraction(*args, self.mask, self.mask_, **kwargs)
-            return self.prior.logProbability(z) + Variable(self._inferenceLogjac),z
+            return self.prior.logProbability(z) + self._inferenceLogjac,z
         elif self.mode == 2:
             z = self._inferenceWithSlice(*args, **kwargs)
-            return self.prior.logProbability(z) + Variable(self._inferenceLogjac),z
+            return self.prior.logProbability(z) + self._inferenceLogjac,z
         else:
             raise NotImplementedError("Unknown work mode for realnvp")
 
