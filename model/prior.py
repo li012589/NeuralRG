@@ -13,7 +13,7 @@ class PriorTemplate(torch.nn.Module):
 
     """
 
-    def __init__(self, shapeList, double = False, name="prior"):
+    def __init__(self, shapeList, name="prior"):
         super(PriorTemplate, self).__init__()
 
         """
@@ -25,8 +25,6 @@ class PriorTemplate(torch.nn.Module):
         """
         self.shapeList = shapeList
         self.name = name
-        self.cudaNo = None
-        self.double = double
 
     def __call__(self):
         """
@@ -54,7 +52,7 @@ class GMM(PriorTemplate):
 
     """
 
-    def __init__(self, shapeList, double = False, name="GMM"):
+    def __init__(self, shapeList, requires_grad=False, name="GMM"):
         """
 
         This method initialise this class.
@@ -63,12 +61,12 @@ class GMM(PriorTemplate):
             name (PriorTemplate): name of this prior.
 
         """
-        super(GMM, self).__init__(shapeList, double ,name)
+        super(GMM, self).__init__(shapeList ,name)
         assert len(shapeList) == 1
-        self.mu1= torch.nn.Parameter(torch.FloatTensor([1.]), requires_grad=True)
-        self.logsigma1 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad=True)
-        self.mu2 = torch.nn.Parameter(torch.FloatTensor([-1.]), requires_grad=True)
-        self.logsigma2 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad=True)
+        self.mu1= torch.nn.Parameter(torch.FloatTensor([1.]), requires_grad = requires_grad)
+        self.logsigma1 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad = requires_grad)
+        self.mu2 = torch.nn.Parameter(torch.FloatTensor([-1.]), requires_grad = requires_grad)
+        self.logsigma2 = torch.nn.Parameter(torch.FloatTensor([0.]), requires_grad = requires_grad)
 
     def sample(self, batchSize, volatile=False):
         """
@@ -124,7 +122,7 @@ class Gaussian(PriorTemplate):
 
     """
 
-    def __init__(self, shapeList, sigma=1, requires_grad=False, double = False, name="gaussian"):
+    def __init__(self, shapeList, sigma=1, requires_grad=False, name="gaussian"):
         """
 
         This method initialise this class.
@@ -133,7 +131,7 @@ class Gaussian(PriorTemplate):
             name (PriorTemplate): name of this prior.
 
         """
-        super(Gaussian, self).__init__(shapeList, double,name)
+        super(Gaussian, self).__init__(shapeList ,name)
         self.sigma = torch.nn.Parameter(torch.FloatTensor([sigma]), requires_grad=requires_grad)
     def sample(self, batchSize, volatile=False):
         """
