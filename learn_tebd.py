@@ -10,9 +10,10 @@ from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh, TEBD
+from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
+from hierarchy import TEBD
 from learn_realnvp import learn_acc # FIXME 
 
 if __name__=="__main__":
@@ -41,7 +42,7 @@ if __name__=="__main__":
     group = parser.add_argument_group('network parameters')
     group.add_argument("-modelname", default=None, help="load model")
     group.add_argument("-prior", default='gaussian', help="prior distribution")
-    group.add_argument("-Nscales", type=int, default=8, help="# of layers in the multi-scale network")
+    group.add_argument("-Depth", type=int, default=8, help="# of layers in the multi-scale network")
     group.add_argument("-Nlayers", type=int, default=8, help="# of layers in RNVP block")
     group.add_argument("-Hs", type=int, default=10, help="")
     group.add_argument("-Ht", type=int, default=10, help="")
@@ -114,7 +115,7 @@ if __name__=="__main__":
               + '_d' + str(args.d) \
               + '_T' + str(args.T)
 
-    key+=  '_Ns' + str(args.Nscales) \
+    key+=  '_Ns' + str(args.Depth) \
           +'_Nl' + str(args.Nlayers) \
           + '_Hs' + str(args.Hs) \
           + '_Ht' + str(args.Ht) \
@@ -132,8 +133,8 @@ if __name__=="__main__":
     subprocess.check_call(cmd)
     
     #RNVP block
-    sList = [[MLP(2, args.Hs, activation=ScalableTanh([2])) for _ in range(args.Nlayers)] for l in range(args.Nscales)]
-    tList = [[MLP(2, args.Ht) for _ in range(args.Nlayers)] for l in range(args.Nscales)]
+    sList = [[MLP(2, args.Hs, activation=ScalableTanh([2])) for _ in range(args.Nlayers)] for l in range(args.Depth)]
+    tList = [[MLP(2, args.Ht) for _ in range(args.Nlayers)] for l in range(args.Depth)]
     masktypelist = ['channel', 'channel'] * (args.Nlayers//2)
     
     #assamble RNVP blocks into a TEBD layer
@@ -143,9 +144,9 @@ if __name__=="__main__":
                       sList[l], 
                       tList[l], 
                       Gaussian([2]), 
-                      masktypelist) for l in range(args.Nscales)] 
+                      masktypelist) for l in range(args.Depth)] 
     
-    model = TEBD(prior, layers, name=key)
+    model = TEBD(args.d, 2, args.Depth, layers, prior, name=key)
 
     if args.modelname is not None:
         try:
