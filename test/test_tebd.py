@@ -226,8 +226,8 @@ def test_translationalinvariance():
     xleft = Roll(-1,1).forward(x)
 
     logp = model.logProbability(x)
-    assert_array_almost_equal(logp.numpy(),model.logProbability(xleft).numpy(), decimal=4)
-    assert_array_almost_equal(logp.numpy(),model.logProbability(xright).numpy(), decimal=4)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=4)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xright).data.numpy(), decimal=4)
 
 if __name__=='__main__':
     #test_invertible()

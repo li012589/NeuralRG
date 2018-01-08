@@ -40,9 +40,9 @@ class HierarchyBijector(nn.Module):
 
         if ifLogjac:
             if x.is_cuda:
-                self.register_buffer('_generateLogjac',torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type())) # has to be pytorch 0.3 above to make this work
+                self._generateLogjac= Variable(torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))
             else:
-                self.register_buffer('_generateLogjac',torch.zeros(x.shape[0]).type(x.data.type())) # has to be pytorch 0.3 above to make this work
+                self._generateLogjac= Variable(torch.zeros(x.shape[0]).type(x.data.type()))
         for i in range(self.NumLayers):
             x,x_ = self.maskList[i].forward(x)
 
@@ -78,9 +78,10 @@ class HierarchyBijector(nn.Module):
 
         if ifLogjac:
             if x.is_cuda:
-                self.register_buffer('_inferenceLogjac',torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))# has to be pytorch 0.3 above to make this work
+                self._inferenceLogjac= Variable(torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))
             else:
-                self.register_buffer('_inferenceLogjac',torch.zeros(x.shape[0]).type(x.data.type()))# has to be pytorch 0.3 above to make this work
+                self._inferenceLogjac= Variable(torch.zeros(x.shape[0]).type(x.data.type()))
+
         for i in reversed(range(self.NumLayers)):
             x,x_ = self.maskList[i].forward(x)
 
@@ -112,7 +113,7 @@ class HierarchyBijector(nn.Module):
 
     def logProbability(self,x):
         z = self.inference(x,True)
-        return self.prior.logProbability(z) + Variable(self._inferenceLogjac)
+        return self.prior.logProbability(z) + self._inferenceLogjac
 
     def sample(self,batchSize):
         z = self.prior(batchSize)
