@@ -18,6 +18,8 @@ class MERA(HierarchyBijector):
         if name is None:
             name = "MERA"
         if dimension == 1:
+            if isinstance(kernalSize,list):
+                kernalSize = kernalSize[0]
             depth = int(math.log(configSize,kernalSize))
             rollList = [Placeholder(),Roll(1,1)] * depth
             masks = [Variable(torch.ByteTensor([0 if i%(kernalSize**n) else 1 for i in range(configSize)])) for n in range(1,depth)]
