@@ -14,7 +14,7 @@ from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from copy import deepcopy
 
-def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
+def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape, 
               epsilon = 1.0, beta=1.0, delta=0.0, omega=0.0, 
               lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None, 
               exact= None):
@@ -88,11 +88,30 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips,
 
     for epoch in range(Nepochs):
 
+        for epoch in range(Nepochs):
+            if (buff_samples.maximum > Batchsize):
+                # draw starting state from the sampler buffer
+                zinit = buff_samples.draw(Batchsize)[:, :-1].contiguous().view(-1, *shape)
+        else:
+            zinit = None
+
         samples, proposals, measurements, accratio, res, kld  = sampler.run(Batchsize, 
                                                                             Ntherm, 
                                                                             Nsteps, 
                                                                             Nskips,
+                                                                            zinit, 
                                                                             cuda=cuda)
+
+        ######################################################
+        #push samples to buffer
+        xy = samples.view(Batchsize*Nsteps,-1)
+        #data argumentation using invertion symmetry
+        xy_invert = deepcopy(xy)
+        xy_invert[:, :-1] = -xy_invert[:, :-1]
+        xy = torch.stack([xy, xy_invert],0).view(Batchsize*Nsteps*2,-1)
+        buff_samples.push(xy)
+        ######################################################
+
 
         loss = kld.mean() 
 

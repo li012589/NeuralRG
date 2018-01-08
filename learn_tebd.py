@@ -95,8 +95,10 @@ if __name__=="__main__":
 
     if args.prior == 'gaussian':
         if args.d == 2:
+            input_size = [args.L, args.L]
             prior = Gaussian([args.L, args.L], requires_grad = args.train_prior)
         else:
+            input_size = [Nvars]
             prior = Gaussian([Nvars], requires_grad = args.train_prior)
     elif args.prior == 'gmm':
         prior = GMM([Nvars])
@@ -161,7 +163,7 @@ if __name__=="__main__":
     if args.train_model:
         print("train model", key)
         model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
-                                args.Ntherm, args.Nsteps, args.Nskips,
+                                args.Ntherm, args.Nsteps, args.Nskips, input_size, 
                                 epsilon=args.epsilon,beta=args.beta, 
                                 delta=args.delta, omega=args.omega, lr=args.lr, 
                                 cuda = cuda, exact=args.exact)
