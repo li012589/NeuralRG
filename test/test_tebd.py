@@ -209,7 +209,8 @@ def test_invertible_2d_cuda():
 def test_translationalinvariance():
 
     #RNVP block
-    Nlayers = 4 
+    Depth = 8 
+    Nlayers = 2
     Hs = 10 
     Ht = 10 
     sList = [MLP(2, Hs) for _ in range(Nlayers)]
@@ -222,19 +223,19 @@ def test_translationalinvariance():
                       sList, 
                       tList, 
                       Gaussian([2]), 
-                      masktypelist) for _ in range(4)] 
+                      masktypelist) for _ in range(Depth)] 
     
-    model = TEBD(1,2,4,layers,prior)
+    model = TEBD(1,2,Depth,layers,prior)
 
     x = model.sample(10)
-    xright = Roll(1,1).forward(x)
-    xleft = Roll(-1,1).forward(x)
+    xright = Roll(2,1).forward(x)
+    xleft = Roll(-2,1).forward(x)
 
     logp = model.logProbability(x)
-    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=4)
-    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xright).data.numpy(), decimal=4)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=6)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xright).data.numpy(), decimal=6)
 
 if __name__=='__main__':
     #test_invertible()
-    test_invertible_2d()
-    #test_translationalinvariance()
+    #test_invertible_2d()
+    test_translationalinvariance()
