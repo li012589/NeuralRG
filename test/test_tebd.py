@@ -13,7 +13,7 @@ torch.manual_seed(42)
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 from model import RealNVP, Gaussian, MLP
-from hierarchy import TEBD,Roll,MLP2d
+from hierarchy import TEBD,Roll,MLPreshape
 
 from subprocess import Popen, PIPE
 import pytest
@@ -97,11 +97,11 @@ def test_invertible_2d():
     Nlayers = 4 
     Hs = 10 
     Ht = 10 
-    #sList = [MLP2d(4, Hs) for _ in range(Nlayers)]
-    #tList = [MLP2d(4, Ht) for _ in range(Nlayers)]
+    #sList = [MLPreshape(4, Hs) for _ in range(Nlayers)]
+    #tList = [MLPreshape(4, Ht) for _ in range(Nlayers)]
 
-    sList = [MLP2d(4, Hs) for _ in range(Nlayers)]
-    tList = [MLP2d(4, Ht) for _ in range(Nlayers)]
+    sList = [MLPreshape(4, Hs) for _ in range(Nlayers)]
+    tList = [MLPreshape(4, Ht) for _ in range(Nlayers)]
     masktypelist = ['channel', 'channel'] * (Nlayers//2)
     
     #assamble RNVP blocks into a TEBD layer
@@ -131,8 +131,8 @@ def test_invertible_2d():
     saveDict = model.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
 
-    sListp = [MLP2d(4, Hs) for _ in range(Nlayers)]
-    tListp = [MLP2d(4, Ht) for _ in range(Nlayers)]
+    sListp = [MLPreshape(4, Hs) for _ in range(Nlayers)]
+    tListp = [MLPreshape(4, Ht) for _ in range(Nlayers)]
     masktypelistp = ['channel', 'channel'] * (Nlayers//2)
     
     #assamble RNVP blocks into a TEBD layer

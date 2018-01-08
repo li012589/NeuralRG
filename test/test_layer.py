@@ -13,7 +13,7 @@ torch.manual_seed(42)
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 from model import Gaussian,MLP,RealNVP,CNN,Squeezing
-from hierarchy import Roll,Wide2bacth,Batch2wide,MLP2d
+from hierarchy import Roll,Wide2bacth,Batch2wide,MLPreshape
 
 from subprocess import Popen, PIPE
 import pytest
@@ -111,9 +111,9 @@ def test_Wide2bacth():
     print(aab)
     assert_array_equal(aa.numpy(),aab.numpy())
 
-def test_MLP2d():
+def test_MLPreshape():
     aa = Variable(torch.randn(2,2,2))
-    model = MLP2d(4,10)
+    model = MLPreshape(4,10)
     bb = model.forward(aa)
     print(bb)
     assert bb.shape[0] == 2
@@ -123,4 +123,4 @@ def test_MLP2d():
 if __name__ == "__main__":
     #test_Wide2bacth()
     #test_Roll()
-    test_MLP2d()
+    test_MLPreshape()

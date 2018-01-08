@@ -13,7 +13,7 @@ torch.manual_seed(42)
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 from model import RealNVP, Gaussian, MLP
-from hierarchy import MERA, MLP2d,debugRealNVP
+from hierarchy import MERA, MLPreshape,debugRealNVP
 
 from subprocess import Popen, PIPE
 import pytest
@@ -90,8 +90,8 @@ def test_invertible_2d():
     Nlayers = 4
     Hs = 10
     Ht = 10
-    sList = [MLP2d(4, Hs) for _ in range(Nlayers)]
-    tList = [MLP2d(4, Ht) for _ in range(Nlayers)]
+    sList = [MLPreshape(4, Hs) for _ in range(Nlayers)]
+    tList = [MLPreshape(4, Ht) for _ in range(Nlayers)]
     masktypelist = ['channel', 'channel'] * (Nlayers//2)
     #assamble RNVP blocks into a TEBD layer
     prior = Gaussian([8,8])
@@ -118,8 +118,8 @@ def test_invertible_2d():
     Nlayersp = 4
     Hsp = 10
     Htp = 10
-    sListp = [MLP2d(4, Hsp) for _ in range(Nlayersp)]
-    tListp = [MLP2d(4, Htp) for _ in range(Nlayersp)]
+    sListp = [MLPreshape(4, Hsp) for _ in range(Nlayersp)]
+    tListp = [MLPreshape(4, Htp) for _ in range(Nlayersp)]
     masktypelistp = ['channel', 'channel'] * (Nlayersp//2)
     #assamble RNVP blocks into a TEBD layer
     priorp = Gaussian([8,8])
@@ -142,8 +142,8 @@ def test_invertible_2d_cuda():
     Nlayers = 4
     Hs = 10
     Ht = 10
-    sList = [MLP2d(4, Hs) for _ in range(Nlayers)]
-    tList = [MLP2d(4, Ht) for _ in range(Nlayers)]
+    sList = [MLPreshape(4, Hs) for _ in range(Nlayers)]
+    tList = [MLPreshape(4, Ht) for _ in range(Nlayers)]
     masktypelist = ['channel', 'channel'] * (Nlayers//2)
     #assamble RNVP blocks into a TEBD layer
     prior = Gaussian([8,8])
@@ -170,8 +170,8 @@ def test_invertible_2d_cuda():
     Nlayersp = 4
     Hsp = 10
     Htp = 10
-    sListp = [MLP2d(4, Hsp) for _ in range(Nlayersp)]
-    tListp = [MLP2d(4, Htp) for _ in range(Nlayersp)]
+    sListp = [MLPreshape(4, Hsp) for _ in range(Nlayersp)]
+    tListp = [MLPreshape(4, Htp) for _ in range(Nlayersp)]
     masktypelistp = ['channel', 'channel'] * (Nlayersp//2)
     #assamble RNVP blocks into a TEBD layer
     priorp = Gaussian([8,8])
