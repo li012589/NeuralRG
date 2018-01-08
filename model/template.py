@@ -45,9 +45,7 @@ class RealNVPtemplate(torch.nn.Module):
         self.shapeList = shapeList
         self.pointer = "logProbability"
         if name is None:
-            self.name = "realNVP_" + \
-                str(self.NumLayers) + "inner_" + \
-                "layers_" + self.prior.name + "Prior"
+            self.name = 'RealNVP'
         else:
             self.name = name
 

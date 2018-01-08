@@ -40,7 +40,7 @@ class MCMC:
         if self.collectdata:
             self.data = []
    
-    def run(self, batchSize,ntherm, nmeasure, nskip, z=None, cuda = None, double = False):
+    def run(self, batchSize,ntherm, nmeasure, nskip, cuda = None, double = False):
         """
         This method start sampling.
         Args:
@@ -51,11 +51,6 @@ class MCMC:
         """
 
         z = self.model.sample(batchSize)      # sample from model
-        #if z is None:
-        #    #z = self.model.sample(batchSize)      # sample from model
-        #    z = self.model.prior.sample(batchSize) # sample from prior 
-        #else:
-        #    z = Variable(z)                        # sample from data
 
         if double:
             kld = Variable(torch.DoubleTensor(batchSize).zero_())

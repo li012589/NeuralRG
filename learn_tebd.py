@@ -10,10 +10,10 @@ from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh
+from model import Gaussian, GMM, RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
-from hierarchy import TEBD
+from hierarchy import TEBD, MLPreshape
 from learn_realnvp import learn_acc # FIXME 
 
 if __name__=="__main__":
@@ -75,7 +75,6 @@ if __name__=="__main__":
     else:
         print ('use float32')
 
-    netDimension = 2
     if args.target == 'ring2d':
         target = Ring2D()
     elif args.target == 'ring5':
@@ -88,7 +87,6 @@ if __name__=="__main__":
         target = Phi4(4,2,0.15,1.145)
     elif args.target == 'ising':
         target = Ising(args.L, args.d, args.T, cuda, args.double)
-        netDimension = args.d+1
     else:
         print ('what target ?', args.target)
         sys.exit(1)
@@ -96,8 +94,8 @@ if __name__=="__main__":
     Nvars = target.nvars 
 
     if args.prior == 'gaussian':
-        if netDimension == 3:
-            prior = Gaussian([1, args.L, args.L], requires_grad = args.train_prior)
+        if args.d == 2:
+            prior = Gaussian([args.L, args.L], requires_grad = args.train_prior)
         else:
             prior = Gaussian([Nvars], requires_grad = args.train_prior)
     elif args.prior == 'gmm':
@@ -131,22 +129,23 @@ if __name__=="__main__":
 
     cmd = ['mkdir', '-p', key]
     subprocess.check_call(cmd)
-    
+
+    kernel_size = [2]*args.d
+    mlpsize = int(np.product(np.array(kernel_size)))
+
     #RNVP block
-    sList = [[MLP(2, args.Hs, activation=ScalableTanh([2])) for _ in range(args.Nlayers)] for l in range(args.Depth)]
-    tList = [[MLP(2, args.Ht) for _ in range(args.Nlayers)] for l in range(args.Depth)]
+    sList = [[MLPreshape(mlpsize, args.Hs, activation=ScalableTanh([mlpsize])) for _ in range(args.Nlayers)] for l in range(args.Depth)]
+    tList = [[MLPreshape(mlpsize, args.Ht) for _ in range(args.Nlayers)] for l in range(args.Depth)]
     masktypelist = ['channel', 'channel'] * (args.Nlayers//2)
     
     #assamble RNVP blocks into a TEBD layer
-    input_size= [Nvars]
-    prior = Gaussian([Nvars])
-    layers = [RealNVP([2], 
+    layers = [RealNVP(kernel_size, 
                       sList[l], 
                       tList[l], 
-                      Gaussian([2]), 
+                      None, 
                       masktypelist) for l in range(args.Depth)] 
     
-    model = TEBD(args.d, 2, args.Depth, layers, prior, name=key)
+    model = TEBD(args.d, kernel_size, args.Depth, layers, prior, name=key)
 
     if args.modelname is not None:
         try:
@@ -162,7 +161,7 @@ if __name__=="__main__":
     if args.train_model:
         print("train model", key)
         model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
-                                args.Ntherm, args.Nsteps, args.Nskips,input_size,
+                                args.Ntherm, args.Nsteps, args.Nskips,
                                 epsilon=args.epsilon,beta=args.beta, 
                                 delta=args.delta, omega=args.omega, lr=args.lr, 
                                 cuda = cuda, exact=args.exact)
