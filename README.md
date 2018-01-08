@@ -11,14 +11,11 @@ python learn_realnvp.py -Batch 64 -Ntherm 10 -Nsteps 10 -Nskip 10 -Nlayers 4 -Hs
 #Ising
 python learn_realnvp.py -Batch 64 -Ntherm 5 -Nsteps 1 -Nskip 0 -Nlayers 10 -Hs 4 -Ht 4 -target ising -T 2.5 -L 8 -d 2 -epsilon 1.0 -beta 1.0  -delta 1.0 -omega 0.0  -Nepoch 5000 -lr 0.001 -exact 0.177921 -train_model 
 
-#or 
-python learn_realnvp.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Nlayers 8 -Hs 16 -Ht 16 -target ising -T 2.5 -L 8 -d 2 -epsilon 0.0 -beta 1.0  -delta 0.0 -omega 1.0  -Nepoch 1000 -lr 0.001 -exact 0.177921 -train_model
-
 #TEBD
-python learn_tebd.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Depth 8 -Nlayers 8 -Hs 64 -Ht 64 -target ising -T 2.5 -L 16 -d 1 -epsilon 0.0 -beta 1.0  -delta 0.0 -omega 1.0  -Nepoch 100 -lr 0.001 -exact 0.138871 -train_model
+python learn_tebd.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Nlayers 8 -Hs 64 -Ht 64 -target ising -T 2.269 -L 4 -d 2 -epsilon 0.0 -beta 1.0  -delta 1.0 -omega 0.5  -Nepoch 500 -lr 0.001 -exact 0.761761 -train_model 
 
 #MERA
-python learn_mera.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Nlayers 8 -Hs 64 -Ht 64 -target ising -T 2.5 -L 16 -d 1 -epsilon 0.0 -beta 1.0  -delta 0.0 -omega 1.0  -Nepoch 100 -lr 0.001 -exact 0.138871 -train_model
+python learn_mera.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Ndis 3 -Nlayers 8 -Hs 64 -Ht 64 -target ising -T 2.269 -L 4 -d 2 -epsilon 0.0 -beta 1.0  -delta 1.0 -omega 0.5  -Nepoch 500 -lr 0.001 -exact 0.761761 -train_model 
 ```
 
 To check the results 

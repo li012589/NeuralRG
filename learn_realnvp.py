@@ -60,22 +60,27 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
 
     #loss, acceptance, observable 
     fig2 = plt.figure(figsize=(8, 8))
-    ax21 = fig2.add_subplot(311)
+    ax21 = fig2.add_subplot(411)
     plt.title('$\epsilon=%g, \delta=%g, \omega=%g$'%(epsilon, delta, omega))
     l3, = ax21.plot([], [], label='loss')
     ax21.legend()
 
-    ax22 = fig2.add_subplot(312, sharex=ax21)
-    l4, = ax22.plot([], [], label='acc')
+    ax22 = fig2.add_subplot(412, sharex=ax21)
+    l3half, = ax22.plot([], [], label='$\mathcal{L}$')
     ax22.set_xlim([0, Nepochs])
     ax22.legend()
 
-    ax23 = fig2.add_subplot(313, sharex=ax21)
-    l5, = ax23.plot([], [], label='obs')
-    if exact is not None:
-        ax23.axhline(exact, color='r')
+    ax23 = fig2.add_subplot(413, sharex=ax21)
+    l4, = ax23.plot([], [], label='acc')
     ax23.set_xlim([0, Nepochs])
     ax23.legend()
+
+    ax24 = fig2.add_subplot(414, sharex=ax21)
+    l5, = ax24.plot([], [], label='obs')
+    if exact is not None:
+        ax24.axhline(exact, color='r')
+    ax24.set_xlim([0, Nepochs])
+    ax24.legend()
 
     plt.xlabel('epochs')
     fig2.canvas.draw()
@@ -130,7 +135,7 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
                #"mu", model.prior.mu1.data[0], model.prior.mu2.data[0]
                )
 
-        LOSS.append([loss.data[0], accratio])
+        LOSS.append([loss.data[0], kld.mean().data[0], accratio])
         OBS.append(np.array(measurements).mean())
 
         optimizer.zero_grad()
@@ -165,17 +170,23 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
             obs4plot = np.array(OBS)
         
             l3.set_xdata(range(len(LOSS)))
+            l3half.set_xdata(range(len(LOSS)))
             l4.set_xdata(range(len(LOSS)))
             l5.set_xdata(range(len(OBS)))
+
             l3.set_ydata(loss4plot[:,0])
-            l4.set_ydata(loss4plot[:,1])
+            l3half.set_ydata(loss4plot[:,1])
+            l4.set_ydata(loss4plot[:,2])
             l5.set_ydata(obs4plot)
+
             ax21.relim()
             ax21.autoscale_view() 
             ax22.relim()
             ax22.autoscale_view() 
             ax23.relim()
             ax23.autoscale_view() 
+            ax24.relim()
+            ax24.autoscale_view() 
 
             fig2.canvas.draw()
 
