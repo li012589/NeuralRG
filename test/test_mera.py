@@ -52,10 +52,13 @@ def test_invertible_1d():
                       masktypelist) for _ in range(6)]
     model = MERA(1,2,8,layers,prior)
     z = prior(4)
-    x = model.generate(z)
-    zz = model.inference(x)
+    x = model.generate(z, ifLogjac=True)
+    zz = model.inference(x, ifLogjac=True)
 
     assert_array_almost_equal(z.data.numpy(),zz.data.numpy())
+    print (model._generateLogjac)
+    print (model._inferenceLogjac)
+    assert_array_almost_equal(model._generateLogjac.data.numpy(), -model._inferenceLogjac.data.numpy())
 
     saveDict = model.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
