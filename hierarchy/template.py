@@ -13,7 +13,10 @@ from .layer import Roll, Wide2bacth, Batch2wide, Placeholder, Mask
 class HierarchyBijector(nn.Module):
     def __init__(self,dimension,kernalSizeList,rollList,bijectors,maskList,prior,name = None):
         if name is None:
-            name = "HierarchyBijector"
+            self.name = "HierarchyBijector"
+        else:
+            self.name = name
+
         super(HierarchyBijector,self).__init__()
         assert len(kernalSizeList) == len(bijectors)
         assert len(bijectors) == len(maskList)
@@ -109,7 +112,7 @@ class HierarchyBijector(nn.Module):
 
     def logProbability(self,x):
         z = self.inference(x,True)
-        return self.prior.logProbability(z).data +self._inferenceLogjac
+        return self.prior.logProbability(z) + Variable(self._inferenceLogjac)
 
     def sample(self,batchSize):
         z = self.prior(batchSize)
