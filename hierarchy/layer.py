@@ -30,11 +30,19 @@ class Placeholder(nn.Module):
 class debugRealNVP(nn.Module):
         def __init__(self):
             super(debugRealNVP,self).__init__()
+            self._inferenceLogjac = 1
+            self._generateLogjac = 1
         def forward(self,x,ifLogjac):
+            self._inferenceLogjac = Variable(torch.ones(x.shape[0]).type(x.data.type()))
+            self._generateLogjac = self._inferenceLogjac
             return x
         def generate(self,x,ifLogjac):
+            self._inferenceLogjac = Variable(torch.ones(x.shape[0]).type(x.data.type()))
+            self._generateLogjac = self._inferenceLogjac
             return x
         def inference(self,x,ifLogjac):
+            self._inferenceLogjac = Variable(torch.ones(x.shape[0]).type(x.data.type()))
+            self._generateLogjac = self._inferenceLogjac
             return x
 
 class Roll(nn.Module):
