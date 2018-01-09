@@ -35,9 +35,9 @@ class HierarchyBijector(nn.Module):
 
         self.prior = prior
 
-    def generate(self,x,ifLogjac = False):
+    def generate(self,x,ifLogjac = False, save = False):
         batchSize = x.shape[0]
-
+        saving = []
         if ifLogjac:
             if x.is_cuda:
                 self._generateLogjac= Variable(torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))
@@ -64,6 +64,8 @@ class HierarchyBijector(nn.Module):
             x = self.W2B.forward(x,self.kernalSizeList[i])
             x = self.bijectors[i].generate(x,ifLogjac = ifLogjac)
             x = self.B2W.forward(x,shape)
+            if save:
+                saving.append(x)
 
             x = self.maskList[i].reverse(x,x_)
             #print("in "+str(i)+"th layer")
@@ -71,11 +73,14 @@ class HierarchyBijector(nn.Module):
             if ifLogjac:
                 self._generateLogjac += self.bijectors[i]._generateLogjac.view(batchSize,-1).sum(1)
 
+        if save:
+            self.saving = saving
+
         return x
 
-    def inference(self,x,ifLogjac = False):
+    def inference(self,x,ifLogjac = False, save = False):
         batchSize = x.shape[0]
-
+        saving = []
         if ifLogjac:
             if x.is_cuda:
                 self._inferenceLogjac= Variable(torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))
@@ -98,6 +103,8 @@ class HierarchyBijector(nn.Module):
                 else:
                     raise NotImplementedError("Operation corresponding to dimension is not implemneted")
 
+            if save:
+                saving.append(x)
             x = self.W2B.forward(x,self.kernalSizeList[i])
             x = self.bijectors[i].inference(x,ifLogjac = ifLogjac)
             x = self.B2W.forward(x,shape)
@@ -108,6 +115,9 @@ class HierarchyBijector(nn.Module):
             #print(x)
             if ifLogjac:
                 self._inferenceLogjac += self.bijectors[i]._inferenceLogjac.view(batchSize,-1).sum(1)
+
+        if save:
+            self.saving = saving
 
         return x
 
