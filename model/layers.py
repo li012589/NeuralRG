@@ -81,8 +81,11 @@ class MLP(nn.Module):
         x = self.fc1(x)
         x = F.elu(x)
         x = self.fc2(x)
-        x = self.activation(x)
-        return x
+        if self.activation is None:
+            return x
+        else:
+            x = self.activation(x)
+            return x
 
 class FC(nn.Module):
     def __init__(self,dList,activation=None,name="FC"):
