@@ -116,13 +116,13 @@ def test_translationalinvariance_2d():
     tList = [MLPreshape(4, Ht,activation=ScalableTanh([4])) for _ in range(Nlayers)]
     masktypelist = ['evenodd', 'evenodd'] * (Nlayers//2)
     #assamble RNVP blocks into a TEBD layer
-    prior = Gaussian([4,4])
+    prior = Gaussian([8,8])
     layers = [RealNVP([2,2],
                       sList,
                       tList,
                       None,
-                      masktypelist) for _ in range(4)]
-    model = MERA(2,[2,2],16,layers,prior)
+                      masktypelist) for _ in range(6)]
+    model = MERA(2,[2,2],64,layers,prior)
 
     x = model.sample(10)
     xright = Roll([2,2],[1,2]).forward(x)
