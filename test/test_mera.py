@@ -105,8 +105,8 @@ def test_translationalinvariance_1d():
     xleft = Roll(-4,1).forward(x)
 
     logp = model.logProbability(x)
-    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=3)
-    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xright).data.numpy(), decimal=3)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=6)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xright).data.numpy(), decimal=6)
 
 def test_invertible_2d():
 
