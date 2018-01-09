@@ -14,8 +14,11 @@ python learn_realnvp.py -Batch 64 -Ntherm 5 -Nsteps 1 -Nskip 0 -Nlayers 10 -Hs 4
 #TEBD
 python learn_tebd.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Nlayers 8 -Hs 64 -Ht 64 -target ising -T 2.269 -L 4 -d 2 -epsilon 0.0 -beta 1.0  -delta 1.0 -omega 0.5  -Nepoch 500 -lr 0.001 -exact 0.761761 -train_model 
 
-#MERA
-python learn_mera.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Ndis 3 -Nlayers 8 -Hs 64 -Ht 64 -target ising -T 2.269 -L 4 -d 2 -epsilon 0.0 -beta 1.0  -delta 1.0 -omega 0.5  -Nepoch 500 -lr 0.001 -exact 0.761761 -train_model 
+#MERA (To produce results in the paper)
+#L=8 
+python learn_mera.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Ndis 1 -Nlayers 8 -Hs 64 -Ht 64 -target ising -T 2.269185314213022 -L 8 -d 2 -epsilon 0.0 -beta 1.0  -delta 1.0 -omega 0.5  -Nepoch 5000 -lr 0.001 -exact 0.646769 -train_model 
+#L=16
+python learn_mera.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Ndis 1 -Nlayers 8 -Hs 64 -Ht 64 -target ising -T 2.269185314213022 -L 16 -d 2 -epsilon 0.0 -beta 1.0  -delta 1.0 -omega 0.5  -Nepoch 5000 -lr 0.001 -exact 0.544445 -train_model 
 ```
 
 To check the results 
@@ -57,15 +60,15 @@ python plot_configs.py -f data/learn_acc/ising_L4_d2_K0.44068679350977147_Nl10_H
 
 
 
-| $d=2,T=T_c$ |          PBC          |          OBC          |
-| :---------: | :-------------------: | :-------------------: |
-|    $L=2$    |                       | 0.56882 +/- 0.000409  |
-|    $L=4$    | 0.761761 +/- 0.000421 | 0.371232 +/- 0.000429 |
-|    $L=6$    | 0.693504 +/- 0.000436 | 0.30321 +/- 0.000397  |
-|    $L=8$    | 0.646769 +/- 0.000445 | 0.266751 +/- 0.00038  |
-|   $L=16$    |  0.544445+/-0.000487  |                       |
-|   $L=32$    |  0.458427+/-0.000474  |                       |
-|   $L=64$    |                       |                       |
+| $d=2,T= T_c(2.269185314213022)$ |          PBC          |          OBC          |
+| :-----------------------------: | :-------------------: | :-------------------: |
+|              $L=2$              |                       | 0.56882 +/- 0.000409  |
+|              $L=4$              | 0.761761 +/- 0.000421 | 0.371232 +/- 0.000429 |
+|              $L=6$              | 0.693504 +/- 0.000436 | 0.30321 +/- 0.000397  |
+|              $L=8$              | 0.646769 +/- 0.000445 | 0.266751 +/- 0.00038  |
+|             $L=16$              |  0.544445+/-0.000487  |                       |
+|             $L=32$              |  0.458427+/-0.000474  |                       |
+|             $L=64$              |                       |                       |
 
 | $d=2,T=2.5$ |          PBC          |          OBC           |
 | :---------: | :-------------------: | :--------------------: |

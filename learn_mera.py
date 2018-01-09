@@ -117,6 +117,7 @@ if __name__=="__main__":
               + '_T' + str(args.T)
 
     key+=  '_Nl' + str(args.Nlayers) \
+          +'_Nd' + str(args.Ndisentangler) \
           + '_Hs' + str(args.Hs) \
           + '_Ht' + str(args.Ht) \
           + '_epsilon' + str(args.epsilon) \
