@@ -48,7 +48,7 @@ class MLP(nn.Module):
 
     """
 
-    def __init__(self, inNum, hideNum, activation=F.tanh, name="mlp"):
+    def __init__(self, inNum, hideNum, activation=None, name="mlp"):
         """
 
         This mehtod initialise this class.
