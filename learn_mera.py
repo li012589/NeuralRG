@@ -136,11 +136,17 @@ if __name__=="__main__":
     #RNVP block
     kernel_size = [2]*args.d 
     mlpsize = int(np.product(np.array(kernel_size)))
-    depth = int(math.log(Nvars,mlpsize))*(args.Ndisentangler +1)
+    nperdepth = (args.Ndisentangler +1) # number of disentangers + number of decimator at each RG step
+    depth = int(math.log(Nvars,mlpsize))
 
     print ('depth of the mera network', depth)
-    sList = [[MLPreshape(mlpsize, args.Hs, activation=ScalableTanh([mlpsize])) for _ in range(args.Nlayers)] for l in range(depth)]
-    tList = [[MLPreshape(mlpsize, args.Ht) for _ in range(args.Nlayers)] for l in range(depth)]
+    sList = [[MLPreshape(mlpsize, args.Hs, activation=ScalableTanh([mlpsize])) 
+                                                 for _ in range(args.Nlayers)] 
+                                                 for l in range(nperdepth)]*depth
+
+    tList = [[MLPreshape(mlpsize, args.Ht) for _ in range(args.Nlayers)] 
+                                           for l in range(nperdepth)]*depth
+
     masktypelist = ['channel', 'channel'] * (args.Nlayers//2)
     
     #assamble RNVP blocks into a MERA
@@ -148,7 +154,7 @@ if __name__=="__main__":
                       sList[l], 
                       tList[l], 
                       None, 
-                      masktypelist) for l in range(depth)] 
+                      masktypelist) for l in range(nperdepth*depth)] 
     
     model = MERA(args.d, kernel_size, Nvars, layers, prior, metaDepth =args.Ndisentangler+1, name=key)
 
