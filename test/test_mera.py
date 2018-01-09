@@ -108,6 +108,31 @@ def test_translationalinvariance_1d():
     assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=6)
     assert_array_almost_equal(logp.data.numpy(),model.logProbability(xright).data.numpy(), decimal=6)
 
+def test_translationalinvariance_2d():
+    Nlayers = 2 
+    Hs = 10
+    Ht = 10
+    sList = [MLPreshape(4, Hs) for _ in range(Nlayers)]
+    tList = [MLPreshape(4, Ht) for _ in range(Nlayers)]
+    masktypelist = ['evenodd', 'evenodd'] * (Nlayers//2)
+    #assamble RNVP blocks into a TEBD layer
+    prior = Gaussian([4,4])
+    layers = [RealNVP([2,2],
+                      sList,
+                      tList,
+                      None,
+                      masktypelist) for _ in range(4)]
+    model = MERA(2,[2,2],16,layers,prior)
+
+    x = model.sample(10)
+    xright = Roll([2,2],[1,2]).forward(x)
+    xleft = Roll([-2,-2],[1,2]).forward(x)
+
+    logp = model.logProbability(x)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=5)
+    assert_array_almost_equal(logp.data.numpy(),model.logProbability(xright).data.numpy(), decimal=5)
+
+
 def test_invertible_2d():
 
     Nlayers = 4
