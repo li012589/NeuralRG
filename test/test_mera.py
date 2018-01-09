@@ -101,8 +101,8 @@ def test_translationalinvariance_1d():
     model = MERA(1,2,8,layers,prior)
 
     x = model.sample(10)
-    xright = Roll(2,1).forward(x)
-    xleft = Roll(-2,1).forward(x)
+    xright = Roll(4,1).forward(x)
+    xleft = Roll(-4,1).forward(x)
 
     logp = model.logProbability(x)
     assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=3)
