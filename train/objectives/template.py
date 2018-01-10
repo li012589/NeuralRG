@@ -29,6 +29,3 @@ class Target(object):
 
     def measure(self, x):
         return (x.data**2).sum(dim=1).cpu().numpy()
-
-    def set_beta(self, beta):
-        self.beta = beta 
