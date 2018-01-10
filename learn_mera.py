@@ -142,10 +142,10 @@ if __name__=="__main__":
     print ('depth of the mera network', depth)
     sList = [[MLPreshape(mlpsize, args.Hs, activation=ScalableTanh([mlpsize])) 
                                                  for _ in range(args.Nlayers)] 
-                                                 for l in range(nperdepth)]*depth
+                                                 for l in range(nperdepth*depth)]
 
     tList = [[MLPreshape(mlpsize, args.Ht) for _ in range(args.Nlayers)] 
-                                           for l in range(nperdepth)]*depth
+                                           for l in range(nperdepth*depth)]
 
     masktypelist = ['channel', 'channel'] * (args.Nlayers//2)
     
