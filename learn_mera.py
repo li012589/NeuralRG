@@ -132,7 +132,20 @@ if __name__=="__main__":
 
     cmd = ['mkdir', '-p', key]
     subprocess.check_call(cmd)
-    
+
+    h5filename = key + '_settings.h5'
+    print("save at: " + h5filename)
+    h5s = h5py.File(h5filename, 'w')
+    params = h5s.create_group('params')
+    params.create_dataset("Ls", data=args.L)
+    params.create_dataset("Nvarss", data=target.nvars)
+    params.create_dataset("Nlayerss", data=args.Nlayers)
+    params.create_dataset("Hss", data=args.Hs)
+    params.create_dataset("Hts", data=args.Ht)
+    params.create_dataset("ds",data=args.d)
+    params.create_dataset("Ndisentanglers",data=args.Ndisentangler)
+    h5s.close()
+
     #RNVP block
     kernel_size = [2]*args.d 
     mlpsize = int(np.product(np.array(kernel_size)))
@@ -180,7 +193,6 @@ if __name__=="__main__":
     sampler = MCMC(target, model, collectdata=True)
     
     samples, proposals, measurements, accratio, _, _ = sampler.run(args.Batchsize, args.Ntherm, args.Nsamples, args.Nskips, cuda = cuda)
-    
     h5filename = key + '_mc.h5'
     print("save at: " + h5filename)
     h5 = h5py.File(h5filename, 'w')
