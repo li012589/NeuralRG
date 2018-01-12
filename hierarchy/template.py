@@ -35,14 +35,14 @@ class HierarchyBijector(nn.Module):
 
         self.prior = prior
 
-    def generate(self,x,ifLogjac = False, save = False):
+    def inference(self,x,ifLogjac = False, save = False):
         batchSize = x.shape[0]
         saving = []
         if ifLogjac:
             if x.is_cuda:
-                self._generateLogjac= Variable(torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))
+                self._inferenceLogjac= Variable(torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))
             else:
-                self._generateLogjac= Variable(torch.zeros(x.shape[0]).type(x.data.type()))
+                self._inferenceLogjac= Variable(torch.zeros(x.shape[0]).type(x.data.type()))
         for i in range(self.NumLayers):
             x,x_ = self.maskList[i].forward(x)
 
@@ -62,7 +62,7 @@ class HierarchyBijector(nn.Module):
             x = self.rollList[i].forward(x)
 
             x = self.W2B.forward(x,self.kernalSizeList[i])
-            x = self.bijectors[i].generate(x,ifLogjac = ifLogjac)
+            x = self.bijectors[i].inference(x,ifLogjac = ifLogjac)
             x = self.B2W.forward(x,shape)
             if save:
                 saving.append(x)
@@ -71,21 +71,21 @@ class HierarchyBijector(nn.Module):
             #print("in "+str(i)+"th layer")
             #print(x)
             if ifLogjac:
-                self._generateLogjac += self.bijectors[i]._generateLogjac.view(batchSize,-1).sum(1)
+                self._inferenceLogjac += self.bijectors[i]._inferenceLogjac.view(batchSize,-1).sum(1)
 
         if save:
             self.saving = saving
 
         return x
 
-    def inference(self,x,ifLogjac = False, save = False):
+    def generate(self,x,ifLogjac = False, save = False):
         batchSize = x.shape[0]
         saving = []
         if ifLogjac:
             if x.is_cuda:
-                self._inferenceLogjac= Variable(torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))
+                self._generateLogjac= Variable(torch.zeros(x.shape[0]).cuda(x.get_device()).type(x.data.type()))
             else:
-                self._inferenceLogjac= Variable(torch.zeros(x.shape[0]).type(x.data.type()))
+                self._generateLogjac= Variable(torch.zeros(x.shape[0]).type(x.data.type()))
 
         for i in reversed(range(self.NumLayers)):
             x,x_ = self.maskList[i].forward(x)
@@ -106,7 +106,7 @@ class HierarchyBijector(nn.Module):
             if save:
                 saving.append(x)
             x = self.W2B.forward(x,self.kernalSizeList[i])
-            x = self.bijectors[i].inference(x,ifLogjac = ifLogjac)
+            x = self.bijectors[i].generate(x,ifLogjac = ifLogjac)
             x = self.B2W.forward(x,shape)
 
             x = self.rollList[i].reverse(x)
@@ -114,7 +114,7 @@ class HierarchyBijector(nn.Module):
             #print("in "+str(i)+"th layer")
             #print(x)
             if ifLogjac:
-                self._inferenceLogjac += self.bijectors[i]._inferenceLogjac.view(batchSize,-1).sum(1)
+                self._generateLogjac += self.bijectors[i]._generateLogjac.view(batchSize,-1).sum(1)
 
         if save:
             self.saving = saving
