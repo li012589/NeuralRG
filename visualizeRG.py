@@ -61,3 +61,18 @@ layers = [RealNVP(kernel_size,
 model = MERA(d, kernel_size, Nvars, layers, prior, metaDepth =Ndisentangler+1)
 
 model.loadModel(torch.load(args.modelname))
+
+z = prior(1)
+
+x = model.generate(z,save=True)
+
+import matplotlib.pyplot as plt
+
+for p in model.saving:
+    fig = plt.figure()
+
+    ax = fig.add_subplot(211)
+    #plt.title
+    #print(p.data.numpy()[0])
+    plt.matshow(p.data.numpy()[0])
+    plt.show()
