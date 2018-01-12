@@ -201,7 +201,6 @@ if __name__=="__main__":
     params.create_dataset("Nlayers", data=args.Nlayers)
     params.create_dataset("Hs", data=args.Hs)
     params.create_dataset("Ht", data=args.Ht)
-    params.create_dataset("Nlayers",data=args.Nlayers)
     params.create_dataset("d",data=args.d)
     params.create_dataset("Ndisentangler",data=args.Ndisentangler)
     params.create_dataset("target", data=args.target)
