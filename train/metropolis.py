@@ -50,11 +50,11 @@ class MCMC:
             z (): initial state 
         """
 
-        z = self.model.sample(batchSize)      # sample from model
-        #if z is None:
-        #    z = self.model.prior.sample(batchSize) # sample from prior
-        #else:
-        #    z = Variable(z)                        # sample from data
+        #z = self.model.sample(batchSize)      # sample from model
+        if z is None:
+            z = self.model.prior.sample(batchSize) # sample from prior
+        else:
+            z = Variable(z)                        # sample from data
 
         if double:
             kld = Variable(torch.DoubleTensor(batchSize).zero_())
