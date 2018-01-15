@@ -65,8 +65,34 @@ model.loadModel(torch.load(args.modelname))
 z = prior(1)
 
 x = model.generate(z,save=True)
-
+print (x)
 N = len(model.saving)//(Ndisentangler+1)
 
+import matplotlib.pyplot as plt 
+from matplotlib import cm 
+from matplotlib.offsetbox import AnchoredText
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+labels = ["(a)", "(b)", "(c)"]
+fig = plt.figure(figsize=(8, 5))
 for i in range(N):
+    
+    plt.subplot(1,N,i+1)
+    data = model.saving[(i-1)*(Ndisentangler+1)+Ndisentangler].data.numpy()
+    data.shape = (1<<(N-i), 1<<(N-i))
+
+    im = plt.imshow(data, cmap=cm.gray)
+    ax = plt.gca()
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("bottom", size="5%", pad=0.05)
+    plt.colorbar(im, cax=cax, orientation='horizontal')
+
+    at = AnchoredText(labels[i],prop=dict(size=18), frameon=False,loc=2, bbox_to_anchor=(-0.1, 1.2), bbox_transform=ax.transAxes,)
+    plt.gca().add_artist(at)
+
     print (model.saving[(i-1)*(Ndisentangler+1)+Ndisentangler])
+
+plt.show()

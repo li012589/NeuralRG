@@ -78,6 +78,16 @@ python plot_configs.py -f data/learn_acc/ising_L4_d2_K0.44068679350977147_Nl10_H
 |    $L=8$    |  0.431992+/-0.000521  | 0.177921 +/- 0.000304  |
 |   $L=16$    |  0.202231+/-0.000392  | 0.0905703 +/- 0.000219 |
 
+## Plot Figures in the paper
+
+```python
+#loss and acc
+python paper/load_mcresults.py -f data/learn_mera/ising_L4_d2_T2.269185314213022_Nl8_Nd1_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm10_Nsteps1_Nskips0_lr0.001_mc.h5 -s
+
+#renormalized variables
+python visualizeRG.py -modelname data/learn_mera/ising_L4_d2_T2.269185314213022_Nl8_Nd3_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch90 -h5file data/learn_mera/ising_L4_d2_T2.269185314213022_Nl8_Nd3_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5
+```
+
 
 
 
