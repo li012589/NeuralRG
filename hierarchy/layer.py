@@ -44,6 +44,8 @@ class debugRealNVP(nn.Module):
             self._inferenceLogjac = Variable(torch.ones(x.shape[0]).type(x.data.type()))
             self._generateLogjac = self._inferenceLogjac
             return x
+        def loadModel(self,saveDict):
+            return saveDict
 
 class Roll(nn.Module):
     def __init__(self,step,axis):
