@@ -82,7 +82,7 @@ fig = plt.figure(figsize=(8, 5))
 for i in range(N):
     
     plt.subplot(1,N,i+1)
-    data = model.saving[(i-1)*(Ndisentangler+1)+Ndisentangler].data.numpy()
+    data = model.saving[i*(Ndisentangler+1)+Ndisentangler].data.numpy()
     
     L = int(np.sqrt(data.size))
     data.shape = (L, L)
@@ -99,7 +99,7 @@ for i in range(N):
     at = AnchoredText(labels[i],prop=dict(size=18), frameon=False,loc=2, bbox_to_anchor=(-0.1, 1.3), bbox_transform=ax.transAxes,)
     plt.gca().add_artist(at)
 
-    print (model.saving[(i-1)*(Ndisentangler+1)+Ndisentangler])
+    print (model.saving[i*(Ndisentangler+1)+Ndisentangler])
 
 
 if args.show:
