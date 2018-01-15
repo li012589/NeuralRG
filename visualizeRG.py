@@ -22,9 +22,13 @@ import h5py
 
 parser = argparse.ArgumentParser(description='')
 
-group = parser.add_argument_group('model parameters')
-group.add_argument("-modelname", default=None, help="load model")
-group.add_argument("-h5file", default = None, help = "parameters saving file")
+parser.add_argument("-modelname", default=None, help="load model")
+parser.add_argument("-h5file", default = None, help = "parameters saving file")
+
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument("-show", action='store_true',  help="show figure right now")
+group.add_argument("-outname", default="result.pdf",  help="output pdf file")
+args = parser.parse_args()
 args = parser.parse_args()
 
 h5 = h5py.File(args.h5file,"r")
@@ -79,7 +83,9 @@ for i in range(N):
     
     plt.subplot(1,N,i+1)
     data = model.saving[(i-1)*(Ndisentangler+1)+Ndisentangler].data.numpy()
-    data.shape = (1<<(N-i), 1<<(N-i))
+    
+    L = int(np.sqrt(data.size))
+    data.shape = (L, L)
 
     im = plt.imshow(data, cmap=cm.gray)
     ax = plt.gca()
@@ -90,9 +96,13 @@ for i in range(N):
     cax = divider.append_axes("bottom", size="5%", pad=0.05)
     plt.colorbar(im, cax=cax, orientation='horizontal')
 
-    at = AnchoredText(labels[i],prop=dict(size=18), frameon=False,loc=2, bbox_to_anchor=(-0.1, 1.2), bbox_transform=ax.transAxes,)
+    at = AnchoredText(labels[i],prop=dict(size=18), frameon=False,loc=2, bbox_to_anchor=(-0.1, 1.3), bbox_transform=ax.transAxes,)
     plt.gca().add_artist(at)
 
     print (model.saving[(i-1)*(Ndisentangler+1)+Ndisentangler])
 
-plt.show()
+
+if args.show:
+    plt.show()
+else:
+    plt.savefig(args.outname, dpi=300, transparent=True)
