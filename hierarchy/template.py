@@ -103,11 +103,11 @@ class HierarchyBijector(nn.Module):
                 else:
                     raise NotImplementedError("Operation corresponding to dimension is not implemneted")
 
-            if save:
-                saving.append(x)
             x = self.W2B.forward(x,self.kernalSizeList[i])
             x = self.bijectors[i].generate(x,ifLogjac = ifLogjac)
             x = self.B2W.forward(x,shape)
+            if save:
+                saving.append(x)
 
             x = self.rollList[i].reverse(x)
             x = self.maskList[i].reverse(x,x_)
