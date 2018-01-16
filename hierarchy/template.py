@@ -64,9 +64,9 @@ class HierarchyBijector(nn.Module):
             x = self.W2B.forward(x,self.kernalSizeList[i])
             x = self.bijectors[i].inference(x,ifLogjac = ifLogjac)
             x = self.B2W.forward(x,shape)
+            x = self.rollList[i].reverse(x)
             if save:
                 saving.append(x)
-
             x = self.maskList[i].reverse(x,x_)
             #print("in "+str(i)+"th layer")
             #print(x)
@@ -102,14 +102,14 @@ class HierarchyBijector(nn.Module):
                     pass
                 else:
                     raise NotImplementedError("Operation corresponding to dimension is not implemneted")
+            x = self.rollList[i].forward(x)#.reverse(x)
 
             x = self.W2B.forward(x,self.kernalSizeList[i])
             x = self.bijectors[i].generate(x,ifLogjac = ifLogjac)
             x = self.B2W.forward(x,shape)
+            x = self.rollList[i].reverse(x)
             if save:
                 saving.append(x)
-
-            x = self.rollList[i].reverse(x)
             x = self.maskList[i].reverse(x,x_)
             #print("in "+str(i)+"th layer")
             #print(x)
