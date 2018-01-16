@@ -261,8 +261,27 @@ def test_invertible_2d_metaDepth3():
 
     assert_array_almost_equal(z.data.numpy(),zz.data.numpy(),decimal=4) # don't work for decimal >=5, maybe caz by float
 
+def test_posInvariance_mera():
+    prior = Gaussian([8,8])
+    layers = [debugRealNVP() for _ in range(9)]
+    #layers = [debugRealNVP() for _ in range(6)]
+    model = MERA(2,[2,2],64,layers,prior,metaDepth = 3)
+    z = Variable(torch.from_numpy(np.arange(64)).float().view(1,8,8))
+    print(z)
+    x = model.generate(z,save=True)
+    for p in model.saving:
+        print(p)
+    print(x)
+    zz = model.inference(x,save=True)
+    for p in model.saving:
+        print(p)
+    print(zz)
+
+    assert_array_almost_equal(z.data.numpy(),zz.data.numpy(),decimal=4) # don't work for decimal >=5, maybe caz by float
+
 if __name__ == "__main__":
     #test_translationalinvariance_1d()
     #test_invertible_2d_cuda()
-    test_translationalinvariance_2d()
+    #test_translationalinvariance_2d()
     #test_invertible_2d_metaDepth3()
+    test_posInvariance_mera()
