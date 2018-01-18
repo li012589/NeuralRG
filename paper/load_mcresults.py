@@ -23,7 +23,8 @@ def loss_and_acc(h5):
 
     plt.ylabel('acceptance rate')
     plt.xlabel('iterations')
-    plt.subplots_adjust(hspace=0.1)
+    plt.subplots_adjust(hspace=0.15, bottom=0.15,left=0.15)
+    plt.xlim([0,2000])
     #plt.legend()
 
 if __name__=='__main__':
