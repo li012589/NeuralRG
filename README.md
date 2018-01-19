@@ -90,6 +90,15 @@ python visualizeRG.py -h5file data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8
 python visualizeRG.py -h5file data/learn_mera/ising_L16_d2_T2.269185314213022_Nl8_Nd1_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5 -modelname data/learn_mera/ising_L16_d2_T2.269185314213022_Nl8_Nd1_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch380 -s 
 ```
 
+## Exact Lower bound 
+
+```bash
+#L=4
+-15.2882719574-21.8548162312 = -37.143088188600004
+#L=8
+-60.0989887194-88.5132354919 = -148.6122242113
+```
+
 
 
 

@@ -1,8 +1,8 @@
-import torch
+import torch 
 from torch.autograd import Variable
 import torch.nn.functional as F
 import numpy as np
-from scipy.linalg import eigh, inv 
+from scipy.linalg import eigh, inv, det 
 
 from .template import Target
 from .lattice import Hypercube
@@ -19,6 +19,7 @@ class Ising(Target):
         w, v = eigh(self.K)    
         offset = 0.1-w.min()
         self.K += np.eye(w.size)*offset
+        print (0.5*self.Nvars *(np.log(4.)-offset - np.log(2.*np.pi)) - 0.5*np.log(det(self.K)))
         if not double:
             self.Kinv = Variable(torch.from_numpy(inv(self.K)).float(), requires_grad=False)
         else:
@@ -59,10 +60,12 @@ class Ising(Target):
 
 if __name__=='__main__':
     torch.manual_seed(42)
-    K = -1.0 
-    ising = Ising(K) 
-    x = Variable(torch.randn(10, 2).double())
-    print (x)
-    print (ising.energy(x))
-    print (ising.measure(x.data))
+    L = 8
+    d = 2
+    T = 2.269185314213022
+    ising = Ising(L, d, T) 
+    #x = Variable(torch.randn(10, 2).double())
+    #print (x)
+    #print (ising.energy(x))
+    #print (ising.measure(x.data))
 
