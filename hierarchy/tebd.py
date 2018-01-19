@@ -20,9 +20,11 @@ class TEBD(HierarchyBijector):
         if dimension == 1:
             if isinstance(kernalSize,list):
                 kernalSize = kernalSize[0]
-            tmp = [Roll(1,1),Roll(-1,1)] * (depth//2)
+            #tmp = [Roll(1,1),Roll(-1,1)] * (depth//2)
+            tmp = [Roll(1,1),Placeholder()] * (depth//2)
         else:
-            tmp = [Roll([1,1],[1,2]),Roll([-1,-1],[1,2])] * (depth//2)
+            #tmp = [Roll([1,1],[1,2]),Roll([-1,-1],[1,2])] * (depth//2)
+            tmp = [Roll([1,1],[1,2]),Placeholder()] * (depth//2)
         rollList = rollList + tmp[:-1]
         kernalSizeList = [kernalSize for _ in range(depth)]
         super(TEBD,self).__init__(dimension,kernalSizeList,rollList,bijectors,maskList,prior,name)

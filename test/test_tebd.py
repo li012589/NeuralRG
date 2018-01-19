@@ -13,7 +13,7 @@ torch.manual_seed(42)
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
 from model import RealNVP, Gaussian, MLP
-from hierarchy import TEBD,Roll,MLPreshape
+from hierarchy import TEBD,Roll,MLPreshape,debugRealNVP
 
 from subprocess import Popen, PIPE
 import pytest
@@ -235,7 +235,30 @@ def test_translationalinvariance():
     assert_array_almost_equal(logp.data.numpy(),model.logProbability(xleft).data.numpy(), decimal=6)
     assert_array_almost_equal(logp.data.numpy(),model.logProbability(xright).data.numpy(), decimal=6)
 
+def test_posInvariance_tebd():
+    prior = Gaussian([4,4])
+    layers = [debugRealNVP() for _ in range(4)]
+
+    model = TEBD(2,[2,2],4,layers,prior)
+
+    #z = model.prior(1)
+    z = Variable(torch.from_numpy(np.arange(16)).view(1,4,4).float())
+
+    x = model.generate(z,save=True)
+    assert_array_almost_equal(z.data.numpy(),x.data.numpy())
+
+    for p in model.saving:
+        assert_array_almost_equal(z.data.numpy(),p.data.numpy())
+
+    zp = model.inference(x,save=True)
+
+    for p in model.saving:
+        assert_array_almost_equal(z.data.numpy(),p.data.numpy())
+
+    assert_array_almost_equal(z.data.numpy(),zp.data.numpy())
+
 if __name__=='__main__':
     #test_invertible()
     #test_invertible_2d()
-    test_translationalinvariance()
+    #test_translationalinvariance_()
+    test_posInvariance_tebd()

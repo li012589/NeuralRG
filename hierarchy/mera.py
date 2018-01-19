@@ -23,10 +23,11 @@ class MERA(HierarchyBijector):
                 kernalSize = kernalSize[0]
             depth = int(math.log(configSize,kernalSize))
             rollList = [Placeholder()]
-            d = 1
             for i in range(1,metaDepth):
-                rollList.append(Roll(d,1))
-                d = d*-1
+                if i%2 == 0:
+                    rollList.append(Placeholder())
+                else:
+                    rollList.append(Roll(1,1))
             rollList = rollList * depth
             masks = [Variable(torch.ByteTensor([0 if i%(kernalSize**n) else 1 for i in range(configSize)])) for n in range(1,depth)]
             masks_ = [Variable(~m.data) for m in masks]
@@ -39,10 +40,11 @@ class MERA(HierarchyBijector):
             depth = int(math.log(configSize,kernalSizeS))
             sidLen = int(math.sqrt(configSize))
             rollList = [Placeholder()]
-            d = 1
             for i in range(1,metaDepth):
-                rollList.append(Roll([d,d],[1,2]))
-                d = d*-1
+                if i%2 == 0:
+                    rollList.append(Placeholder())
+                else:
+                    rollList.append(Roll([1,1],[1,2]))
             rollList = rollList * depth
             masks = []
             for n in range(1,depth):
@@ -57,5 +59,6 @@ class MERA(HierarchyBijector):
                 maskList += tmp
 
         kernalSizeList = [kernalSize for _ in range(depth*metaDepth)]
+
 
         super(MERA,self).__init__(dimension,kernalSizeList,rollList,bijectors,maskList,prior,name)
