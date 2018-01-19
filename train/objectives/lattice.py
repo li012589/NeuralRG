@@ -77,12 +77,11 @@ if __name__=='__main__':
     lattice = Hypercube(L, d)
     #lattice = Triangular(L)
     print (lattice.Adj)
-
     
     T = 2.269185314213022
     K = lattice.Adj/T
     def energy(s):
-        return 0.5 * np.dot(np.dot(s, K) , s)
+        return 0.5 * np.dot(np.dot(np.transpose(s), K) , s)
    
     #enumerate all state 
     w = []
@@ -90,7 +89,7 @@ if __name__=='__main__':
         config = "{0:b}".format(i).zfill(lattice.Nsite)
         spins = np.array([2*int(s)-1 for s in config])
         print (i, spins)
-        w.append(-energy(spins)/T)
+        w.append(-energy(spins))
 
     from scipy.misc import logsumexp
     print (-logsumexp(w))
