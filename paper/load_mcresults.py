@@ -14,8 +14,6 @@ def loss_and_acc(h5, exact=None):
     ax1.get_xaxis().set_visible(False)
     at = AnchoredText("(a)",prop=dict(size=18), frameon=False,loc=2,)
     plt.gca().add_artist(at)
-    if exact is not None:
-        plt.gca().axhline(exact, color='r', lw=2)
     at = AnchoredText("(b)",prop=dict(size=18), frameon=False,loc=2,)
     plt.ylabel('$\mathcal{L}$')
 
@@ -43,7 +41,7 @@ def loss_and_acc(h5, exact=None):
 
     plt.ylabel('acceptance rate')
     plt.xlabel('iterations')
-    plt.subplots_adjust(hspace=0.15, bottom=0.15,left=0.15)
+    plt.subplots_adjust(hspace=0.1, bottom=0.15,left=0.15)
     plt.xlim([0,2000])
     #plt.legend()
 

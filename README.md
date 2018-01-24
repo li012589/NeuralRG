@@ -88,6 +88,11 @@ python paper/load_mcresults.py -f data/learn_mera/ising_L8_d2_T2.269185314213022
 python visualizeRG.py -h5file data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5  -modelname data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch1990 -s 
         
 python visualizeRG.py -h5file data/learn_mera/ising_L16_d2_T2.269185314213022_Nl8_Nd1_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5 -modelname data/learn_mera/ising_L16_d2_T2.269185314213022_Nl8_Nd1_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch380 -s 
+
+#visulize at various scales
+python visualizeRG2.py -h5file data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5  -modelname data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch1990  -scale 0 -o scale0.pdf
+
+
 ```
 
 ## Exact Lower bound 
@@ -97,6 +102,8 @@ python visualizeRG.py -h5file data/learn_mera/ising_L16_d2_T2.269185314213022_Nl
 -15.5219-21.8548162312 = -37.3767162312
 #L=8
 -60.1418-88.5132354919 = -148.6550354919
+#L=16 
+-238.642-354.233483222 = -592.875483222
 ```
 
 
