@@ -92,6 +92,12 @@ class RealNVP(RealNVPtemplate):
             maskZero = torch.zeros(size)
             mask = torch.cat([maskOne, maskZero], 0)
 
+        elif maskType == "vchannel":
+            size[1] = size[1] // 2
+            maskOne = torch.ones(size)
+            maskZero = torch.zeros(size)
+            mask = torch.cat([maskOne, maskZero], 1)
+
         elif maskType == "evenodd":
             size[0] = size[0] // 2
             unit = torch.FloatTensor([1, 0])

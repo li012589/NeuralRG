@@ -141,7 +141,7 @@ def test_invertible_2d():
     Ht = 10
     sList = [MLPreshape(4, Hs) for _ in range(Nlayers)]
     tList = [MLPreshape(4, Ht) for _ in range(Nlayers)]
-    masktypelist = ['channel', 'channel'] * (Nlayers//2)
+    masktypelist = ['channel', 'vchannel'] * (Nlayers//2)
     #assamble RNVP blocks into a TEBD layer
     prior = Gaussian([8,8])
     layers = [RealNVP([2,2],
@@ -149,6 +149,7 @@ def test_invertible_2d():
                       tList,
                       Gaussian([2,2]),
                       masktypelist) for _ in range(6)]
+    print(layers[0].mask)
     #layers = [debugRealNVP() for _ in range(6)]
     model = MERA(2,[2,2],64,layers,prior)
     #z = prior(1)
@@ -159,7 +160,7 @@ def test_invertible_2d():
     print(zz)
     print(z)
 
-    assert_array_almost_equal(z.data.numpy(),zz.data.numpy(),decimal=4) # don't work for decimal >=5, maybe caz by float
+    assert_array_almost_equal(z.data.numpy(),zz.data.numpy(),decimal=5) # don't work for decimal >=5, maybe caz by float
 
     saveDict = model.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
@@ -169,7 +170,7 @@ def test_invertible_2d():
     Htp = 10
     sListp = [MLPreshape(4, Hsp) for _ in range(Nlayersp)]
     tListp = [MLPreshape(4, Htp) for _ in range(Nlayersp)]
-    masktypelistp = ['channel', 'channel'] * (Nlayersp//2)
+    masktypelistp = ['channel', 'vchannel'] * (Nlayersp//2)
     #assamble RNVP blocks into a TEBD layer
     priorp = Gaussian([8,8])
     layersp = [RealNVP([2,2],
@@ -295,4 +296,5 @@ if __name__ == "__main__":
     #test_invertible_2d_cuda()
     #test_translationalinvariance_2d()
     #test_invertible_2d_metaDepth3()
-    test_posInvariance_mera()
+    #test_posInvariance_mera()
+    test_invertible_2d()
