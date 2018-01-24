@@ -17,7 +17,8 @@ from train import MCMC, Buffer
 from hierarchy import MERA, MLPreshape
 from learn_realnvp import learn_acc # FIXME
 
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 from matplotlib import cm 
 from matplotlib.offsetbox import AnchoredText
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -71,35 +72,70 @@ model = MERA(d, kernel_size, Nvars, layers, prior, metaDepth =Ndisentangler+1)
 
 model.loadModel(torch.load(args.modelname))
 
+depth = int(math.log(Nvars,kernel_size[0]**2))
+sidLen = int(math.sqrt(Nvars))
+masks = []
+for n in range(1,depth):
+    tmp = np.zeros([kernel_size[0]**n,kernel_size[0]**n])
+    tmp[0,0]=1
+    tmp = np.tile(tmp,(sidLen//kernel_size[0]**n,sidLen//kernel_size[0]**n))
+    masks.append((torch.from_numpy(tmp).byte()))
+
+pos = {}
+cols ={}
+row = 0
+for i,mask in enumerate(masks):
+    tmp = torch.nonzero(mask)
+    pos[i] = tmp
+    num = int(np.sqrt(tmp.size()[0]))
+    cols[i] = num
+    row += num
+row += L
+cols[i+1]=L
+
 z_prior = prior(1)
 fig = plt.figure(figsize=(8, 8))
-
+todraw = []
 for ix in range(L):
     for iy in range(L):
         z = deepcopy(z_prior)
         z[0, ix, iy] = -z[0,ix,iy]
-        print (z)
+        #print (z)
 
         x = model.generate(z,save=True)
 
         N = len(model.saving)//(Ndisentangler+1)
 
-        plt.subplot(L,L,ix*L+iy+1)
-        data = model.saving[args.scale*(Ndisentangler+1)+Ndisentangler].data.numpy()
-        l = int(np.sqrt(data.size))
-        data.shape = (1, l, l)
+        data = model.saving[args.scale*(Ndisentangler+1)+Ndisentangler].data
 
-        im = plt.imshow(data[0], cmap=cm.gray)
+        todraw.append(data[0])
+
+l = int(np.sqrt(data.numpy().size))
+
+todraw = torch.cat(todraw).view(l,l,-1)
+
+#import pdb
+#pdb.set_trace()
+tmp = 0
+for i in range(len(pos)):
+    for j,p in enumerate(pos[i]):
+        if j >= cols[i]:
+            j = j-cols[i] + L
+        #import pdb
+        #pdb.set_trace()
+        plt.subplot(row,L,tmp+j+1)
+        plt.imshow(todraw[p[0]][p[1]].view(l,l),cmap=cm.gray)
         ax = plt.gca()
         ax.set_xticklabels([])
         ax.set_yticklabels([])
+    tmp+=cols[i]*L
 
-                #divider = make_axes_locatable(ax)
-                #cax = divider.append_axes("bottom", size="5%", pad=0.05)
-                #plt.colorbar(im, cax=cax, orientation='horizontal')
-                #if args.show:
-                #    f.canvas.draw()
-                #print (model.saving[i*(Ndisentangler+1)+Ndisentangler])
+for j,p in enumerate(todraw.view(-1,l,l)):
+    plt.subplot(row,L,tmp+j+1)
+    plt.imshow(p.view(l,l),cmap=cm.gray)
+    ax = plt.gca()
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
 
 if args.show:
     plt.show()
