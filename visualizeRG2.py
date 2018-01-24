@@ -84,7 +84,7 @@ for n in range(1,depth):
 pos = {}
 cols ={}
 row = 0
-for i,mask in enumerate(masks):
+for i,mask in enumerate(reversed(masks)):
     tmp = torch.nonzero(mask)
     pos[i] = tmp
     num = int(np.sqrt(tmp.size()[0]))
@@ -113,12 +113,12 @@ for ix in range(L):
 l = int(np.sqrt(data.numpy().size))
 
 todraw = torch.cat(todraw).view(L,L,-1)
-
+#import pdb
+#pdb.set_trace()
 tmp = 0
 for i in range(len(pos)):
     for j,p in enumerate(pos[i]):
-        if j >= cols[i]:
-            j = j-cols[i] + L
+        j = j//cols[i]*L + j%cols[i]
         plt.subplot(row,L,tmp+j+1)
         plt.imshow(todraw[p[0]][p[1]].view(l,l),cmap=cm.gray)
         ax = plt.gca()
