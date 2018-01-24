@@ -55,7 +55,9 @@ def learn_acc(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
     l2, = ax1.plot([], [],'*', alpha=0.5, label='samples')
     plt.xlabel('$x_1$')
     plt.ylabel('$x_2$')
-    plt.legend()
+    plt.xlim([-10, 10])
+    plt.ylim([-10, 10])
+    plt.legend(loc='upper left')
     fig1.canvas.draw()
 
     #loss, acceptance, observable 
