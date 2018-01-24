@@ -112,7 +112,7 @@ for ix in range(L):
 
 l = int(np.sqrt(data.numpy().size))
 
-todraw = torch.cat(todraw).view(l,l,-1)
+todraw = torch.cat(todraw).view(L,L,-1)
 
 #import pdb
 #pdb.set_trace()
@@ -124,6 +124,7 @@ for i in range(len(pos)):
         #import pdb
         #pdb.set_trace()
         plt.subplot(row,L,tmp+j+1)
+        #print(todraw)
         plt.imshow(todraw[p[0]][p[1]].view(l,l),cmap=cm.gray)
         ax = plt.gca()
         ax.set_xticklabels([])
