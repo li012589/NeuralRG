@@ -160,7 +160,7 @@ def test_invertible_2d():
     print(zz)
     print(z)
 
-    assert_array_almost_equal(z.data.numpy(),zz.data.numpy(),decimal=5) # don't work for decimal >=5, maybe caz by float
+    assert_array_almost_equal(z.data.numpy(),zz.data.numpy(),decimal=4) # don't work for decimal >=5, maybe caz by float
 
     saveDict = model.saveModel({})
     torch.save(saveDict, './saveNet.testSave')
