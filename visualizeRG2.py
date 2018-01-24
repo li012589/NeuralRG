@@ -114,17 +114,12 @@ l = int(np.sqrt(data.numpy().size))
 
 todraw = torch.cat(todraw).view(L,L,-1)
 
-#import pdb
-#pdb.set_trace()
 tmp = 0
 for i in range(len(pos)):
     for j,p in enumerate(pos[i]):
         if j >= cols[i]:
             j = j-cols[i] + L
-        #import pdb
-        #pdb.set_trace()
         plt.subplot(row,L,tmp+j+1)
-        #print(todraw)
         plt.imshow(todraw[p[0]][p[1]].view(l,l),cmap=cm.gray)
         ax = plt.gca()
         ax.set_xticklabels([])
