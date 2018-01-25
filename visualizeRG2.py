@@ -94,7 +94,7 @@ for i,mask in enumerate(reversed(masks)):
     pos[i] = tmp
 
 z_prior = prior(1)
-fig = plt.figure(figsize=(8, 8))
+#fig = plt.figure(figsize=(8, 8))
 todraw = []
 for ix in range(L):
     for iy in range(L):
