@@ -79,19 +79,19 @@ for n in range(1,depth):
     tmp = np.zeros([kernel_size[0]**n,kernel_size[0]**n])
     tmp[0,0]=1
     tmp = np.tile(tmp,(sidLen//kernel_size[0]**n,sidLen//kernel_size[0]**n))
-    masks.append((torch.from_numpy(tmp).byte()))
+    masks.append((torch.from_numpy(tmp).float()))
+masks.insert(0,torch.ones(masks[0].size()))
+
+for i,p in enumerate(masks):
+    if i == len(masks)-1:
+        pass
+    else:
+        masks[i] = p-masks[i+1]
 
 pos = {}
-cols ={}
-row = 0
 for i,mask in enumerate(reversed(masks)):
     tmp = torch.nonzero(mask)
     pos[i] = tmp
-    num = int(np.sqrt(tmp.size()[0]))
-    cols[i] = num
-    row += num
-row += L
-cols[i+1]=L
 
 z_prior = prior(1)
 fig = plt.figure(figsize=(8, 8))
@@ -113,25 +113,17 @@ for ix in range(L):
 l = int(np.sqrt(data.numpy().size))
 
 todraw = torch.cat(todraw).view(L,L,-1)
-#import pdb
-#pdb.set_trace()
-tmp = 0
+
 for i in range(len(pos)):
+    plt.figure()
+    row = int(np.sqrt(len(pos[i])))
+    col = int(len(pos[i])//row)
     for j,p in enumerate(pos[i]):
-        j = j//cols[i]*L + j%cols[i]
-        plt.subplot(row,L,tmp+j+1)
+        plt.subplot(row,col,j+1)
         plt.imshow(todraw[p[0]][p[1]].view(l,l),cmap=cm.gray)
         ax = plt.gca()
         ax.set_xticklabels([])
         ax.set_yticklabels([])
-    tmp+=cols[i]*L
-
-for j,p in enumerate(todraw.view(-1,l,l)):
-    plt.subplot(row,L,tmp+j+1)
-    plt.imshow(p.view(l,l),cmap=cm.gray)
-    ax = plt.gca()
-    ax.set_xticklabels([])
-    ax.set_yticklabels([])
 
 if args.show:
     plt.show()
