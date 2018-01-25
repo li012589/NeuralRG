@@ -79,7 +79,6 @@ from matplotlib.offsetbox import AnchoredText
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 labels = ["(a)", "(b)", "(c)", "(d)"]
-fig = plt.figure(figsize=(8, 5))
 for j in range(args.batch):
     print(j)
     f = plt.figure()
