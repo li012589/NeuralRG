@@ -104,11 +104,31 @@ class RealNVP(RealNVPtemplate):
             mask = (unit.repeat(size[0]))
 
         elif maskType == "checkerboard":
-            assert (size[1] % 2 == 0)
-            assert (size[2] % 2 == 0)
-            unit = torch.FloatTensor([[1, 0], [0, 1]])
-            mask = (unit.repeat(
-                size[0], size[1] // 2, size[2] // 2))
+            if len(size) == 2:
+                assert(size[0] % 2 == 0)
+                assert(size[1] % 2 == 0)
+                unit = torch.FloatTensor([[1, 0], [0, 1]])
+                mask = (unit.repeat(
+                    size[0]//2, size[1] // 2))
+            elif len(size) == 3:
+                assert (size[1] % 2 == 0)
+                assert (size[2] % 2 == 0)
+                unit = torch.FloatTensor([[1, 0], [0, 1]])
+                mask = (unit.repeat(
+                    size[0], size[1] // 2, size[2] // 2))
+        elif maskType == "vcheckerboard":
+            if len(size) == 2:
+                assert(size[0] % 2 == 0)
+                assert(size[1] % 2 == 0)
+                unit = torch.FloatTensor([[0, 1], [1, 0]])
+                mask = (unit.repeat(
+                    size[0]//2, size[1] // 2))
+            elif len(size) == 3:
+                assert (size[1] % 2 == 0)
+                assert (size[2] % 2 == 0)
+                unit = torch.FloatTensor([[0, 1], [1, 0]])
+                mask = (unit.repeat(
+                    size[0], size[1] // 2, size[2] // 2))
         elif ('updown' in maskType) or ('leftright' in maskType):
             slicedim = 1 if ("updown" in maskType) else 2
             size[slicedim] = size[slicedim] // 2
