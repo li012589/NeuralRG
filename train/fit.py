@@ -25,23 +25,22 @@ class Buffer(object):
         if batchSize > maximum:
             batchSize = maximum
         if self.cuda is None:
-            perm = torch.randperm(self.maximum)
+            perm = torch.randperm(maximum)
         else:
-            perm = torch.randperm(self.maximum).cuda(self.cuda)
+            perm = torch.randperm(maximum).cuda(self.cuda)
         if testBatchSize is None:
             return self.data[perm[:batchSize]]
         else:
             if testBatchSize > self.maximum-maximum:
                 testBatchSize = self.maximum-maximum
             train =self.data[perm[:batchSize]]
-            test = self.data[-testBatchSize:-1]
+            test = self.data[-testBatchSize-1:-1]
             return train,test
     def drawtest(self,testBatchSize):
         if testBatchSize>int(self.maximum*(self.testRatio)):
             testBatchSize = int(self.maximum*(self.testRatio))
-        else:
-            test = self.data[-testBatchSize:-1]
-            return test
+        test = self.data[-testBatchSize-1:-1]
+        return test
     def push(self,data):
         if self.data is None:
             self.data = data
