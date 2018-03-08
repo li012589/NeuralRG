@@ -5,10 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 
 from model import Gaussian, MLP, RealNVP
-from train.objectives import Ring2D, Ring5, Wave, Ising
-
-__all__ = ["MCMC"]
-
+from train import Ring2D, Ring5, Wave, Ising
 
 class MCMC:
     """
