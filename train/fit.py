@@ -61,43 +61,6 @@ class Buffer(object):
             perm = torch.randperm(self.data.shape[0]).cuda(self.cuda)
         self.data = self.data[perm[:self.capacity]]
 
-def train(model, Nepochs, supervised, buff, batchSize,  modelname, lr = 5e-4,decay = 0.001,save = True, saveSteps=10, feed=True):
-    LOSS=[]
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr,  betas=(0.5, 0.9))
-    if supervised:
-        criterion = torch.nn.MSELoss(size_average=True)
-
-    for epoch in range(Nepochs):
-        traindata = buff.draw(batchSize)
-        x_data = Variable(traindata[:, 0:-1])
-
-        if supervised:
-            y_data = Variable(traindata[:, -1])
-
-        logp = model.logProbability(x_data)
-        #logp,z = model.logProbabilityWithInference(x_data)
-        if supervised:
-            loss = criterion(logp, y_data)
-        else:
-            loss = -logp.mean()
-
-        if feed:
-            print ("epoch:",epoch, "loss:",loss.data[0])
-            #print ("epoch:",epoch, "loss:",loss.data[0], "z mean:",np.mean(z.data.numpy()),"z std:",np.std(z.data.numpy()))
-        LOSS.append(loss.data[0])
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        if save and epoch%saveSteps==0:
-            #saveD = {}
-            #saveD["epoch"] = epoch
-            saveDict = model.saveModel({})
-            torch.save(saveDict, model.name+'/epoch'+str(epoch))
-
-    return  x_data, model, LOSS
-
 def test(model, supervised, buff, batchSize):
 
     testdata = buff.drawtest(batchSize)
