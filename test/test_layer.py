@@ -12,7 +12,7 @@ torch.manual_seed(42)
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal,assert_array_equal
-from model import Gaussian,MLP,RealNVP,CNN,Squeezing
+from model import Gaussian,MLP,RealNVP,CNN
 from hierarchy import Roll,Wide2bacth,Batch2wide,MLPreshape
 
 from subprocess import Popen, PIPE
@@ -35,21 +35,6 @@ if noCuda == 0:
 
 skipIfNoCuda = pytest.mark.skipif(noCuda == 1,reason = "No cuda insatllation, found through nvidia-smi")
 skipIfOnlyOneGPU = pytest.mark.skipif(maxGPU < 2,reason = "Only one gpu")
-
-def test_squeeze():
-    t = torch.arange(0,16,1).view(1,1,4,4)
-    print(t)
-    s = Squeezing(1/2)
-    s2 = Squeezing(2)
-#    import pdb
- #   pdb.set_trace()
-    t2 = s(t)
-    print(t2)
-    t3 = s2(t2)
-    print(t3)
-    t = t.numpy()
-    t3 = t3.numpy()
-    assert_array_almost_equal(t,t3)
 
 def test_Roll():
     #t = np.random.randn(2,4,4)

@@ -11,33 +11,6 @@ class ScalableTanh(nn.Module):
     def forward(self,x):
         return self.scale * F.tanh(x)
 
-
-class Squeezing(nn.Module):
-    def __init__(self,filterSize = 2):
-        super(Squeezing,self).__init__()
-        self.filterSize = filterSize
-    def forward(self,input):
-        scale_factor = self.filterSize
-        batch_size, in_channels, in_height, in_width = input.size()
-
-        out_channels = int(in_channels // (scale_factor * scale_factor))
-        out_height = int(in_height * scale_factor)
-        out_width = int(in_width * scale_factor)
-
-        if scale_factor >= 1:
-            input_view = input.contiguous().view(
-            batch_size, out_channels, scale_factor, scale_factor,
-            in_height, in_width)
-            shuffle_out = input_view.permute(0, 1, 4, 2, 5, 3).contiguous()
-        else:
-            block_size = int(1 / scale_factor)
-            input_view = input.contiguous().view(
-            batch_size, in_channels, out_height, block_size,
-            out_width, block_size)
-            shuffle_out = input_view.permute(0, 1, 3, 5, 2, 4).contiguous()
-
-        return shuffle_out.view(batch_size, out_channels, out_height, out_width)
-
 class MLP(nn.Module):
     """
 
@@ -86,29 +59,6 @@ class MLP(nn.Module):
         else:
             x = self.activation(x)
             return x
-
-class FC(nn.Module):
-    def __init__(self,dList,activation=None,name="FC"):
-        super(FC,self).__init__()
-        if activation is None:
-            activation = [nn.ReLU() for _ in range(len(dList)-1)]
-            activation.append(nn.Tanh())
-        self.activation = activation
-        assert(len(dList) == len(activation))
-        fcList = []
-        self.name = name
-        for i, d in enumerate(dList):
-            if i == 0:
-                pass
-            else:
-                fcList.append(nn.Linear(dList[i-1],dList[i]))
-                fcList.append(activation[i])
-        self.fcList = torch.nn.ModuleList(fcList)
-    def forward(self,x):
-        tmp = x
-        for layer in self.fcList:
-            tmp = layer(tmp)
-        return tmp
 
 class CNN(nn.Module):
     """
