@@ -60,22 +60,3 @@ class Buffer(object):
         else:
             perm = torch.randperm(self.data.shape[0]).cuda(self.cuda)
         self.data = self.data[perm[:self.capacity]]
-
-def test(model, supervised, buff, batchSize):
-
-    testdata = buff.drawtest(batchSize)
-    x_data = Variable(testdata[:, 0:-1])
-
-    if supervised:
-        y_data = Variable(testdata[:, -1])
-        criterion = torch.nn.MSELoss(size_average=True)
-
-    logp = model.logProbability(x_data)
-    if supervised:
-        loss = criterion(logp, y_data)
-    else:
-        loss = -logp.mean()
-
-    print("test loss:",(loss.data)[0])
-
-    return loss.data
