@@ -2,7 +2,6 @@ import torch
 from torch.autograd import Variable
 import numpy as np
 from .template import Target
-from numpy.testing import assert_array_almost_equal,assert_array_equal
 
 class Phi4(Target):
     def __init__(self,l,dims,kappa,lamb,hoppingTable=None,name=None):
