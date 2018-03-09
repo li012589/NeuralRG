@@ -90,7 +90,7 @@ python visualizeRG.py -h5file data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8
 python visualizeRG.py -h5file data/learn_mera/ising_L16_d2_T2.269185314213022_Nl8_Nd1_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5 -modelname data/learn_mera/ising_L16_d2_T2.269185314213022_Nl8_Nd1_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch380 -s 
 
 #visulize at various scales
-python visualizeRG2.py -h5file data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5  -modelname data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch1990  -scale 0 -o scale0.pdf
+python visualizeRGscales.py -h5file data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5  -modelname data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch1990  -scale 0 -o scale0.pdf
 
 #make animation
 convert -background white  -delay 20 -dispose previous  $(ls data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_epsilon0.0_beta1.0_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch*.png|sort -V| head -n 50)  animation.gif
