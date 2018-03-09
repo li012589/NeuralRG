@@ -8,21 +8,26 @@ Pytorch implement of Arxiv paper: [Neural Network Renormalization Group][https:/
 
 ## How NerualRG work
 
+### Bijectors
 
+### Hierarchy Bijectors 
+
+### Training
 
 ## How to Run 
 
+### TEBD-like Structure
 
+### MERA-like Structure
+
+### MNIST generate
 
 ## Results in the paper
 
 
 
 ```python
-#TEBD
-python learn_tebd.py -Batch 256 -Ntherm 0 -Nsteps 5 -Nskip 0 -Nlayers 8 -Hs 64 -Ht 64 -target ising -T 2.269 -L 4 -d 2 -epsilon 0.0 -beta 1.0  -delta 1.0 -omega 0.5  -Nepoch 500 -lr 0.001 -exact 0.761761 -train_model 
-
-#MERA (To produce results in the paper)
+#MERA
 #L=4
 python learn_mera.py -Batch 1024 -Ntherm 5 -Nsteps 1 -Nskip 0 -Ndis 1 -Nlayers 8 -Hs 64 -Ht 64 -target ising -T 2.269185314213022 -L 4 -d 2 -epsilon 0.0 -beta 1.0  -delta 1.0 -omega 0.5  -Nepoch 5000 -lr 0.001 -exact 0.761761 -train_model 
 #L=8 
@@ -41,8 +46,6 @@ python learn_accratio.py -Batch 64 -Ntherm 5 -Nsteps 1 -Nskip 0 -Nlayers 10 -Hs 
 python plot_configs.py -f data/learn_acc/ising_L4_d2_K0.44068679350977147_Nl10_Hs4_Ht4_epsilon1.0_beta1.0_delta1.0_omega0.0_Batchsize64_Ntherm5_Nsteps1_Nskips0_lr0.01_mc.h5 
 
 ```
-
-## 
 
 ```python
 #loss and acc
