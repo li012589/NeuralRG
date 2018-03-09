@@ -1,6 +1,8 @@
 
 
-# Real NVP 
+# NerualRG 
+
+Pytorch implement of Arxiv paper: [Neural Network Renormalization Group][https://arxiv.org/abs/1802.02840].
 
 ## How to Run 
 
