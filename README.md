@@ -40,6 +40,8 @@ So, we can see that loss function has a low bound of $-\ln Z$.
 
 ## How to Run 
 
+In this section, We will train a sampler for Ising model to demonstrate NerualRG Network.
+
 ### Requirements
 
 * pytorch
@@ -47,6 +49,36 @@ So, we can see that loss function has a low bound of $-\ln Z$.
 * matplotlib
 
 ### TEBD-like Structure
+
+For TEBD-like structures, we can train using `learn_tebd.py`, some parameters are listed as following:
+
+For specifying Ising model: 
+
+* `-L` specifies size of Ising configuration. e.g. for $4\times4$, using `-L 4`;
+* `-T` specifies temperature;
+* `-d` specifies the dimension;
+* `-exact` gives us a benchmark of how the trained sampler perform.
+
+For specifying training process:
+
+* `-epsilon`, `-beta`, `-delta`, `-omega` specifies how to add regulation term to loss function;
+* `-Nepoch` specifies how many epochs we will train;
+* `-lr` specifies the learning rate.
+
+For specifying MC process:
+
+* `-Batch` specifies how many samples are evaluated at one iteration;
+* `-Ntherm` specifies thermalization step;
+* `-Nsteps` specifies at many steps a sample is 
+* `-Nskips` 
+
+For specifying NerualRG structure:
+
+* `-Nlayers` specifies layer number;
+* `-Hs` specifies hidden neurones in realNVP blocks' s network;
+* `-Ht` specifies hidden neurones in realNVP blocks' t network;
+
+
 
 ### MERA-like Structure
 
