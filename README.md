@@ -6,7 +6,7 @@ Pytorch implement of arXiv paper: [Neural Network Renormalization Group](https:/
 
 **NeuralRG** is a deep generative model using variational renormalization group approach, it is composed by layers of bijectors(In our demo, we use [realNVP](https://arxiv.org/abs/1605.08803)). After training, it can directly generate statistically independent physical configurations.
 
-## How NerualRG Network
+## How NerualRG work
 
 ### Hierarchy Bijectors 
 
@@ -22,7 +22,21 @@ The result of renormalization group is that ,in generating process, at shallow l
 
 ### Training
 
+For models with energy function we can derive a lower bound of the loss function using variational approaches. 
 
+We use the Probability Density Distillation loss:
+$$
+\begin{equation}
+\mathcal{L} = \int \mathrm{d}{\boldsymbol{x}}\,  q(\boldsymbol{x}) \left[ \ln{q(\boldsymbol{x})} - \ln{{\pi} (\boldsymbol{x}) } \right]
+\end{equation}
+$$
+Note $ln\pi(\boldsymbol{x})$ is not normalized.
+$$
+\begin{equation} 
+ \mathcal{L} +\ln Z = D_{kl}(q(\boldsymbol{x})||{\frac{\pi (\boldsymbol{x})}{Z}} )\ge 0, 
+\end{equation}
+$$
+So, we can see that loss function has a low bound of $-\ln Z$.
 
 ## How to Run 
 
