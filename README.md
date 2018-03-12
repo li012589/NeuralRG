@@ -20,8 +20,6 @@ Pytorch implement of Arxiv paper: [Neural Network Renormalization Group][https:/
 
 ### MERA-like Structure
 
-### MNIST generate
-
 ## Results in the paper
 
 
@@ -71,10 +69,10 @@ If you use this code for your research, please cite our [paper][https://arxiv.or
 
 ```
 @article{nerualRG,
-  title={Neural Network Renormalization Group},
-  author={Shuo-Hui Li and Lei Wang},
-  journal={arXiv preprint arXiv:1802.02840},
-  year={2018}
+  Author = {Shuo-Hui Li and Lei Wang},
+  Title = {Neural Network Renormalization Group},
+  Year = {2018},
+  Eprint = {arXiv:1802.02840},
 }
 ```
 
