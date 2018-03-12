@@ -2,8 +2,6 @@ import os
 import sys
 sys.path.append(os.getcwd())
 
-from profilehooks import profile
-
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
@@ -283,20 +281,6 @@ def test_logProbabilityWithInference_cuda():
 
     assert_array_almost_equal(x3d.cpu().data.numpy(),zp3d.cpu().data.numpy())
 
-
-@profile
-@pytest.mark.skip(reason = "speed test")
-def testCopyspeed():
-    for _ in range(100):
-        t = torch.randn([1000,1000])
-        a = Variable(t)
-
-@profile
-@pytest.mark.skip(reason = "speed test")
-def testCopyspeedCuda():
-    for i in range(100):
-        t = torch.randn([3000,3000]).cuda()
-        t = torch.randn([3000,3000]).pin_memory().cuda()
 
 def test_workmode1():
     gaussian = Gaussian([2])

@@ -2,8 +2,6 @@ import os
 import sys
 sys.path.append(os.getcwd())
 
-from profilehooks import profile
-
 import torch
 from torch.autograd import Variable
 import torch.nn as nn
