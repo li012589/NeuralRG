@@ -22,7 +22,7 @@ Pytorch implement of arXiv paper: [Neural Network Renormalization Group](https:/
 
 ## Results in the paper
 
-See /etc/paper.md.
+See [notebook](etc/paper.md).
 
 ## Citation
 
