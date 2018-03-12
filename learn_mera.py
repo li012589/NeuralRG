@@ -15,7 +15,7 @@ from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from hierarchy import MERA, MLPreshape 
-from learn_realnvp import learn_acc # FIXME 
+from train import MClearn
 
 if __name__=="__main__":
     import h5py
@@ -184,11 +184,11 @@ if __name__=="__main__":
 
     if args.train_model:
         print("train model", key)
-        model, LOSS = learn_acc(target, model, args.Nepochs,args.Batchsize, 
-                                args.Ntherm, args.Nsteps, args.Nskips, input_size, 
-                                epsilon=args.epsilon,beta=args.beta, 
-                                delta=args.delta, omega=args.omega, lr=args.lr, 
-                                cuda = cuda, exact=args.exact)
+        model, LOSS = MClearn(target, model, args.Nepochs,args.Batchsize, 
+                              args.Ntherm, args.Nsteps, args.Nskips, input_size, 
+                              epsilon=args.epsilon,beta=args.beta, 
+                              delta=args.delta, omega=args.omega, lr=args.lr, 
+                              cuda = cuda, exact=args.exact)
 
     sampler = MCMC(target, model, collectdata=True)
     
