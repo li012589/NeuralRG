@@ -2,9 +2,9 @@
 
 # NerualRG 
 
-Pytorch implement of Arxiv paper: [Neural Network Renormalization Group][https://arxiv.org/abs/1802.02840].
+Pytorch implement of arXiv paper: [Neural Network Renormalization Group](https://arxiv.org/abs/1802.02840).
 
-**NeuralRG** is a deep generative model using variational renormalization group approach, it is composed by layers of bijectors(In our demo, we use [realNVP][https://arxiv.org/abs/1605.08803]). After training, it can directly generate statistically independent physical configurations.
+**NeuralRG** is a deep generative model using variational renormalization group approach, it is composed by layers of bijectors(In our demo, we use [realNVP](https://arxiv.org/abs/1605.08803)). After training, it can directly generate statistically independent physical configurations.
 
 ## How NerualRG work
 
@@ -26,7 +26,7 @@ See /etc/paper.md.
 
 ## Citation
 
-If you use this code for your research, please cite our [paper][https://arxiv.org/abs/1802.02840]:
+If you use this code for your research, please cite our [paper](https://arxiv.org/abs/1802.02840):
 
 ```
 @article{nerualRG,
