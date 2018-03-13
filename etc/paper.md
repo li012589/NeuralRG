@@ -11,7 +11,7 @@ or you can use the pre-trained demo provided.
 
 ```bash
 mkdir -p data/learn_mera/
-mv demo/* data/learn_mera/
+mv -f demo/* data/learn_mera/
 ```
 
 ## Check Training Results 
