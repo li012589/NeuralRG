@@ -15,7 +15,7 @@ from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from hierarchy import MERA, MLPreshape
-from learn_realnvp import learn_acc # FIXME
+from train import MClearn
 
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
