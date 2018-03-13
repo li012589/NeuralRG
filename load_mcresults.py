@@ -1,7 +1,6 @@
 import h5py 
 import numpy as np 
 import matplotlib.pyplot as plt 
-from config import * 
 from matplotlib.offsetbox import AnchoredText
 import matplotlib 
 from matplotlib import rcParams
