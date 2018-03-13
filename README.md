@@ -25,17 +25,13 @@ The result of renormalization group is that ,in generating process, at shallow l
 For models with energy function we can derive a lower bound of the loss function using variational approaches. 
 
 We use the Probability Density Distillation loss:
-$$
-\begin{equation}
-\mathcal{L} = \int \mathrm{d}{\boldsymbol{x}}\,  q(\boldsymbol{x}) \left[ \ln{q(\boldsymbol{x})} - \ln{{\pi} (\boldsymbol{x}) } \right]
-\end{equation}
-$$
+
+![eq1](etc/eq1.png)
+
 Note $ln\pi(\boldsymbol{x})$ is not normalized.
-$$
-\begin{equation} 
- \mathcal{L} +\ln Z = D_\mathrm{KL}\left(q(\boldsymbol{x})||{\frac{\pi (\boldsymbol{x})}{Z}} \right)\ge 0, 
-\end{equation}
-$$
+
+![eq2](etc/eq2.png)
+
 So, we can see that loss function has a low bound of $-\ln Z$.
 
 ## How to Run 
@@ -61,7 +57,7 @@ For specifying Ising model:
 
 For specifying training process:
 
-* `-epsilon`, `-beta`, `-delta`, `-omega` specifies how to add regulation term to loss function;
+* `-epsilon`, `-beta`, `-delta`, `-omega` specifies how to add regulation terms to loss function;
 * `-Nepoch` specifies how many epochs we will train;
 * `-lr` specifies the learning rate.
 
@@ -103,7 +99,7 @@ For specifying Ising model:
 
 For specifying training process:
 
-- `-epsilon`, `-beta`, `-delta`, `-omega` specifies how to add regulation term to loss function;
+- `-epsilon`, `-beta`, `-delta`, `-omega` specifies how to add regulation terms to loss function;
 - `-Nepoch` specifies how many epochs we will train;
 - `-lr` specifies the learning rate.
 
