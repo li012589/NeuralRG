@@ -4,13 +4,13 @@
 
 Pytorch implement of arXiv paper: [Neural Network Renormalization Group](https://arxiv.org/abs/1802.02840).
 
-**NeuralRG** is a deep generative model using variational renormalization group approach, it is composed by layers of bijectors(In our demo, we use [realNVP](https://arxiv.org/abs/1605.08803)). After training, it can directly generate statistically independent physical configurations.
+**NeuralRG** is a deep generative model using variational renormalization group approach, it is composed by layers of bijectors (In our implementation, we use [RealNVP](https://arxiv.org/abs/1605.08803)). After training, it can generate statistically independent physical configurations with tractable likelihood via directly sampling.
 
-## How NerualRG work
+## How dow NerualRG work
 
 ### Hierarchy Bijectors 
 
-In NerualRG Network(a), we use realNVP(b) networks as building blocks, realNVP is a kind of bijectors, they can transform one distribution into other distribution and revert this process. For multi-in-multi-out blocks, we call they disentanglers(gray blocks in (a)), and for multi-in-single-out blocks, we can they decimators(white blocks in (a)). And stacking  multiply layers of these blocks into a hierarchical structure forms NerualRG network, so NerualRG is also a bijector. In inference process, each layer try to "separate" entangled variables into independent variables, and at layers composed of decimators, we only keep one of these independent variables, this is renormalization group.
+In NerualRG Network(a), we use realNVP (b) networks as building blocks, realNVP is a kind of bijectors, they can transform one distribution into other distribution and revert this process. For multi-in-multi-out blocks, we call they disentanglers(gray blocks in (a)), and for multi-in-single-out blocks, we can they decimators(white blocks in (a)). And stacking  multiply layers of these blocks into a hierarchical structure forms NerualRG network, so NerualRG is also a bijector. In inference process, each layer try to "separate" entangled variables into independent variables, and at layers composed of decimators, we only keep one of these independent variables, this is renormalization group.
 
 ![NerualRG Network](etc/Nflow.png)
 
@@ -33,7 +33,7 @@ $$
 Note $ln\pi(\boldsymbol{x})$ is not normalized.
 $$
 \begin{equation} 
- \mathcal{L} +\ln Z = D_{kl}(q(\boldsymbol{x})||{\frac{\pi (\boldsymbol{x})}{Z}} )\ge 0, 
+ \mathcal{L} +\ln Z = D_\mathrm{KL}\left(q(\boldsymbol{x})||{\frac{\pi (\boldsymbol{x})}{Z}} \right)\ge 0, 
 \end{equation}
 $$
 So, we can see that loss function has a low bound of $-\ln Z$.
@@ -101,7 +101,7 @@ If you use this code for your research, please cite our [paper](https://arxiv.or
 
 ## Contact
 
-Feel free to contact me at: [contact_lish@iphy.ac.cn](mailto:contact_lish@iphy.ac.cn).
+For questions and suggestions, contact Shuo-Hui Li at [contact_lish@iphy.ac.cn](mailto:contact_lish@iphy.ac.cn).
 
 
 
