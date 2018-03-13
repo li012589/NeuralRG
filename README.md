@@ -18,6 +18,8 @@ The result of renormalization group is that ,in generating process, at shallow l
 
 ![2D Ising Configuration](etc/rg.png)
 
+Then the following is the results of a MERA-like NerualRG network trying to generate MNIST dataset:
+
 ![MNIST](etc/mnist.png)
 
 ### Training
@@ -83,7 +85,7 @@ For specifying NerualRG structure:
 For example, to train a TEBD-like NerualRG of 8 layers of 4-layer realNVP block with 64 hidden neurones in each layer on 2D Ising of $4\times4$ and temperature of 2.269, at each iteration training will use a bath of 64 samples, and samples are gained through a MC process of 0 thermalization steps, 1 measure steps and 0 skip steps. 
 
 ```python
-python learn_tebd.py -Batchsize 64 -Ntherm 0 -Nsteps 1 -Nskip 0 -Depth 8 -Nlayers 4 -Hs 64 -Ht 64 -target ising -T 2.269 -L 4 -d 2 -Nepoch 500 -lr 0.001 -train_model 
+python learn_tebd.py -Batchsize 64 -Ntherm 0 -Nsteps 1 -Nskip 0 -Depth 8 -Nlayers 4 -Hs 64 -Ht 64 -target ising -T 2.269 -L 4 -d 2 -train_model 
 ```
 
 ### MERA-like Structure
@@ -124,7 +126,7 @@ For specifying NerualRG structure:
 For example, to train a MERA-like NerualRG of 4 layers(with 2 layers of disentangler blocks and 2 layers of decimator blocks) of 4-layer realNVP block with 64 hidden neurones in each layer on 2D Ising of $4\times4$ and temperature of 2.269, at each iteration training will use a bath of 64 samples, and samples are gained through a MC process of 0 thermalization steps, 1 measure steps and 0 skip steps.
 
 ```python
-python learn_mera.py -Batch 64 -Ntherm 0 -Nsteps 1 -Nskip 0 -Ndisentangler 1 -Nlayers 4 -Hs 64 -Ht 64 -target ising -T 2.269 -L 4 -d 2 -Nepoch 500 -lr 0.001 -train_model 
+python learn_mera.py -Batch 64 -Ntherm 0 -Nsteps 1 -Nskip 0 -Ndisentangler 1 -Nlayers 4 -Hs 64 -Ht 64 -target ising -T 2.269 -L 4 -d 2 -train_model 
 ```
 
 ## Results in the paper
