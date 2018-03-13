@@ -10,7 +10,8 @@ python learn_mera.py -Batch 1024 -Ntherm 5 -Nsteps 1 -Nskip 0 -Ndis 1 -Nlayers 8
 or you can use the pre-trained demo provided.
 
 ```bash
-
+mkdir -p data/learn_mera/
+mv demo/* data/learn_mera/
 ```
 
 ## Check Training Results 
