@@ -59,7 +59,7 @@ def MClearn(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
     #loss, acceptance, observable 
     fig2 = plt.figure(figsize=(8, 8))
     ax21 = fig2.add_subplot(411)
-    plt.title('\delta=%g, \omega=%g$'%(delta, omega))
+    plt.title('$\delta=%g, \omega=%g$'%(delta, omega))
     l3, = ax21.plot([], [], label='loss')
     ax21.legend()
 
