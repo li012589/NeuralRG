@@ -131,6 +131,7 @@ class MCMC:
         #print(p_x.data.shape)
         #print(pi_x.data.shape)
         #print(pi_z.data.shape)
+        diff = (pi_x-pi_z -p_x + p_z)
         #print ('diff', diff)
         r = -F.relu(-diff)
         accept = Variable(diff.data.exp() >= diff.data.uniform_())
