@@ -15,7 +15,6 @@ from model import Gaussian, GMM, MLP,CNN,ResNet, RealNVP, ScalableTanh
 from train import Ring2D, Ring5, Wave, Phi4, Mog2, Ising
 from train import MCMC, Buffer
 from hierarchy import MERA, MLPreshape
-from train import MClearn
 
 import argparse
 import h5py
