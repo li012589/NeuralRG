@@ -28,9 +28,9 @@ python load_mcresults.py -f data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_N
 
 ```python
 # Plot renormalized variables.
-python visualizeRG.py -h5file data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5 -modelname data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch4990 -s 
+python visualizeRG.py -h5file data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5 -modelname data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch3670 -s 
 
 # Plot renormalized variables at various scales.
-python visualizeRGscales.py -h5file data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5 -modelname data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch4990 -scale 0 -show
+python visualizeRGscales.py -h5file data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_settings.h5 -modelname data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001/epoch3670 -scale 0 -show
 ```
 
