@@ -80,7 +80,7 @@ For specifying NerualRG structure:
 * `-Ht` specifies hidden neurones in realNVP blocks' t network.
 
 
-
+---
 
 For example, to train a TEBD-like NerualRG of 8 layers of 4-layer realNVP block with 64 hidden neurones in each layer on 2D Ising of $4\times4$ and temperature of 2.269, at each iteration training will use a bath of 64 samples, and samples are gained through a MC process of 0 thermalization steps, 1 measure steps and 0 skip steps. 
 
@@ -122,6 +122,7 @@ For specifying NerualRG structure:
 - `-Ht` specifies hidden neurones in realNVP blocks' t network.
 
 
+---
 
 For example, to train a MERA-like NerualRG of 4 layers(with 2 layers of disentangler blocks and 2 layers of decimator blocks) of 4-layer realNVP block with 64 hidden neurones in each layer on 2D Ising of $4\times4$ and temperature of 2.269, at each iteration training will use a bath of 64 samples, and samples are gained through a MC process of 0 thermalization steps, 1 measure steps and 0 skip steps.
 
