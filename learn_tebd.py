@@ -164,7 +164,6 @@ if __name__=="__main__":
         print("train model", key)
         model, LOSS = MClearn(target, model, args.Nepochs,args.Batchsize, 
                               args.Ntherm, args.Nsteps, args.Nskips, input_size, 
-                              epsilon=args.epsilon,beta=args.beta, 
                               delta=args.delta, omega=args.omega, lr=args.lr, 
                               cuda = cuda, exact=args.exact)
 
