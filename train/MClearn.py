@@ -12,10 +12,9 @@ import matplotlib.pyplot as plt
 from train import MCMC, Buffer
 from copy import deepcopy
 
-def MClearn(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape, 
-              epsilon = 1.0, beta=1.0, delta=0.0, omega=0.0, 
-              lr =1e-3, weight_decay = 0.001, save = True, saveSteps=10, cuda = None, 
-              exact= None):
+def MClearn(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
+            delta=0.0, omega=0.0, lr =1e-3, weight_decay = 0.001, save = True,
+            saveSteps=10, cuda = None, exact= None):
 
     LOSS = []
     OBS = []
@@ -42,8 +41,7 @@ def MClearn(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
     #scheduler = ReduceLROnPlateau(optimizer, 'min', verbose=True)
 
     Nanneal = Nepochs//2
-    dbeta = (1.-beta)/Nanneal
-    
+
     plt.ion() 
 
     #samples 
@@ -61,7 +59,7 @@ def MClearn(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
     #loss, acceptance, observable 
     fig2 = plt.figure(figsize=(8, 8))
     ax21 = fig2.add_subplot(411)
-    plt.title('$\epsilon=%g, \delta=%g, \omega=%g$'%(epsilon, delta, omega))
+    plt.title('\delta=%g, \omega=%g$'%(delta, omega))
     l3, = ax21.plot([], [], label='loss')
     ax21.legend()
 
@@ -120,19 +118,12 @@ def MClearn(target, model, Nepochs, Batchsize, Ntherm, Nsteps, Nskips, shape,
         nll_samples = -model.logProbability(x_data)
         ######################################################
 
-        loss = -epsilon*res.mean() + delta*nll_samples.mean()  + omega * kld.mean()
+        loss = delta*nll_samples.mean()  + omega * kld.mean()
 
-        if (epoch < Nanneal):
-            beta += dbeta
-        target.set_beta(beta)
-        
         print ("epoch:",epoch
                ,"loss:",loss.data[0], -res.mean().data[0], nll_samples.mean().data[0], kld.mean().data[0]
                ,"acc:", accratio
-               ,"beta:", beta
-               #,"offset:", offset.offset.data[0]
                ,"obs", np.array(measurements).mean()
-               #"mu", model.prior.mu1.data[0], model.prior.mu2.data[0]
                )
 
         LOSS.append([loss.data[0], kld.mean().data[0], accratio])

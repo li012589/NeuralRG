@@ -55,8 +55,6 @@ class Ising(Target):
         #en = -(np.dot(s, self.K) * s).mean(axis= 1) # energy
         sf = (s.mean(axis=1))**2 - (s**2).sum(axis=1)/self.nvars**2  +1./self.nvars #structure factor
         return  sf
-    def set_beta(self, beta):
-        self.beta = beta 
 
 if __name__=='__main__':
     torch.manual_seed(42)
