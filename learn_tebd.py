@@ -33,7 +33,7 @@ if __name__=="__main__":
 
     group.add_argument("-lr", type=float, default=0.001, help="learning rate")
     group.add_argument("-delta", type=float, default=1.0, help="weight to the nll loss on data")
-    group.add_argument("-omega", type=float, default=1.0, help="weight to the KL(model|data)")
+    group.add_argument("-omega", type=float, default=0.5, help="weight to the KL(model|data)")
 
     group = parser.add_argument_group('network parameters')
     group.add_argument("-modelname", default=None, help="load model")
@@ -115,8 +115,6 @@ if __name__=="__main__":
           +'_Nl' + str(args.Nlayers) \
           + '_Hs' + str(args.Hs) \
           + '_Ht' + str(args.Ht) \
-          + '_epsilon' + str(args.epsilon) \
-          + '_beta' + str(args.beta) \
           + '_delta' + str(args.delta) \
           + '_omega' + str(args.omega) \
           + '_Batchsize' + str(args.Batchsize) \
