@@ -17,9 +17,6 @@ mv -f demo/* data/learn_mera/
 ## Check Training Results 
 
 ```python
-# Plot proposed and accepted configurations.
-python ./plot_configs.py -f data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_mc.h5
-
 # Plot loss and accept ratio curve.
 python load_mcresults.py -f data/learn_mera/ising_L8_d2_T2.269185314213022_Nl8_Nd2_Hs64_Ht64_delta1.0_omega0.5_Batchsize1024_Ntherm5_Nsteps1_Nskips0_lr0.001_mc.h5 -exact -148.6550354919 -o loss_acc.pdf
 ```
