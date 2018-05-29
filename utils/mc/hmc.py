@@ -5,7 +5,8 @@ from torch.autograd import grad as torchgrad
 
 torch.manual_seed(42)
 
-def HMC(energy,x,length,steps,epsilon):
+def HMCwithAccept(energy,x,length,steps,epsilon):
+    shape = [i if no==0 else 1 for no,i in enumerate(x.shape)]
     def grad(z):
         return torchgrad(energy(z),z,grad_outputs=torch.ones(z.shape[0]))[0]
 
@@ -28,10 +29,14 @@ def HMC(energy,x,length,steps,epsilon):
         accept = (diff.exp() >= diff.uniform_()).to(x)
 
         E = accept*Enew + (1.-accept)*E
-        accept = accept.view(x.shape[0], 1, 1)
-        x = accept*xnew + (1.-accept)*x
-        g = accept*gnew + (1.-accept)*g
+        acceptMask = accept.view(shape)
+        x = acceptMask*xnew + (1.-acceptMask)*x
+        g = acceptMask*gnew + (1.-acceptMask)*g
 
+    return x, accept
+
+def HMC(*args,**kwargs):
+    x, _ = HMCwithAccept(*args,**kwargs)
     return x
 
 
@@ -44,4 +49,5 @@ class HMCsampler(nn.Module):
         self.inital = HMC(self.energy,torch.randn(nvars),thermalSteps,interSteps)
 
     def step(self):
-        return HMC(self.energy,self.inital,1,interSteps,epsilon)
+        self.inital = HMC(self.energy,self.inital,1,interSteps,epsilon)
+        return self.inital

@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torch import nn
+from utils import HMC, Metropolis
 
 class Source(nn.Module):
 
@@ -28,3 +29,13 @@ class Source(nn.Module):
     def load(self,saveDict):
         self.load_state_dict(saveDict)
         return saveDict
+
+    def _sampleWithHMC(self,batchSize,thermalSteps = 50, interSteps = 5, epsilon=0.1):
+        inital = torch.randn([batchSize]+self.nvars,requires_grad=True)
+        inital = HMC(self.energy,inital,thermalSteps,interSteps,epsilon)
+        return inital.detach()
+
+    def _sampleWithMetropolis(self,batchSize,thermalSteps = 100,tranCore = None):
+        inital = torch.randn([batchSize]+self.nvars,requires_grad=True)
+        inital = Metropolis(self.energy,inital,thermalSteps,tranCore)
+        return inital.detach()
