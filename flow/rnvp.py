@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from ..flow import Flow
+from .flow import Flow
 from utils import checkNan
 
 class RNVP(Flow):
@@ -24,8 +24,6 @@ class RNVP(Flow):
             s = self.sList[i](y_)*self.maskListR[i]
             t = self.tList[i](y_)*self.maskListR[i]
             y = y_ + self.maskListR[i] * (y * checkNan(torch.exp(s)) + t)
-            print(i)
-            print(y)
             for _ in y.shape:
                 s = s.sum(dim=-1)
             generateLogjac += s
@@ -38,8 +36,6 @@ class RNVP(Flow):
             s = self.sList[i](z_)*self.maskListR[i]
             t = self.tList[i](z_)*self.maskListR[i]
             z = self.maskListR[i] * (z - t) * checkNan(torch.exp(-s)) + z_
-            print(i)
-            print(z)
             for _ in z.shape:
                 s = s.sum(dim=-1)
             inferenceLogjac -= s
