@@ -1,1 +1,1 @@
-from .flow import Flow
+from .rnvp import RNVP

@@ -23,3 +23,12 @@ class SimpleMLP(nn.Module):
         for layer in self.layerList:
             tmp = layer(tmp)
         return tmp
+
+class SimpleMLPreshape(SimpleMLP):
+    def __init__(self,*args,**kwargs):
+        super(MLPreshape,self).__init__(*args,**kwargs)
+    def forward(self,x):
+        shape = x.shape
+        x = x.view(shape[0],-1)
+        x = super(MLPreshape,self).forward(x)
+        return x.view(shape)

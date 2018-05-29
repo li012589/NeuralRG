@@ -15,4 +15,4 @@ class Ring2d(Source):
     '''
 
     def energy(self,x):
-        return  (torch.sqrt((x**2).sum(dim=1))-2.0)**2/0.32#-(torch.sqrt((x**2).sum(dim=-1))-2.0)**2/0.32
+        return  (torch.sqrt((x**2).sum(dim=1))-2.0)**2/0.32
