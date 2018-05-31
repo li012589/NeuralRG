@@ -12,9 +12,9 @@ class HierarchyBijector(Flow):
         assert len(layerList) == len(indexJ)
 
         self.kernelShape = kernelShape
-        self.layerList = layerList
-        self.indexI = indexI
-        self.indexJ = indexJ
+        self.layerList = torch.nn.ModuleList(layerList)
+        self.indexI = nn.Parameter(indexI,requires_grad=False)
+        self.indexJ = nn.Parameter(indexJ,requires_grad=False)
 
     def generate(self,x,save=None):
         batchSize = x.shape[0]

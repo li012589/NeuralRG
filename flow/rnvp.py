@@ -11,11 +11,11 @@ class RNVP(Flow):
         assert len(tList) == len(sList)
         assert len(tList) == len(maskList)
 
-        self.maskList = nn.Parameter(maskList)
-        self.maskListR = nn.Parameter(1-maskList)
+        self.maskList = nn.Parameter(maskList,requires_grad=False)
+        self.maskListR = nn.Parameter(1-maskList,requires_grad=False)
 
-        self.tList = tList
-        self.sList = sList
+        self.tList = torch.nn.ModuleList(tList)
+        self.sList = torch.nn.ModuleList(sList)
 
     def generate(self,y):
         generateLogjac = y.new_zeros(y.shape[0])

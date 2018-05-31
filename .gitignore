@@ -6,3 +6,4 @@
 **/*.testSave
 docs/_build
 data
+*.saving

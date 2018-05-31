@@ -12,7 +12,8 @@ class Symmetrized(Flow):
         self.flow = flow
         self.symmetryList = symmetryList
         if name is None:
-            name = "Symmetrized "+flow.name
+            name = "Symmetrized_"+flow.name
+        self.name = name
 
     def sample(self, batchSize, prior=None):
         x,logp = self.flow.sample(batchSize,prior)
@@ -21,7 +22,7 @@ class Symmetrized(Flow):
             if no == -1:
                 continue
             x[i] = self.symmetryList[no](x[i])
-        return x
+        return x,self.logProbability(x)
 
     def logProbability(self,x):
         logProbability = [self.flow.logProbability(x)]
