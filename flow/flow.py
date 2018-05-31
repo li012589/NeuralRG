@@ -1,3 +1,4 @@
+
 import numpy as np
 import torch
 from torch import nn
@@ -12,8 +13,14 @@ class Flow(nn.Module):
     def __call__(self,*args,**kargs):
         return self.sample(*args,**kargs)
 
-    def sample(self,batchSize):
-        raise NotImplementedError(str(type(self)))
+    def sample(self,batchSize, prior = None):
+        if prior is None:
+            prior = self.prior
+        assert prior is not None
+        z = prior.sample(batchSize)
+        logp = prior.logProbability(z)
+        x,logp_ = self.generate(z)
+        return x,logp+logp_
 
     def inference(self,x):
         raise NotImplementedError(str(type(self)))

@@ -1,2 +1,3 @@
 from .rnvp import RNVP
-from .hierarchy import MREA, TEBD
+from .hierarchy import *
+from .flow import Flow
