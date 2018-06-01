@@ -30,6 +30,10 @@ class Source(nn.Module):
         self.load_state_dict(saveDict)
         return saveDict
 
+    def sample(self, batchSize, thermalSteps = 50, interSteps=5, epsilon=0.1):
+        return self._sampleWithHMC(batchSize,thermalSteps,interSteps, epsilon)
+
+
     def _sampleWithHMC(self,batchSize,thermalSteps = 50, interSteps = 5, epsilon=0.1):
         inital = torch.randn([batchSize]+self.nvars,requires_grad=True)
         inital = HMC(self.energy,inital,thermalSteps,interSteps,epsilon)

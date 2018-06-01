@@ -20,7 +20,7 @@ class Flow(nn.Module):
         z = prior.sample(batchSize)
         logp = prior.logProbability(z)
         x,logp_ = self.generate(z)
-        return x,logp+logp_
+        return x,logp-logp_
 
     def inference(self,x):
         raise NotImplementedError(str(type(self)))
@@ -34,9 +34,8 @@ class Flow(nn.Module):
             return self.prior.logProbability(z)+logp
         return logp
 
-    def save(self,saveDict):
-        saveDict[self.name] = self.state_dict()
-        return saveDict
+    def save(self):
+        return self.state_dict()
 
     def load(self,saveDict):
         self.load_state_dict(saveDict)

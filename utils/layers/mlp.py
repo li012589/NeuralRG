@@ -26,9 +26,9 @@ class SimpleMLP(nn.Module):
 
 class SimpleMLPreshape(SimpleMLP):
     def __init__(self,*args,**kwargs):
-        super(MLPreshape,self).__init__(*args,**kwargs)
+        super(SimpleMLPreshape,self).__init__(*args,**kwargs)
     def forward(self,x):
         shape = x.shape
         x = x.view(shape[0],-1)
-        x = super(MLPreshape,self).forward(x)
+        x = super(SimpleMLPreshape,self).forward(x)
         return x.view(shape)

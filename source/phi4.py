@@ -37,4 +37,4 @@ class Phi4(Source):
         S *= -2*self.kappa
         term2 *= self.lamb
         S += term1 + term2
-        return -S
+        return S

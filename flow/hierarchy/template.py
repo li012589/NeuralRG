@@ -13,8 +13,8 @@ class HierarchyBijector(Flow):
 
         self.kernelShape = kernelShape
         self.layerList = torch.nn.ModuleList(layerList)
-        self.indexI = nn.Parameter(indexI,requires_grad=False)
-        self.indexJ = nn.Parameter(indexJ,requires_grad=False)
+        self.indexI = indexI
+        self.indexJ = indexJ
 
     def generate(self,x,save=None):
         batchSize = x.shape[0]

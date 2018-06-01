@@ -13,15 +13,20 @@ def HMCwithAccept(energy,x,length,steps,epsilon):
     E = energy(x)
     g = grad(x)
 
+    torch.set_grad_enabled(False)
     for l in range(length):
         p = x.new_empty(size=x.size()).normal_()
-        H = (0.5*p*p).view(p.shape[0], -1).sum(dim=1) + E
+        H = ((0.5*p*p).view(p.shape[0], -1).sum(dim=1) + E)
         xnew = x
         gnew = g
         for _ in range(steps):
             p = p- epsilon* gnew/2.
-            xnew = xnew + epsilon * p
-            gnew = grad(xnew)
+            xnew = (xnew + epsilon * p)
+            torch.set_grad_enabled(True)
+            gnew = grad(xnew.requires_grad_())
+            torch.set_grad_enabled(False)
+            xnew = xnew.detach()
+            gnew = gnew.detach()
             p = p- epsilon* gnew/2.
         Enew = energy(xnew)
         Hnew = (0.5*p*p).view(p.shape[0], -1).sum(dim=1) + Enew
@@ -32,6 +37,7 @@ def HMCwithAccept(energy,x,length,steps,epsilon):
         acceptMask = accept.view(shape)
         x = acceptMask*xnew + (1.-acceptMask)*x
         g = acceptMask*gnew + (1.-acceptMask)*g
+    torch.set_grad_enabled(True)
 
     return x, accept
 

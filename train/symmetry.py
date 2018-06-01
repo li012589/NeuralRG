@@ -51,7 +51,7 @@ class Symmetrized(Flow):
         no = torch.multinomial(logP.transpose(1,0),1).view(-1)
         for i in range(batchSize):
             if no[i] == 0:
-                z[i],_ = self.flow.inference(x[i])
+                z[i],_ = self.flow.inference(x[i].view(1,*x[i].shape))
             else:
-                z[i],_ = self.flow.inference(self.symmetryList[no[i].item()-1](x[i]))
+                z[i],_ = self.flow.inference(self.symmetryList[no[i].item()-1](x[i].view(1,*x[i].shape)))
         return z,None
