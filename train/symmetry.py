@@ -1,4 +1,5 @@
 import torch
+from torch.nn import functional as F
 import numpy as np
 from random import randint
 import math
@@ -17,11 +18,10 @@ class Symmetrized(Flow):
 
     def sample(self, batchSize, prior=None):
         x,logp = self.flow.sample(batchSize,prior)
-        for i in range(batchSize):
-            no = randint(0,len(self.symmetryList))-1
-            if no == -1:
-                continue
-            x[i] = self.symmetryList[no](x[i])
+        noBatch = torch.LongTensor(batchSize).random_(0,len(self.symmetryList)+1)-1
+        for i in range(len(self.symmetryList)):
+            no = (noBatch==i)
+            x[no] = self.symmetryList[i](x[no])
         return x,self.logProbability(x)
 
     def logProbability(self,x):
@@ -35,9 +35,10 @@ class Symmetrized(Flow):
     def generate(self,z):
         batchSize = z.shape[0]
         x,_ = self.flow.generate(z)
-        for i in range(batchSize):
-            no = randint(0,len(self.symmetryList))-1
-            x[i] = self.symmetryList[no](x[i])
+        noBatch = torch.LongTensor(batchSize).random_(0,len(self.symmetryList)+1)-1
+        for i in range(len(self.symmetryList)):
+            no = (noBatch==i)
+            x[no] = self.symmetryList[i](x[no])
         return x,None
 
     def inference(self,x):
@@ -48,10 +49,10 @@ class Symmetrized(Flow):
         logP = torch.cat(logP,0)
         logP = torch.nn.functional.softmax(logP,1)
 
-        no = torch.multinomial(logP.transpose(1,0),1).view(-1)
-        for i in range(batchSize):
-            if no[i] == 0:
-                z[i],_ = self.flow.inference(x[i].view(1,*x[i].shape))
-            else:
-                z[i],_ = self.flow.inference(self.symmetryList[no[i].item()-1](x[i].view(1,*x[i].shape)))
+        noBatch = torch.multinomial(logP.transpose(1,0),1).view(-1) - 1
+        no = (noBatch == -1)
+        z[no],_ =self.flow.inference(x[no])
+        for i in range(len(self.symmetryList)):
+            no = (noBatch == i)
+            z[no],_ = self.flow.inference(x[no])
         return z,None

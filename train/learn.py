@@ -34,9 +34,12 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
         LOSS.append([loss.item()])
 
         if save and epoch%saveSteps == 0:
+            pass
+            '''
             d = flow.save()
             torch.save(d,savePath+flow.name+".saving")
-            
+            '''
+
 
     return LOSS,ACC,OBS
 

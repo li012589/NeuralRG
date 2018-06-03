@@ -15,6 +15,8 @@ class SimpleMLP(nn.Module):
         self.name = name
         for no in range(len(activation)):
             layerList.append(nn.Linear(dimsList[no],dimsList[no+1]))
+            if no == len(activation)-1 and activation[no] is None:
+                continue
             layerList.append(activation[no])
         self.layerList = torch.nn.ModuleList(layerList)
 
