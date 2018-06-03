@@ -17,8 +17,8 @@ class RNVP(Flow):
         self.tList = torch.nn.ModuleList(tList)
         self.sList = torch.nn.ModuleList(sList)
 
-    def generate(self,y):
-        generateLogjac = y.new_zeros(y.shape[0])
+    def inference(self,y):
+        inferenceLogjac = y.new_zeros(y.shape[0])
         for i in range(len(self.tList)):
             y_ = y*self.maskList[i]
             s = self.sList[i](y_)*self.maskListR[i]
@@ -26,11 +26,11 @@ class RNVP(Flow):
             y = y_ + self.maskListR[i] * (y * checkNan(torch.exp(s)) + t)
             for _ in y.shape[1:]:
                 s = s.sum(dim=-1)
-            generateLogjac += s
-        return y,generateLogjac
+            inferenceLogjac += s
+        return y,inferenceLogjac
 
-    def inference(self,z):
-        inferenceLogjac = z.new_zeros(z.shape[0])
+    def generate(self,z):
+        generateLogjac = z.new_zeros(z.shape[0])
         for i in reversed(range(len(self.tList))):
             z_ = self.maskList[i]*z
             s = self.sList[i](z_)*self.maskListR[i]
@@ -38,5 +38,5 @@ class RNVP(Flow):
             z = self.maskListR[i] * (z - t) * checkNan(torch.exp(-s)) + z_
             for _ in z.shape[1:]:
                 s = s.sum(dim=-1)
-            inferenceLogjac -= s
-        return z,inferenceLogjac
+            generateLogjac -= s
+        return z,generateLogjac

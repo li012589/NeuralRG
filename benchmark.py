@@ -9,7 +9,7 @@ from profilehooks import profile
 
 @profile
 def traint():
-    return train.learn(target,m,batchSize,epochs)
+    return train.learn(target,m,batchSize,epochs,save = False)
 
 p = source.Gaussian([4,4])
 
@@ -57,3 +57,31 @@ batchSize =32
 loss,_,_ = traint()
 loss = torch.Tensor(loss).reshape(-1)
 print(loss[-10:].mean())
+
+def latentU(z):
+    x,_ = m.generate(z)
+    return -(m.prior.logProbability(z)+target.logProbability(x)-m.logProbability(x))
+
+batchSize = 256
+z_ = m.prior.sample(batchSize)
+
+z_,zaccept = utils.HMCwithAccept(latentU,z_,100,5,0.1)
+x_z,_ = m.generate(z_)
+def measure(x):
+    p = torch.sigmoid(2.*x).view(-1, target.nvars[0])
+    #sample spin
+    #s = 2*torch.bernoulli(p).data.numpy()-1
+    #sf = (s.mean(axis=1))**2
+    #for i in range(s.shape[0]):
+    #    print (' '.join(map(str, s[i,:])))
+    
+    #improved estimator
+    s = 2.*p.data.cpu().numpy() - 1. 
+    #en = -(np.dot(s, target.K) * s).mean(axis= 1) # energy
+    sf = (s.mean(axis=1))**2 - (s**2).sum(axis=1)/target.nvars[0]**2  +1./target.nvars[0] #structure factor
+    return  sf
+obs = measure(x_z)
+print("obs_z:",obs.mean(),  ' +/- ' , obs.std()/np.sqrt(1.*batchSize))
+
+import pdb
+pdb.set_trace()

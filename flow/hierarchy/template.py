@@ -16,26 +16,26 @@ class HierarchyBijector(Flow):
         self.indexI = indexI
         self.indexJ = indexJ
 
-    def generate(self,x,save=None):
+    def inference(self,x,save=None):
         batchSize = x.shape[0]
-        generateLogjac = x.new_zeros(x.shape[0])
+        inferenceLogjac = x.new_zeros(x.shape[0])
         for no in range(len(self.indexI)):
             if save is not None:
                 save.append(x)
             x, x_ = dispatch(self.indexI[no],self.indexJ[no],x)
-            x_,logProbability = self.layerList[no].generate(x_.reshape(-1,*self.kernelShape))
-            generateLogjac +=logProbability.view(batchSize,-1).sum(1)
+            x_,logProbability = self.layerList[no].inference(x_.reshape(-1,*self.kernelShape))
+            inferenceLogjac +=logProbability.view(batchSize,-1).sum(1)
             x = collect(self.indexI[no],self.indexJ[no],x,x_)
-        return x,generateLogjac
+        return x,inferenceLogjac
 
-    def inference(self,z,save=None):
+    def generate(self,z,save=None):
         batchSize = z.shape[0]
-        inferenceLogjac = z.new_zeros(z.shape[0])
+        generateLogjac = z.new_zeros(z.shape[0])
         for no in reversed(range(len(self.indexI))):
             if save is not None:
                 save.append(z)
             z,z_ = dispatch(self.indexI[no],self.indexJ[no],z)
-            z_,logProbability = self.layerList[no].inference(z_.reshape(-1,*self.kernelShape))
-            inferenceLogjac += logProbability.view(batchSize,-1).sum(1)
+            z_,logProbability = self.layerList[no].generate(z_.reshape(-1,*self.kernelShape))
+            generateLogjac += logProbability.view(batchSize,-1).sum(1)
             z = collect(self.indexI[no],self.indexJ[no],z,z_)
-        return z,inferenceLogjac
+        return z,generateLogjac

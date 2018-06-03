@@ -8,12 +8,14 @@ torch.manual_seed(42)
 def HMCwithAccept(energy,x,length,steps,epsilon):
     shape = [i if no==0 else 1 for no,i in enumerate(x.shape)]
     def grad(z):
-        return torchgrad(energy(z),z,grad_outputs=torch.ones(z.shape[0]))[0]
-
-    E = energy(x)
-    g = grad(x)
+        return torchgrad(energy(z),z,grad_outputs=z.new_ones(z.shape[0]))[0]
 
     torch.set_grad_enabled(False)
+    E = energy(x)
+    torch.set_grad_enabled(True)
+    g = grad(x.requires_grad_())
+    torch.set_grad_enabled(False)
+    g = g.detach()
     for l in range(length):
         p = x.new_empty(size=x.size()).normal_()
         H = ((0.5*p*p).view(p.shape[0], -1).sum(dim=1) + E)
