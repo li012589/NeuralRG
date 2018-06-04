@@ -3,8 +3,6 @@ import torch
 from torch import nn
 from torch.autograd import grad as torchgrad
 
-torch.manual_seed(42)
-
 def HMCwithAccept(energy,x,length,steps,epsilon):
     shape = [i if no==0 else 1 for no,i in enumerate(x.shape)]
     def grad(z):

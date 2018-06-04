@@ -2,8 +2,6 @@ import numpy as np
 import torch
 from torch import nn
 
-torch.manual_seed(42)
-
 def MetropolisWithAccept(energy,x,length,tranCore = None):
     torch.set_grad_enabled(False)
     shape = [i if no==0 else 1 for no,i in enumerate(x.shape)]
