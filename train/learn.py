@@ -36,7 +36,7 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
     return LOSS,ACC,OBS
 
 
-def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None, weight_decay = 0.001, adaptivelr = True, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.1, measureFn = None):
+def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None, weight_decay = 0.001, adaptivelr = True, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None):
 
     def latentU(z):
         x,_ = flow.generate(z)
