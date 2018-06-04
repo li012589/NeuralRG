@@ -43,7 +43,7 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
         return -(flow.prior.logProbability(z)+source.logProbability(x)-flow.logProbability(x))
 
     if savePath is None:
-        savePath = "./opt/"
+        savePath = "./opt/tmp"
     params = list(flow.parameters())
     params = list(filter(lambda p: p.requires_grad, params))
     nparams = sum([np.prod(p.size()) for p in params])
