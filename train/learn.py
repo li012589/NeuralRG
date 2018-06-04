@@ -1,10 +1,12 @@
 import torch
+import h5py
 import numpy as np
+import subprocess
 from utils import HMCwithAccept
 
 def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None, weight_decay = 0.001, adaptivelr = True, measureFn = None):
     if savePath is None:
-        savePath = "./opt/"
+        savePath = "./opt/tmp/"
     params = list(flow.parameters())
     params = list(filter(lambda p: p.requires_grad, params))
     nparams = sum([np.prod(p.size()) for p in params])
@@ -27,7 +29,7 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
         optimizer.step()
         print("epoch:",epoch, "L:",loss.item())
 
-        LOSS.append([loss.item()])
+        LOSS.append(loss.item())
 
         if save and epoch%saveSteps == 0:
             d = flow.save()
@@ -36,14 +38,21 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
     return LOSS,ACC,OBS
 
 
-def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None, weight_decay = 0.001, adaptivelr = True, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None):
+def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None,keepSavings = 3, weight_decay = 0.001, adaptivelr = True, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None):
+
+    def cleanSaving(epoch):
+        if epoch >= keepSavings*saveSteps:
+            cmd =["rm","-rf",savePath+"savings/"+flow.name+"Saving_epoch"+str(epoch-keepSavings*saveSteps)+".saving"]
+            subprocess.check_call(cmd)
+            cmd =["rm","-rf",savePath+"records/"+flow.name+"Record_epoch"+str(epoch-keepSavings*saveSteps)+".hdf5"]
+            subprocess.check_call(cmd)
 
     def latentU(z):
         x,_ = flow.generate(z)
         return -(flow.prior.logProbability(z)+source.logProbability(x)-flow.logProbability(x))
 
     if savePath is None:
-        savePath = "./opt/tmp"
+        savePath = "./opt/tmp/"
     params = list(flow.parameters())
     params = list(filter(lambda p: p.requires_grad, params))
     nparams = sum([np.prod(p.size()) for p in params])
@@ -70,12 +79,9 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
         optimizer.step()
         print("epoch:",epoch, "L:",loss.item())
 
-        LOSS.append([loss.item()])
+        LOSS.append(loss.item())
 
         if epoch%saveSteps == 0:
-            if save:
-                d = flow.save()
-                torch.save(d,savePath+flow.name+".saving")
             z_,zaccept = HMCwithAccept(latentU,z_,HMCthermal,HMCsteps,HMCepsilon)
             x_,xaccept = HMCwithAccept(source.energy,x_,HMCthermal,HMCsteps,HMCepsilon)
             x_z,_ = flow.generate(z_)
@@ -83,10 +89,20 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
             Xobs = measureFn(x_)
             print("accratio_z:",zaccept.mean().item(),"obs_z:",Zobs.mean(),  ' +/- ' , Zobs.std()/np.sqrt(1.*batchSize))
             print("accratio_x:",xaccept.mean().item(),"obs_x:",Xobs.mean(),  ' +/- ' , Xobs.std()/np.sqrt(1.*batchSize))
-
-            ZACC.append(zaccept.mean().item())
-            XACC.append(xaccept.mean().item())
+            ZACC.append(zaccept.mean().cpu().item())
+            XACC.append(xaccept.mean().cpu().item())
             ZOBS.append(Zobs.mean())
             XOBS.append(Xobs.mean())
+
+            if save:
+                d = flow.save()
+                torch.save(d,savePath+"savings/"+flow.name+"Saving_epoch"+str(epoch)+".saving")
+                with h5py.File(savePath+"records/"+flow.name+"Record_epoch"+str(epoch)+".hdf5", "w") as f:
+                    f.create_dataset("LOSS",data=np.array(LOSS))
+                    f.create_dataset("ZACC",data=np.array(ZACC))
+                    f.create_dataset("ZOBS",data=np.array(ZOBS))
+                    f.create_dataset("XACC",data=np.array(XACC))
+                    f.create_dataset("XOBS",data=np.array(XOBS))
+                cleanSaving(epoch)
 
     return LOSS,ZACC,ZOBS,XACC,XOBS
