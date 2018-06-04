@@ -22,9 +22,8 @@ class Source(nn.Module):
     def energy(self,x):
         raise NotImplementedError(str(type(self)))
 
-    def save(self,saveDict):
-        saveDict[self.name] = self.state_dict()
-        return saveDict
+    def save(self):
+        return self.state_dict()
 
     def load(self,saveDict):
         self.load_state_dict(saveDict)
