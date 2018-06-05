@@ -1,5 +1,3 @@
-import sys
-
 import torch
 from torch import nn
 import numpy as np
@@ -9,7 +7,7 @@ import flow
 import train
 import source
 
-from profilehooks import profile
+#from profilehooks import profile
 import math
 import h5py
 import argparse
@@ -97,6 +95,7 @@ else:
     dtype = torch.float32
 
 target = source.Ising(L, d, T)
+target = target.to(device=device,dtype=dtype)
 
 def op(x):
     return -x
