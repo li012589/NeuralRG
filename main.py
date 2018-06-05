@@ -99,7 +99,7 @@ target = source.Ising(L, d, T)
 target = target.to(device=device,dtype=dtype)
 
 if args.name is None:
-    name = "MERA"+'_l'+str(nlayers)+'_M'+str(nmlp)+'H'+str(nhidden)+'_R'+str(nrepeat)+'_Ising'
+    name = "SymmMERA"+'_l'+str(nlayers)+'_M'+str(nmlp)+'H'+str(nhidden)+'_R'+str(nrepeat)+'_Ising'
 else:
     name = args.name
 
