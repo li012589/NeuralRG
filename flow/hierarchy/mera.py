@@ -27,4 +27,4 @@ class MERA(HierarchyBijector):
         elif kernelDim == 1:
             kernelShape = [kernelSize*2]
 
-        super(MERA,self).__init__(kernelShape,indexIList,indexJList,layerList,prior)
+        super(MERA,self).__init__(kernelShape,indexIList,indexJList,layerList,prior,name)

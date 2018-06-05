@@ -14,6 +14,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument("-folder", default='./opt/tmp/')
+parser.add_argument("-name", default=None, help='name of flow')
 
 group = parser.add_argument_group('learning  parameters')
 group.add_argument("-epochs", type=int, default=1000, help="")
@@ -97,12 +98,17 @@ else:
 target = source.Ising(L, d, T)
 target = target.to(device=device,dtype=dtype)
 
+if args.name is None:
+    name = "MERA"+'_l'+str(nlayers)+'_M'+str(nmlp)+'H'+str(nhidden)+'_R'+str(nrepeat)+'_Ising'
+else:
+    name = args.name
+
 def op(x):
     return -x
 
 sym = [op]
 
-fw = train.symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype)
+fw = train.symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,name)
 
 if args.load:
     import os

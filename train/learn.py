@@ -11,7 +11,7 @@ import flow
 import source
 import math
 
-def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype):
+def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,name = None):
     s = source.Gaussian([L]*d)
 
     depth = int(math.log(L,2))*nrepeat*2
@@ -39,7 +39,7 @@ def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype)
     layers = [flow.RNVP(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(4)]) for _ in range(nlayers)]) for n in range(depth)]
 
     f = flow.MERA(2,L,layers,nrepeat,s)
-    f = Symmetrized(f,symmetryList)
+    f = Symmetrized(f,symmetryList,name = name)
     f.to(device = device,dtype = dtype)
     return f
 

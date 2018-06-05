@@ -24,4 +24,4 @@ class TEBD(HierarchyBijector):
         elif kernelDim == 1:
             kernelShape = [kernelSize*2]
 
-        super(TEBD,self).__init__(kernelShape,indexIList,indexJList,layerList)
+        super(TEBD,self).__init__(kernelShape,indexIList,indexJList,layerList,prior,name)
