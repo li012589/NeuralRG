@@ -96,54 +96,28 @@ if double:
 else:
     dtype = torch.float32
 
-s = source.Gaussian([L]*d)
-
-d = source.Ising(L, d, T)
-depth = int(math.log(L,2))*nrepeat*2
-
-MaskList = []
-for _ in range(depth):
-    masklist = []
-    for n in range(nlayers):
-        if n%2 == 0:
-            b = torch.zeros(1,4)
-            i = torch.randperm(b.numel()).narrow(0, 0, b.numel() // 2)
-            b.zero_()[:,i] = 1
-            b=b.view(1,2,2)
-        else:
-            b = 1-b
-        masklist.append(b)
-    masklist = torch.cat(masklist,0).to(torch.float32)
-    MaskList.append(masklist)
-
-dimList = [4]
-for _ in range(nmlp):
-    dimList.append(nhidden)
-dimList.append(4)
-
-layers = [flow.RNVP(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(4)]) for _ in range(nlayers)]) for n in range(depth)]
-
-f = flow.MERA(2,L,layers,nrepeat,s)
+target = source.Ising(L, d, T)
 
 def op(x):
     return -x
 
 sym = [op]
 
-f = train.Symmetrized(f,sym)
+fw = train.symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype)
+
 if args.load:
     import os
     import glob
     name = max(glob.iglob(args.folder+'savings/*.saving'), key=os.path.getctime)
     print("load saving at "+name)
     saved = torch.load(name)
-    f.load(saved)
+    fw.load(saved)
 
 def measure(x):
-        p = torch.sigmoid(2.*x).view(-1, d.nvars[0])
+        p = torch.sigmoid(2.*x).view(-1, target.nvars[0])
         s = 2.*p.data.cpu().numpy() - 1.
-        sf = (s.mean(axis=1))**2 - (s**2).sum(axis=1)/d.nvars[0]**2  +1./d.nvars[0] #structure factor
+        sf = (s.mean(axis=1))**2 - (s**2).sum(axis=1)/target.nvars[0]**2  +1./target.nvars[0] #structure factor
         return  sf
 
 
-LOSS,ZACC,ZOBS,XACC,XOBS = train.learnInterface(d,f,batch,epochs,save=True,savePath=args.folder,measureFn = measure)
+LOSS,ZACC,ZOBS,XACC,XOBS = train.learnInterface(target,fw,batch,epochs,save=True,savePath=args.folder,measureFn = measure)

@@ -1,8 +1,47 @@
 import torch
+from torch import nn
 import h5py
 import numpy as np
 import subprocess
+import utils
 from utils import HMCwithAccept
+from .symmetry import Symmetrized
+
+import flow
+import source
+import math
+
+def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype):
+    s = source.Gaussian([L]*d)
+
+    depth = int(math.log(L,2))*nrepeat*2
+
+    MaskList = []
+    for _ in range(depth):
+        masklist = []
+        for n in range(nlayers):
+            if n%2 == 0:
+                b = torch.zeros(1,4)
+                i = torch.randperm(b.numel()).narrow(0, 0, b.numel() // 2)
+                b.zero_()[:,i] = 1
+                b=b.view(1,2,2)
+            else:
+                b = 1-b
+            masklist.append(b)
+        masklist = torch.cat(masklist,0).to(torch.float32)
+        MaskList.append(masklist)
+
+    dimList = [4]
+    for _ in range(nmlp):
+        dimList.append(nhidden)
+    dimList.append(4)
+
+    layers = [flow.RNVP(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(4)]) for _ in range(nlayers)]) for n in range(depth)]
+
+    f = flow.MERA(2,L,layers,nrepeat,s)
+    f = Symmetrized(f,symmetryList)
+    f.to(device = device,dtype = dtype)
+    return f
 
 def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None, weight_decay = 0.001, adaptivelr = True, measureFn = None):
     if savePath is None:
@@ -91,18 +130,23 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
             print("accratio_x:",xaccept.mean().item(),"obs_x:",Xobs.mean(),  ' +/- ' , Xobs.std()/np.sqrt(1.*batchSize))
             ZACC.append(zaccept.mean().cpu().item())
             XACC.append(xaccept.mean().cpu().item())
-            ZOBS.append(Zobs.mean())
-            XOBS.append(Xobs.mean())
+            ZOBS.append([Zobs.mean(),Zobs.std()/np.sqrt(1.*batchSize)])
+            XOBS.append([Xobs.mean(),Xobs.std()/np.sqrt(1.*batchSize)])
 
             if save:
+                samples,_ = flow.sample(batchSize)
+                with h5py.File(savePath+"records/"+flow.name+"HMCresult_epoch"+str(epoch)+".hdf5","w") as f:
+                    f.create_dataset("XZ",data=x_z.detach().cpu().numpy())
+                    f.create_dataset("Y",data=x_.detach().cpu().numpy())
+                    f.create_dataset("X",data=samples.detach().cpu().numpy())
                 d = flow.save()
-                torch.save(d,savePath+"savings/"+flow.name+"Saving_epoch"+str(epoch)+".saving")
                 with h5py.File(savePath+"records/"+flow.name+"Record_epoch"+str(epoch)+".hdf5", "w") as f:
                     f.create_dataset("LOSS",data=np.array(LOSS))
                     f.create_dataset("ZACC",data=np.array(ZACC))
                     f.create_dataset("ZOBS",data=np.array(ZOBS))
                     f.create_dataset("XACC",data=np.array(XACC))
                     f.create_dataset("XOBS",data=np.array(XOBS))
+                torch.save(d,savePath+"savings/"+flow.name+"Saving_epoch"+str(epoch)+".saving")
                 cleanSaving(epoch)
 
     return LOSS,ZACC,ZOBS,XACC,XOBS
