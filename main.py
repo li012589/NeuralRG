@@ -12,6 +12,8 @@ import math
 import h5py
 import argparse
 
+torch.manual_seed(42)
+
 parser = argparse.ArgumentParser(description='')
 parser.add_argument("-folder", default='./opt/tmp/')
 parser.add_argument("-name", default=None, help='name of flow')

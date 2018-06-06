@@ -124,6 +124,10 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
             z_,zaccept = HMCwithAccept(latentU,z_,HMCthermal,HMCsteps,HMCepsilon)
             x_,xaccept = HMCwithAccept(source.energy,x_,HMCthermal,HMCsteps,HMCepsilon)
             x_z,_ = flow.generate(z_)
+            z_last,_ = flow.inference(x_z,True)
+            data = flow.intermedia
+            data = torch.cat([x_z.view(1,*x_z.shape),data])
+
             Zobs = measureFn(x_z)
             Xobs = measureFn(x_)
             print("accratio_z:",zaccept.mean().item(),"obs_z:",Zobs.mean(),  ' +/- ' , Zobs.std()/np.sqrt(1.*batchSize))
@@ -139,6 +143,7 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
                     f.create_dataset("XZ",data=x_z.detach().cpu().numpy())
                     f.create_dataset("Y",data=x_.detach().cpu().numpy())
                     f.create_dataset("X",data=samples.detach().cpu().numpy())
+                    f.create_dataset("data",data=data.detach().cpu().numpy())
                 d = flow.save()
                 with h5py.File(savePath+"records/"+flow.name+"Record_epoch"+str(epoch)+".hdf5", "w") as f:
                     f.create_dataset("LOSS",data=np.array(LOSS))

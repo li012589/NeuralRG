@@ -21,17 +21,7 @@ args = parser.parse_args()
 with h5py.File(args.folder+"/parameters.hdf5","r") as f:
     epochs = int(np.array(f["epochs"]))
     batch = int(np.array(f["batch"]))
-    #cuda = int(np.array(f["cuda"]))
-    #double = bool(np.array(f["double"]))
-    #lr = float(np.array(f["lr"]))
     save_period = int(np.array(f["save_period"]))
-    #nlayers = int(np.array(f["nlayers"]))
-    #nmlp = int(np.array(f["nmlp"]))
-    #nhidden = int(np.array(f["nhidden"]))
-    #nrepeat = int(np.array(f["nrepeat"]))
-    #L = int(np.array(f["L"]))
-    #d = int(np.array(f["d"]))
-    #T = float(np.array(f["T"]))
 
 plt.ion()
 fig1 = plt.figure()
@@ -160,8 +150,8 @@ while(True):
     plt.pause(0.001)
 
     if args.save:
-        fig1.savefig(args.folder+'pic/epoch%g.png'%(epoch))
-        fig2.savefig(args.folder+'pic/Loss.png')
+        fig1.savefig(args.folder+'pic/epoch%g.pdf'%(epoch))
+        fig2.savefig(args.folder+'pic/Loss.pdf')
 
     if args.show:
         plt.show()

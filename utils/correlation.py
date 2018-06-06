@@ -9,3 +9,7 @@ def correlation(x):
     std = torch.diag(c)**0.5
     s = std.expand_as(c)*std.expand_as(c).t()
     return c/s
+
+def cor(x):
+    batchSize = x.shape[0]
+    return x.t().mm(x)/(batchSize)
