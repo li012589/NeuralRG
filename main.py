@@ -38,8 +38,6 @@ group = parser.add_argument_group('Ising target parameters')
 group.add_argument("-L",type=int, default=4,help="linear size")
 group.add_argument("-d",type=int, default=2,help="dimension")
 group.add_argument("-T",type=float, default=2.269185314213022, help="Temperature")
-group.add_argument("-fe_exact",type=float,default=None,help="fe_exact")
-group.add_argument("-obs_exact",type=float,default=None,help="obs_exact")
 
 args = parser.parse_args()
 
