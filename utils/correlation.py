@@ -12,4 +12,7 @@ def correlation(x):
 
 def cor(x):
     batchSize = x.shape[0]
-    return x.t().mm(x)/(batchSize)
+    c =  x.t().mm(x)/(batchSize)
+    norm = torch.diag(c)**0.5
+    s = norm.expand_as(c)*norm.expand_as(c).t()
+    return c/s
