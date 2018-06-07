@@ -36,24 +36,19 @@ plt.xlim([-10, 10])
 plt.ylim([-10, 10])
 plt.legend(loc='upper left')
 fig1.canvas.draw()
-fig2 = plt.figure(figsize=(8,8))
-ax2 = fig2.add_subplot(411)
+fig2 = plt.figure(figsize=(8,6))
+ax2 = fig2.add_subplot(311)
 l3, = ax2.plot([], [], label='loss')
 ax2.set_xlim([0, epochs])
 ax2.legend()
 
-ax3 = fig2.add_subplot(412)
-l4, = ax3.plot([], [], label='free energy')
-ax3.set_xlim([0, epochs])
-ax3.legend()
-
-ax4 = fig2.add_subplot(413)
+ax4 = fig2.add_subplot(312)
 l5, = ax4.plot([], [], 'o', label='latent space hmc accratio')
 l6, = ax4.plot([], [], 'o', label='physical space hmc accratio')
 ax4.set_xlim([0, epochs])
 ax4.legend()
 
-ax5 = fig2.add_subplot(414)
+ax5 = fig2.add_subplot(313)
 fig2.canvas.draw()
 
 epoch = 0
@@ -135,9 +130,6 @@ while(True):
 
     ax2.relim()
     ax2.autoscale_view()
-
-    ax3.relim()
-    ax3.autoscale_view()
 
     ax4.relim()
     ax4.autoscale_view()
