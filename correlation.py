@@ -61,14 +61,12 @@ with torch.no_grad():
                 tmp = tmp_
             result = utils.cor(tmp.view(batch,-1))
             RES.append(result)
-import pdb
-pdb.set_trace()
 
 t = torch.cat([t_.view(-1) for t_ in RES])
-vmax = max(t.max().item(),t.min().item())
-
+vmax = t.max().item()
+vmin = t.min().item()
 for i in RES:
-    plt.matshow(i.detach().numpy(), cmap='RdBu',vmax = vmax, vmin = -vmax)
+    plt.matshow(i.detach().numpy(), cmap='Greys',vmax = vmax, vmin = vmin)
     plt.colorbar()
 
     plt.savefig(args.folder+"pic/correlation_original.pdf")
