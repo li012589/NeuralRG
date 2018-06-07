@@ -123,4 +123,4 @@ def measure(x):
         return  sf
 
 
-LOSS,ZACC,ZOBS,XACC,XOBS = train.learnInterface(target,fw,batch,epochs,save=True,savePath=args.folder,measureFn = measure)
+LOSS,ZACC,ZOBS,XACC,XOBS = train.learnInterface(target,fw,batch,epochs,save=True,saveSteps = savePeriod,savePath=args.folder,measureFn = measure)
