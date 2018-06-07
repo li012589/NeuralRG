@@ -116,41 +116,53 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
         flow.zero_grad()
         loss.backward()
         optimizer.step()
+
+        del sampleLogProbability
+        del x
+
         print("epoch:",epoch, "L:",loss.item())
 
         LOSS.append(loss.item())
 
         if epoch%saveSteps == 0:
-            z_,zaccept = HMCwithAccept(latentU,z_,HMCthermal,HMCsteps,HMCepsilon)
-            x_,xaccept = HMCwithAccept(source.energy,x_,HMCthermal,HMCsteps,HMCepsilon)
-            x_z,_ = flow.generate(z_)
-            z_last,_ = flow.inference(x_z,True)
+            z_,zaccept = HMCwithAccept(latentU,z_.detach(),HMCthermal,HMCsteps,HMCepsilon)
+            x_,xaccept = HMCwithAccept(source.energy,x_.detach(),HMCthermal,HMCsteps,HMCepsilon)
+            with torch.no_grad():
+                x_z,_ = flow.generate(z_)
+                z_last,_ = flow.inference(x_z,True)
             data = flow.intermedia
             data = torch.cat([x_z.view(1,*x_z.shape),data])
 
-            Zobs = measureFn(x_z)
-            Xobs = measureFn(x_)
+            with torch.no_grad():
+                Zobs = measureFn(x_z)
+                Xobs = measureFn(x_)
             print("accratio_z:",zaccept.mean().item(),"obs_z:",Zobs.mean(),  ' +/- ' , Zobs.std()/np.sqrt(1.*batchSize))
             print("accratio_x:",xaccept.mean().item(),"obs_x:",Xobs.mean(),  ' +/- ' , Xobs.std()/np.sqrt(1.*batchSize))
             ZACC.append(zaccept.mean().cpu().item())
             XACC.append(xaccept.mean().cpu().item())
-            ZOBS.append([Zobs.mean(),Zobs.std()/np.sqrt(1.*batchSize)])
-            XOBS.append([Xobs.mean(),Xobs.std()/np.sqrt(1.*batchSize)])
+            ZOBS.append([Zobs.mean().item(),Zobs.std().item()/np.sqrt(1.*batchSize)])
+            XOBS.append([Xobs.mean().item(),Xobs.std().item()/np.sqrt(1.*batchSize)])
 
             if save:
-                samples,_ = flow.sample(batchSize)
+                with torch.no_grad():
+                    samples,_ = flow.sample(batchSize)
                 with h5py.File(savePath+"records/"+flow.name+"HMCresult_epoch"+str(epoch)+".hdf5","w") as f:
                     f.create_dataset("XZ",data=x_z.detach().cpu().numpy())
                     f.create_dataset("Y",data=x_.detach().cpu().numpy())
                     f.create_dataset("X",data=samples.detach().cpu().numpy())
                     f.create_dataset("data",data=data.detach().cpu().numpy())
-                d = flow.save()
+
+                del x_z
+                del samples
+                del data
+
                 with h5py.File(savePath+"records/"+flow.name+"Record_epoch"+str(epoch)+".hdf5", "w") as f:
                     f.create_dataset("LOSS",data=np.array(LOSS))
                     f.create_dataset("ZACC",data=np.array(ZACC))
                     f.create_dataset("ZOBS",data=np.array(ZOBS))
                     f.create_dataset("XACC",data=np.array(XACC))
                     f.create_dataset("XOBS",data=np.array(XOBS))
+                d = flow.save()
                 torch.save(d,savePath+"savings/"+flow.name+"Saving_epoch"+str(epoch)+".saving")
                 cleanSaving(epoch)
 
