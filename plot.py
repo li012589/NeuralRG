@@ -18,7 +18,7 @@ parser.add_argument("-show",action='store_false', help="save pic")
 parser.add_argument("-exact",type=float,default=None,help="obs_exact")
 args = parser.parse_args()
 
-with h5py.File(args.folder+"/parameters.hdf5","r") as f:
+with h5py.File(args.folder+"parameters.hdf5","r") as f:
     epochs = int(np.array(f["epochs"]))
     batch = int(np.array(f["batch"]))
     savePeriod = int(np.array(f["savePeriod"]))
