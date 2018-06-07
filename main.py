@@ -24,7 +24,7 @@ group.add_argument("-batch", type=int, default=32, help="")
 group.add_argument("-cuda", type=int, default=-1, help="use GPU")
 group.add_argument("-double", action='store_true', help="use float64")
 group.add_argument("-lr", type=float, default=0.001, help="learning rate")
-group.add_argument("-save_period", type=int, default=10, help="")
+group.add_argument("-savePeriod", type=int, default=10, help="")
 
 group = parser.add_argument_group('network parameters')
 group.add_argument("-load", action='store_true', help="if load from folder")
@@ -49,7 +49,7 @@ if args.load:
         cuda = int(np.array(f["cuda"]))
         double = bool(np.array(f["double"]))
         lr = float(np.array(f["lr"]))
-        save_period = int(np.array(f["save_period"]))
+        savePeriod = int(np.array(f["savePeriod"]))
         nlayers = int(np.array(f["nlayers"]))
         nmlp = int(np.array(f["nmlp"]))
         nhidden = int(np.array(f["nhidden"]))
@@ -63,7 +63,7 @@ else:
     cuda = args.cuda
     double = args.double
     lr = args.lr
-    save_period = args.save_period
+    savePeriod = args.savePeriod
     nlayers = args.nlayers
     nmlp = args.nmlp
     nhidden = args.nhidden
@@ -71,15 +71,13 @@ else:
     L = args.L
     d = args.d
     T = args.T
-    fe_exact = args.fe_exact
-    obs_exact = args.obs_exact
     with h5py.File(args.folder+"parameters.hdf5","w") as f:
         f.create_dataset("epochs",data=args.epochs)
         f.create_dataset("batch",data=args.batch)
         f.create_dataset("cuda",data=args.cuda)
         f.create_dataset("double",data=args.double)
         f.create_dataset("lr",data=args.lr)
-        f.create_dataset("save_period",data=args.save_period)
+        f.create_dataset("savePeriod",data=args.savePeriod)
         f.create_dataset("nlayers",data=args.nlayers)
         f.create_dataset("nmlp",data=args.nmlp)
         f.create_dataset("nhidden",data=args.nhidden)

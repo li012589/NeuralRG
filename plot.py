@@ -21,7 +21,7 @@ args = parser.parse_args()
 with h5py.File(args.folder+"/parameters.hdf5","r") as f:
     epochs = int(np.array(f["epochs"]))
     batch = int(np.array(f["batch"]))
-    save_period = int(np.array(f["save_period"]))
+    savePeriod = int(np.array(f["savePeriod"]))
 
 plt.ion()
 fig1 = plt.figure()
@@ -72,8 +72,8 @@ while(True):
         part = name.split('epoch')
         prefix = part[0].replace("savings","records").replace("Saving","Record")
         epoch_ = int(re.findall(r'\d+',part[1])[0])
-        if epoch_ == epochs-2*save_period and epoch == epoch_:
-            epoch_ = epochs-save_period
+        if epoch_ == epochs-2*savePeriod and epoch == epoch_:
+            epoch_ = epochs-savePeriod
     epoch = epoch_
     print("at epoch: "+str(epoch))
 
@@ -113,15 +113,15 @@ while(True):
     l3.set_xdata(range(LOSS.shape[0]))
     l3.set_ydata(LOSS)
 
-    l5.set_xdata(np.arange(ZACC.shape[0])*save_period)
+    l5.set_xdata(np.arange(ZACC.shape[0])*savePeriod)
     l5.set_ydata(ZACC)
 
-    l6.set_xdata(np.arange(XACC.shape[0])*save_period)
+    l6.set_xdata(np.arange(XACC.shape[0])*savePeriod)
     l6.set_ydata(XACC)
 
     ax5.cla()
-    ax5.errorbar(np.arange(ZOBS.shape[0])*save_period, ZOBS[:,0], yerr=ZOBS[:, 1], fmt='o', capsize=8)
-    ax5.errorbar(np.arange(XOBS.shape[0])*save_period, XOBS[:,0], yerr=XOBS[:, 1], fmt='s', capsize=8)
+    ax5.errorbar(np.arange(ZOBS.shape[0])*savePeriod, ZOBS[:,0], yerr=ZOBS[:, 1], fmt='o', capsize=8)
+    ax5.errorbar(np.arange(XOBS.shape[0])*savePeriod, XOBS[:,0], yerr=XOBS[:, 1], fmt='s', capsize=8)
     if (args.exact is not None):
         plt.axhline(args.exact, color='r', lw=2)
     ax5.set_xlim([0, epochs])
@@ -148,7 +148,7 @@ while(True):
     if args.show:
         plt.show()
 
-    if epoch == epochs - save_period:
+    if epoch == epochs - savePeriod:
         print("finish with all epochs ploted")
         sys.exit(0)
 
