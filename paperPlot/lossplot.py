@@ -1,12 +1,31 @@
-import h5py 
-import numpy as np 
-import matplotlib.pyplot as plt 
-from config import * 
+import h5py
+import os
+import glob
+import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnchoredText
+
+import matplotlib
+from matplotlib import rcParams
+
+#rcParams['text.usetex'] = True
+#rcParams['font.serif'] = 'Computer Modern Roman'
+
+rcParams['lines.linewidth'] = 1
+
+rcParams['xtick.labelsize'] = 16
+rcParams['ytick.labelsize'] = 16
+
+
+rcParams['axes.labelsize'] = 20
+rcParams['axes.titlesize'] = 20
+
+rcParams['legend.fancybox'] = True
+
 
 def loss_and_acc(h5, exact=None):
 
-    loss = np.array(h5['results']['loss'])
+    loss = np.array(h5['LOSS'])
 
     plt.figure(figsize=(8,6))
     ax1 = plt.subplot(211)
@@ -25,7 +44,7 @@ def loss_and_acc(h5, exact=None):
     axins.semilogx(loss[:, 1], lw=2)
     if exact is not None:
         plt.gca().axhline(exact, color='r', lw=2)
-    
+
     x1, x2 = 100, 2000
     y1, y2 = -150, -140
     axins.set_xlim(x1, x2)
@@ -46,31 +65,28 @@ def loss_and_acc(h5, exact=None):
     #plt.legend()
 
 if __name__=='__main__':
-    import argparse 
+    import argparse
 
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument("-filename", help="filename")
-    parser.add_argument("-index", type=int, default=1, help="figure index")
+    parser.add_argument("-folder",default='./opt/tmp/')
     parser.add_argument("-exact", type=float, default=None, help="exact lower bound")
 
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-show", action='store_true',  help="show figure right now")
-    group.add_argument("-outname", default="result.pdf",  help="output pdf file")
+    parser.add_argument("-show", action='store_true',  help="show figure right now")
+    parser.add_argument("-save", action='store_true',  help="save figure to a file")
+    parser.add_argument("-outname", default="result",  help="output pdf file")
     args = parser.parse_args()
 
-    h5 = h5py.File(args.filename,'r')
-    
-    #TODO: better selection 
-    if args.index==1:
-        loss_and_acc(h5, args.exact)
-    elif args.index==2:
-        pass
-    elif args.index==3:
-        pass 
+    rootFolder = args.folder
+    if rootFolder[-1] != '/':
+        rootFolder += '/'
 
-    h5.close()
+    parameterFileName = rootFolder+"parameters.hdf5"
+    name = max(glob.iglob(rootFolder+"records/*Record*.hdf5"),key = os.path.getctime)
+    print("Plotting loss at:"+name)
+    with h5py.File(name,'r') as f:
+        loss_and_acc(f, args.exact)
 
     if args.show:
         plt.show()
-    else:
+    if args.save:
         plt.savefig(args.outname, dpi=300, transparent=True)
