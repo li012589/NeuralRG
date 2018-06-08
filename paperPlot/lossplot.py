@@ -23,7 +23,7 @@ rcParams['axes.titlesize'] = 20
 rcParams['legend.fancybox'] = True
 
 
-def loss_and_acc(h5,L,savePeriod,Lexact=None,Hexact=None):
+def loss_and_acc(h5,L,savePeriod,Lexact,Hexact=None):
 
     loss = np.array(h5['LOSS'])
     physicalHMC = np.array(h5['XOBS'])
@@ -31,24 +31,20 @@ def loss_and_acc(h5,L,savePeriod,Lexact=None,Hexact=None):
 
     plt.figure(figsize=(8,6))
     ax1 = plt.subplot(211)
-    plt.semilogx(loss/L, lw=2)
-    #ax1.get_xaxis().set_visible(False)
+    data = (loss-Lexact)/abs(Lexact)
+    plt.semilogy(data, lw=2)
+
+    ax1.get_xaxis().set_visible(False)
     at = AnchoredText("(a)",prop=dict(size=18), frameon=False,loc=2,)
     plt.gca().add_artist(at)
     at = AnchoredText("(b)",prop=dict(size=18), frameon=False,loc=2,)
-    plt.ylabel('$\mathcal{L}/N$')
-    plt.xlim([0,5000])
-    plt.xlabel('iterations')
-
+    plt.ylabel('$\mathcal{L}$ Relative Error')
 
     ###################
     #from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset
     #axins = zoomed_inset_axes(ax1, 1.5,  loc=7)
     #axins = plt.axes([0.45, 0.65, 0.4, 0.2])
     #axins.semilogx(loss/L, lw=2)
-
-    if Lexact is not None:
-        plt.gca().axhline(Lexact, color='r', lw=2)
 
     #x1, x2 = 50, 4900
     #y1, y2 = -2.35, -2.25
@@ -59,7 +55,7 @@ def loss_and_acc(h5,L,savePeriod,Lexact=None,Hexact=None):
     #mark_inset(ax1, axins, loc1=1, loc2=2, fc='none', ec='0.5')
     ###################
 
-    plt.subplot(212)
+    plt.subplot(212,sharex = ax1)
 #    plt.plot(loss[:, 2], lw=2)
     plt.gca().add_artist(at)
 
@@ -104,7 +100,7 @@ if __name__=='__main__':
     name = max(glob.iglob(rootFolder+"records/*Record_epoch"+str(savename)+".hdf5"),key = os.path.getctime)
     print("Plotting loss at:"+name)
     with h5py.File(name,'r') as f:
-        loss_and_acc(f,L,savePeriod,args.Lexact/L,args.Hexact)
+        loss_and_acc(f,L,savePeriod,args.Lexact,args.Hexact)
 
     if args.show:
         plt.show()
