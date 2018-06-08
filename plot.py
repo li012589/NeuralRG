@@ -18,7 +18,11 @@ parser.add_argument("-show",action='store_false', help="save pic")
 parser.add_argument("-exact",type=float,default=None,help="obs_exact")
 args = parser.parse_args()
 
-with h5py.File(args.folder+"parameters.hdf5","r") as f:
+rootFolder = args.folder
+if rootFolder[-1] != '/':
+    rootFolder += '/'
+
+with h5py.File(rootFolder+"parameters.hdf5","r") as f:
     epochs = int(np.array(f["epochs"]))
     batch = int(np.array(f["batch"]))
     savePeriod = int(np.array(f["savePeriod"]))
@@ -59,7 +63,7 @@ while(True):
     while(epoch_ == epoch):
         time.sleep(args.per/2)
         try:
-            name = sorted(glob.iglob(args.folder+"savings/*Saving*.saving"),key = os.path.getctime)[-2]
+            name = sorted(glob.iglob(rootFolder+"savings/*Saving*.saving"),key = os.path.getctime)[-2]
         except:
             time.sleep(args.per/2)
             '''
@@ -142,8 +146,8 @@ while(True):
     plt.pause(0.001)
 
     if args.save:
-        fig1.savefig(args.folder+'pic/epoch%g.pdf'%(epoch))
-        fig2.savefig(args.folder+'pic/Loss.pdf')
+        fig1.savefig(rootFolder+'pic/epoch%g.pdf'%(epoch))
+        fig2.savefig(rootFolder+'pic/Loss.pdf')
 
     if args.show:
         plt.show()

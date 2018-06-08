@@ -22,13 +22,17 @@ parser.add_argument("-show",action='store_false', help="show matplotlib plot")
 parser.add_argument("-save",action='store_false', help="save matplotlib plot")
 args = parser.parse_args()
 
-with h5py.File(args.folder+"parameters.hdf5","r") as f:
+rootFolder = args.folder
+if rootFolder[-1] != '/':
+    rootFolder += '/'
+
+with h5py.File(rootFolder+"parameters.hdf5","r") as f:
     L = int(np.array(f["L"]))
     nrepeat = int(np.array(f["nrepeat"]))
     batch = int(np.array(f["batch"]))
 
 with torch.no_grad():
-    name = max(glob.iglob(args.folder+'records/*HMCresult*.hdf5'), key=os.path.getctime)
+    name = max(glob.iglob(rootFolder+'records/*HMCresult*.hdf5'), key=os.path.getctime)
     print("load: "+name)
     with h5py.File(name,"r") as f:
         data = torch.from_numpy(np.array(f['data']))
@@ -70,9 +74,9 @@ for i in RES:
     plt.matshow(i.detach().numpy(),cmap='RdBu',vmax = 1.0, vmin = -1.0)
     plt.colorbar()
 
-    plt.savefig(args.folder+"pic/correlation_original.pdf")
+    plt.savefig(rootFolder+"pic/correlation_original.pdf")
 
 plt.show()
 
-with h5py.File(args.folder+"pic/correlation.hdf5","w") as f:
+with h5py.File(rootFolder+"pic/correlation.hdf5","w") as f:
     f.create_dataset("CORRE",data=np.array(RES))

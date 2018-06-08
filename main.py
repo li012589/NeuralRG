@@ -41,9 +41,13 @@ group.add_argument("-T",type=float, default=2.269185314213022, help="Temperature
 
 args = parser.parse_args()
 
-utils.createWorkSpace(args.folder)
+rootFolder = args.folder
+if rootFolder[-1] != '/':
+    rootFolder += '/'
+
+utils.createWorkSpace(rootFolder)
 if args.load:
-    with h5py.File(args.folder+"/parameters.hdf5","r") as f:
+    with h5py.File(rootFolder+"/parameters.hdf5","r") as f:
         epochs = int(np.array(f["epochs"]))
         batch = int(np.array(f["batch"]))
         cuda = int(np.array(f["cuda"]))
@@ -71,7 +75,7 @@ else:
     L = args.L
     d = args.d
     T = args.T
-    with h5py.File(args.folder+"parameters.hdf5","w") as f:
+    with h5py.File(rootFolder+"parameters.hdf5","w") as f:
         f.create_dataset("epochs",data=args.epochs)
         f.create_dataset("batch",data=args.batch)
         f.create_dataset("cuda",data=args.cuda)
@@ -111,7 +115,7 @@ fw = train.symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,na
 if args.load:
     import os
     import glob
-    name = max(glob.iglob(args.folder+'savings/*.saving'), key=os.path.getctime)
+    name = max(glob.iglob(rootFolder+'savings/*.saving'), key=os.path.getctime)
     print("load saving at "+name)
     saved = torch.load(name)
     fw.load(saved)
@@ -123,4 +127,4 @@ def measure(x):
         return  sf
 
 
-LOSS,ZACC,ZOBS,XACC,XOBS = train.learnInterface(target,fw,batch,epochs,save=True,saveSteps = savePeriod,savePath=args.folder,measureFn = measure)
+LOSS,ZACC,ZOBS,XACC,XOBS = train.learnInterface(target,fw,batch,epochs,save=True,saveSteps = savePeriod,savePath=rootFolder,measureFn = measure)
