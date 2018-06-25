@@ -41,10 +41,7 @@ class Symmetrized(Flow):
             x[no] = self.symmetryList[i](x[no])
         return x,None
 
-    def inference(self,x,save = 0 ):
-        if save == 1:
-            self.intermedia = x.new_ones([self.flow.depth+1,*x.shape])
-
+    def inference(self,x):
         z = torch.zeros_like(x)
         batchSize = x.shape[0]
         logP = [self.flow.logProbability(x).reshape(1,-1)]
@@ -54,12 +51,8 @@ class Symmetrized(Flow):
 
         noBatch = torch.multinomial(logP.transpose(1,0),1).view(-1) - 1
         no = (noBatch == -1)
-        z[no],_ =self.flow.inference(x[no],save)
-        if save == 1:
-            self.intermedia[:,no]=self.flow.intermedia
+        z[no],_ =self.flow.inference(x[no])
         for i in range(len(self.symmetryList)):
             no = (noBatch == i)
-            z[no],_ = self.flow.inference(self.symmetryList[i](x[no]),save)
-            if save== 1:
-                self.intermedia[:,no] = self.flow.intermedia
+            z[no],_ = self.flow.inference(self.symmetryList[i](x[no]))
         return z,None
