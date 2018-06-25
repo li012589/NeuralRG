@@ -129,7 +129,7 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
             x_,xaccept = HMCwithAccept(source.energy,x_.detach(),HMCthermal,HMCsteps,HMCepsilon)
             with torch.no_grad():
                 x_z,_ = flow.generate(z_)
-                z_last,_ = flow.inference(x_z,True)
+                z_last,_ = flow.inference(x_z)
             data = flow.intermedia
             data = torch.cat([x_z.view(1,*x_z.shape),data])
 
