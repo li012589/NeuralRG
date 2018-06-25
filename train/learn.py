@@ -130,8 +130,6 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
             with torch.no_grad():
                 x_z,_ = flow.generate(z_)
                 z_last,_ = flow.inference(x_z)
-            data = flow.intermedia
-            data = torch.cat([x_z.view(1,*x_z.shape),data])
 
             with torch.no_grad():
                 Zobs = measureFn(x_z)
@@ -150,11 +148,9 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
                     f.create_dataset("XZ",data=x_z.detach().cpu().numpy())
                     f.create_dataset("Y",data=x_.detach().cpu().numpy())
                     f.create_dataset("X",data=samples.detach().cpu().numpy())
-                    f.create_dataset("data",data=data.detach().cpu().numpy())
 
                 del x_z
                 del samples
-                del data
 
                 with h5py.File(savePath+"records/"+flow.name+"Record_epoch"+str(epoch)+".hdf5", "w") as f:
                     f.create_dataset("LOSS",data=np.array(LOSS))
