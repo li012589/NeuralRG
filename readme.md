@@ -16,15 +16,9 @@ In NerualRG Network(a), we use realNVP (b) networks as building blocks, realNVP 
 
 The structure we used to construct realNVP networks into NeuralRG network is inspired by multi-scale entanglement renormalization ansatz (MERA), as shown in (a). Also, the process of variable going through our network can be viewed as a renormalization process.
 
-The resulted effect of a trained NeuralRG network can be visualized using gradients plot and MI plot of variables of the same layer.
+The resulted effect of a trained NeuralRG network can be visualized using gradients plot (a) and MI plot of variables of the same layer (b).
 
-The result of renormalization group is that ,in generating process, at shallow layers of NerualRG Network, the configuration formed by output variables is a "blurry" version of deep layers' output. This can be seen from following training results.
-
-![2D Ising Configuration](etc/rg.png)
-
-Then the following is the results of a MERA-like NerualRG network trying to generate MNIST dataset:
-
-![MNIST](etc/mnist.png)
+![gradientAndMi](etc/gradAndMi.pdf)
 
 ### Training
 
@@ -43,92 +37,6 @@ So, we can see that loss function has a low bound of $-\ln Z$.
 ## How to Run 
 
 In this section, We will train a sampler for Ising model to demonstrate NerualRG Network.
-
-### TEBD-like Structure
-
-For TEBD-like structures, we can train using `learn_tebd.py`, some parameters are listed as following:
-
-For specifying Ising model: 
-
-* `-L` specifies size of Ising configuration. e.g. for $4\times4$, using `-L 4`;
-* `-T` specifies temperature;
-* `-d` specifies the dimension;
-* `-exact` gives us a benchmark of how the trained sampler perform.
-
-For specifying training process:
-
-* `-epsilon`, `-beta`, `-delta`, `-omega` specifies how to add regulation terms to loss function;
-* `-Nepoch` specifies how many epochs we will train;
-* `-lr` specifies the learning rate.
-
-For specifying MC process:
-
-* `-Batchsize` specifies how many samples are evaluated at one iteration;
-* `-Ntherm` specifies thermalization steps;
-* `-Nsteps` specifies measure steps;
-* `-Nskips`  specifies skip steps between each measure step.
-
-For specifying NerualRG structure:
-
-* `-Depth` specifies NerualRG layers number;
-
-
-* `-Nlayers` specifies realNVP blocks' layer number;
-* `-Hs` specifies hidden neurones in realNVP blocks' s network;
-* `-Ht` specifies hidden neurones in realNVP blocks' t network.
-
----
-
-​For example, to train a TEBD-like NerualRG of 8 layers of 4-layer realNVP block with 64 hidden neurones in each layer on 2D Ising of 4 * 4 and temperature of 2.269, at each iteration training will use a bath of 64 samples, and samples are gained through a MC process of 0 thermalization steps, 1 measure steps and 0 skip steps. 
-
-```python
-python learn_tebd.py -Batchsize 64 -Ntherm 0 -Nsteps 1 -Nskip 0 -Depth 8 -Nlayers 4 -Hs 64 -Ht 64 -target ising -T 2.269 -L 4 -d 2 -train_model 
-```
-
-### MERA-like Structure
-
-For MERA-like structures, we can train using `learn_mera.py`, some parameters are listed as following:
-
-For specifying Ising model: 
-
-- `-L` specifies size of Ising configuration. e.g. for $4\times4$, using `-L 4`;
-- `-T` specifies temperature;
-- `-d` specifies the dimension;
-- `-exact` gives us a benchmark of how the trained sampler perform.
-
-For specifying training process:
-
-- `-epsilon`, `-beta`, `-delta`, `-omega` specifies how to add regulation terms to loss function;
-- `-Nepoch` specifies how many epochs we will train;
-- `-lr` specifies the learning rate.
-
-For specifying MC process:
-
-- `-Batchsize` specifies how many samples are evaluated at one iteration;
-- `-Ntherm` specifies thermalization steps;
-- `-Nsteps` specifies measure steps;
-- `-Nskips`  specifies skip steps between each measure step.
-
-For specifying NerualRG structure:
-
-- `-Ndisentangler` specifies number of disentangler layers in each NerualRG layer;
-
-
-- `-Nlayers` specifies realNVP blocks' layer number;
-- `-Hs` specifies hidden neurones in realNVP blocks' s network;
-- `-Ht` specifies hidden neurones in realNVP blocks' t network.
-
----
-
-For example, to train a MERA-like NerualRG of 4 layers(with 2 layers of disentangler blocks and 2 layers of decimator blocks) of 4-layer realNVP block with 64 hidden neurones in each layer on 2D Ising of 4 *4  and temperature of 2.269, at each iteration training will use a bath of 64 samples, and samples are gained through a MC process of 0 thermalization steps, 1 measure steps and 0 skip steps.
-
-```python
-python learn_mera.py -Batch 64 -Ntherm 0 -Nsteps 1 -Nskip 0 -Ndisentangler 1 -Nlayers 4 -Hs 64 -Ht 64 -target ising -T 2.269 -L 4 -d 2 -train_model 
-```
-
-## Results in the paper
-
-See [notebook](etc/paper.md).
 
 ## Citation
 
