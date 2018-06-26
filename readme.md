@@ -14,6 +14,10 @@ In NerualRG Network(a), we use realNVP (b) networks as building blocks, realNVP 
 
 ![NerualRG Network](etc/Nflow.png)
 
+The structure we used to construct realNVP networks into NeuralRG network is inspired by multi-scale entanglement renormalization ansatz (MERA), as shown in (a). Also, the process of variable going through our network can be viewed as a renormalization process.
+
+The resulted effect of a trained NeuralRG network can be visualized using gradients plot and MI plot of variables of the same layer.
+
 The result of renormalization group is that ,in generating process, at shallow layers of NerualRG Network, the configuration formed by output variables is a "blurry" version of deep layers' output. This can be seen from following training results.
 
 ![2D Ising Configuration](etc/rg.png)
@@ -39,12 +43,6 @@ So, we can see that loss function has a low bound of $-\ln Z$.
 ## How to Run 
 
 In this section, We will train a sampler for Ising model to demonstrate NerualRG Network.
-
-### Requirements
-
-* pytorch
-* numpy
-* matplotlib
 
 ### TEBD-like Structure
 
@@ -78,7 +76,6 @@ For specifying NerualRG structure:
 * `-Nlayers` specifies realNVP blocks' layer number;
 * `-Hs` specifies hidden neurones in realNVP blocks' s network;
 * `-Ht` specifies hidden neurones in realNVP blocks' t network.
-
 
 ---
 
@@ -120,7 +117,6 @@ For specifying NerualRG structure:
 - `-Nlayers` specifies realNVP blocks' layer number;
 - `-Hs` specifies hidden neurones in realNVP blocks' s network;
 - `-Ht` specifies hidden neurones in realNVP blocks' t network.
-
 
 ---
 
