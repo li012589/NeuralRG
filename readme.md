@@ -8,7 +8,7 @@ Pytorch implement of arXiv paper: Shuo-Hui Li and Lei Wang, *Neural Network Reno
 
 ## How does NerualRG work
 
-In NerualRG Network(a), we use realNVP (b) networks as building blocks, realNVP is a kind of bijectors, they can transform one distribution into other distribution and revert this process. For multi-in-multi-out blocks, we call they disentanglers(gray blocks in (a)), and for multi-in-single-out blocks, we can they decimators(white blocks in (a)). And stacking  multiply layers of these blocks into a hierarchical structure forms NerualRG network, so NerualRG is also a bijector. In inference process, each layer try to "separate" entangled variables into independent variables, and at layers composed of decimators, we only keep one of these independent variables, this is renormalization group.
+In NerualRG Network(a), we use realNVP (b) networks as building blocks, realNVP is a kind of bijectors, they can transform one distribution into other distribution and revert this process. For multi-in-multi-out blocks, we call they disentanglers(gray blocks in (a)), and for multi-in-single-out blocks, we can they decimators(white blocks in (a)). And stacking multiply layers of these blocks into a hierarchical structure forms NerualRG network, so NerualRG is also a bijector. In inference process, each layer tries to "separate" entangled variables into independent variables, and at layers composed of decimators, we only keep one of these independent variables, this is renormalization group.
 
 ![NerualRG Network](etc/Nflow.png)
 
@@ -22,24 +22,24 @@ The resulted effect of a trained NeuralRG network can be visualized using gradie
 
 ### Train
 
-Use `main.py` to train model. Options avaibile are:
+Use `main.py` to train model. Options available are:
 
 * `folder` specifies saving path. At that path a `parameters.hdf5` will be created to keep training parameters, a `pic` folder will be created to keep plots, a `records` folder will be created to keep saved HMC records, and a `savings` folder to save models in.
 * `name` specifies model's name. If not specified, a name will be created according to training parameters.
-* `epochs`, `batch`, `lr`, `savePeriod` are number of training epochs, batch size, learning rate, the number of epochs before saving.
-* `cuda` indicates on which GPU card should the model be trained, default value is -1, which means running on CPU.
+* `epochs`, `batch`, `lr`, `savePeriod` are the number of training epochs, batch size, learning rate, the number of epochs before saving.
+* `cuda` indicates on which GPU card should the model be trained, the default value is -1, which means running on CPU.
 * `double` indicates if use double float.
-* `load` indicates if load a pre-trained model. If true, will try to find a pre-trained model at where `folder` suggest. Note that if true all other parameters will be overwrote with what saved in `folder`'s `parameters.hdf5`.
-*  `nmlp`, `nhidden` are used to contruct MLP networks inside of realNVP networks. `nmlp` is the number of layers in MLP networks and `nhidden` is the number of hidden neurons in each layers.
-* `nlayers` is used to contruct realNVP networks, it suggests how many layers in each realNVP networks.
-* `nrepeat` is used to contruct MERA network, it suggests how many layers of bijectors inside of each layers of MERA network.
-* `L`, `d`, `T` are used to contruct the Ising model to learn, `L` is the size of configuration, `d` is the dimension, and `T` is the temperature.
+* `load` indicates if load a pre-trained model. If true, will try to find a pre-trained model at where `folder` suggests. Note that if true all other parameters will be overwritten with what saved in `folder`'s `parameters.hdf5`.
+*  `nmlp`, `nhidden` are used to construct MLP networks inside of realNVP networks. `nmlp` is the number of layers in MLP networks and `nhidden` is the number of hidden neurons in each layer.
+* `nlayers` is used to construct realNVP networks, it suggests how many layers in each realNVP networks.
+* `nrepeat` is used to construct MERA network, it suggests how many layers of bijectors inside of each layer of MERA network.
+* `L`, `d`, `T` are used to construct the Ising model to learn, `L` is the size of configuration, `d` is the dimension, and `T` is the temperature.
 
 ### Plot
 
-Use `plot.py` to plot the loss curve and HMC result results. Options avaibile are:
+Use `plot.py` to plot the loss curve and HMC result results. Options available are:
 
-* `folder` specifies saving path. `plot.py` will use data saved in that path to plot. And the if `save` is true, plot will be saved in `folder`'s `pic` folder.
+* `folder` specifies saving path. `plot.py` will use data saved in that path to plot. And if `save` is true, the plot will be saved in `folder`'s `pic` folder.
 * `per` specifies how many seconds between each refresh.
 * `show`, `save` specifies if will show/save the plot.
 * `exact` specifies the exact result of HMC.
