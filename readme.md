@@ -16,9 +16,7 @@ In NerualRG Network(a), we use realNVP (b) networks as building blocks, realNVP 
 
 The structure we used to construct realNVP networks into NeuralRG network is inspired by multi-scale entanglement renormalization ansatz (MERA), as shown in (a). Also, the process of variable going through our network can be viewed as a renormalization process.
 
-The resulted effect of a trained NeuralRG network can be visualized using gradients plot (a) and MI plot of variables of the same layer (b).
-
-![gradientAndMi](etc/gradAndMi.pdf)
+The resulted effect of a trained NeuralRG network can be visualized using gradients plot (a) and MI plot of variables of the same layer (b).![gradientAndMi](etc/gradAndMi.png)
 
 ### Training
 
