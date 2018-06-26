@@ -39,7 +39,7 @@ Use `main.py` to train model. Options available are:
 
 Use `plot.py` to plot the loss curve and HMC result results. Options available are:
 
-* `folder` specifies saving path. `plot.py` will use data saved in that path to plot. And if `save` is true, the plot will be saved in `folder`'s `pic` folder.
+* `folder` specifies saving path. `plot.py` will use the data saved in that path to plot. And if `save` is true, the plot will be saved in `folder`'s `pic` folder.
 * `per` specifies how many seconds between each refresh.
 * `show`, `save` specifies if will show/save the plot.
 * `exact` specifies the exact result of HMC.
