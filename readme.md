@@ -4,17 +4,17 @@
 
 Pytorch implement of arXiv paper: Shuo-Hui Li and Lei Wang, *Neural Network Renormalization Group* [arXiv:1802.02840](https://arxiv.org/abs/1802.02840).
 
-**NeuralRG** is a deep generative model using variational renormalization group approach, it is composed by layers of bijectors (In our implementation, we use [RealNVP](https://arxiv.org/abs/1605.08803)). After training, it can generate statistically independent physical configurations with tractable likelihood via directly sampling.
+**NeuralRG** is a deep generative model using variational renormalization group approach, it's also a kind of [normalizing flow](https://blog.evjang.com/2018/01/nf1.html), it is composed by layers of bijectors (In our implementation, we use [realNVP](https://arxiv.org/abs/1605.08803)). After training, it can generate statistically independent physical configurations with tractable likelihood via directly sampling.
 
 ## How does NerualRG work
 
-In NerualRG Network(a), we use realNVP (b) networks as building blocks, realNVP is a kind of bijectors, they can transform one distribution into other distribution and revert this process. For multi-in-multi-out blocks, we call they disentanglers(gray blocks in (a)), and for multi-in-single-out blocks, we can they decimators(white blocks in (a)). And stacking multiply layers of these blocks into a hierarchical structure forms NerualRG network, so NerualRG is also a bijector. In inference process, each layer tries to "separate" entangled variables into independent variables, and at layers composed of decimators, we only keep one of these independent variables, this is renormalization group.
+In NerualRG Network(a), we use realNVP (b) networks as building blocks, realNVP is a kind of bijectors(a normalizing flow), they can transform one distribution into other distribution and revert this process. For multi-in-multi-out blocks, we call they disentanglers(gray blocks in (a)), and for multi-in-single-out blocks, we can they decimators(white blocks in (a)). And stacking multiply layers of these blocks into a hierarchical structure forms NerualRG network, so NerualRG is also a bijector. In inference process, each layer tries to "separate" entangled variables into independent variables, and at layers composed of decimators, we only keep one of these independent variables, this is renormalization group.
 
 ![NerualRG Network](etc/Nflow.png)
 
 The structure we used to construct realNVP networks into NeuralRG network is inspired by multi-scale entanglement renormalization ansatz (MERA), as shown in (a). Also, the process of variable going through our network can be viewed as a renormalization process.
 
-The resulted effect of a trained NeuralRG network can be visualized using gradients plot (a) and MI plot of variables of the same layer (b).
+The resulted effect of a trained NeuralRG network can be visualized using gradients plot (a) and MI plot of variables of the same layer (b)(c).
 
 ![gradientAndMi](etc/gradAndMi.png)
 
@@ -30,10 +30,18 @@ Use `main.py` to train model. Options available are:
 * `cuda` indicates on which GPU card should the model be trained, the default value is -1, which means running on CPU.
 * `double` indicates if use double float.
 * `load` indicates if load a pre-trained model. If true, will try to find a pre-trained model at where `folder` suggests. Note that if true all other parameters will be overwritten with what saved in `folder`'s `parameters.hdf5`.
-*  `nmlp`, `nhidden` are used to construct MLP networks inside of realNVP networks. `nmlp` is the number of layers in MLP networks and `nhidden` is the number of hidden neurons in each layer.
+* `nmlp`, `nhidden` are used to construct MLP networks inside of realNVP networks. `nmlp` is the number of layers in MLP networks and `nhidden` is the number of hidden neurons in each layer.
 * `nlayers` is used to construct realNVP networks, it suggests how many layers in each realNVP networks.
 * `nrepeat` is used to construct MERA network, it suggests how many layers of bijectors inside of each layer of MERA network.
 * `L`, `d`, `T` are used to construct the Ising model to learn, `L` is the size of configuration, `d` is the dimension, and `T` is the temperature.
+
+For example, to train the Ising model mentioned in our paper:
+
+```bash
+python ./main.py -epochs 5000 -folder ./opt/16Ising -batch 512 -nlayers 10 -nmlp 1 -nhidden 10 -L 16 -nrepeat 1 -savePeriod 100
+```
+
+
 
 ### Plot
 
@@ -43,6 +51,14 @@ Use `plot.py` to plot the loss curve and HMC result results. Options available a
 * `per` specifies how many seconds between each refresh.
 * `show`, `save` specifies if will show/save the plot.
 * `exact` specifies the exact result of HMC.
+
+For example, to plot along with the training process mentioned above:
+
+```bash
+python ./plot.py -folder ./opt/16Ising2 -per 30 -exact 0.544445
+```
+
+
 
 ## Citation
 
