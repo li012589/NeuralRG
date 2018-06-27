@@ -87,7 +87,7 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
             subprocess.check_call(cmd)
 
     def latentU(z):
-        x,_ = flow.generate(z)
+        x,_ = flow.inverse(z)
         return -(flow.prior.logProbability(z)+source.logProbability(x)-flow.logProbability(x))
 
     if savePath is None:
@@ -128,8 +128,8 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
             z_,zaccept = HMCwithAccept(latentU,z_.detach(),HMCthermal,HMCsteps,HMCepsilon)
             x_,xaccept = HMCwithAccept(source.energy,x_.detach(),HMCthermal,HMCsteps,HMCepsilon)
             with torch.no_grad():
-                x_z,_ = flow.generate(z_)
-                z_last,_ = flow.inference(x_z)
+                x_z,_ = flow.inverse(z_)
+                z_last,_ = flow.forward(x_z)
 
             with torch.no_grad():
                 Zobs = measureFn(x_z)

@@ -19,17 +19,17 @@ class Flow(nn.Module):
         assert prior is not None
         z = prior.sample(batchSize)
         logp = prior.logProbability(z)
-        x,logp_ = self.generate(z)
+        x,logp_ = self.inverse(z)
         return x,logp-logp_
 
-    def inference(self,x):
+    def forward(self,x):
         raise NotImplementedError(str(type(self)))
 
-    def generate(self,z):
+    def inverse(self,z):
         raise NotImplementedError(str(type(self)))
 
     def logProbability(self,x):
-        z,logp = self.inference(x)
+        z,logp = self.forward(x)
         if self.prior is not None:
             return self.prior.logProbability(z)+logp
         return logp

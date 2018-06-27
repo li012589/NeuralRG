@@ -32,16 +32,16 @@ class Symmetrized(Flow):
         logp = logp - math.log(len(self.symmetryList)+1)
         return logp
 
-    def generate(self,z):
+    def inverse(self,z):
         batchSize = z.shape[0]
-        x,_ = self.flow.generate(z)
+        x,_ = self.flow.inverse(z)
         noBatch = torch.LongTensor(batchSize).random_(0,len(self.symmetryList)+1)-1
         for i in range(len(self.symmetryList)):
             no = (noBatch==i)
             x[no] = self.symmetryList[i](x[no])
         return x,None
 
-    def inference(self,x):
+    def forward(self,x):
         xp = torch.zeros_like(x)
         logP = [self.flow.logProbability(x).reshape(1,-1)]
         logP += [self.flow.logProbability(self.symmetryList[i](x)).view(1,-1) for i in range(len(self.symmetryList))]
@@ -55,5 +55,5 @@ class Symmetrized(Flow):
             no = (noBatch == i)
             xp[no] = self.symmetryList[i](x[no]).detach()
         xp = xp.requires_grad_()
-        z,_ = self.flow.inference(xp)
+        z,_ = self.flow.forward(xp)
         return z,None

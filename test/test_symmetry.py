@@ -43,13 +43,13 @@ def test_bijective():
     sym = [op]
     m = train.Symmetrized(t, sym)
     z = m.prior.sample(100)
-    xz1,_ = m.generate(z)
-    xz2,_ = m.generate(z)
+    xz1,_ = m.inverse(z)
+    xz2,_ = m.inverse(z)
     p1 = m.logProbability(xz1)
     p2 = m.logProbability(xz2)
 
-    z1,_ = m.inference(xz1)
-    xz1p,_ = m.generate(z1)
+    z1,_ = m.forward(xz1)
+    xz1p,_ = m.inverse(z1)
 
     assert ((xz1 == xz2).sum() + (xz1 == -xz2).sum()) == 100*4*4
     assert_array_almost_equal(p1.detach().numpy(),p2.detach().numpy(),decimal=5)
@@ -118,13 +118,13 @@ def test_saveload():
     blankm = train.Symmetrized(t, sym)
 
     z = m.prior.sample(100)
-    xz1,_ = m.generate(z)
+    xz1,_ = m.inverse(z)
 
     d = m.save()
     torch.save(d,"testsaving.saving")
     dd = torch.load("testsaving.saving")
     blankm.load(dd)
-    xz2,_ = blankm.generate(z)
+    xz2,_ = blankm.inverse(z)
     p1 = m.logProbability(xz1)
     p2 = blankm.logProbability(xz2)
     assert ((xz1 == xz2).sum() + (xz1 == -xz2).sum()) == 100*4*4
