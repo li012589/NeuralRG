@@ -8,13 +8,13 @@ Pytorch implement of arXiv paper: Shuo-Hui Li and Lei Wang, *Neural Network Reno
 
 ## How does NerualRG work
 
-In NerualRG Network(a), we use realNVP (b) networks as building blocks, realNVP is a kind of bijectors(a normalizing flow), they can transform one distribution into other distribution and revert this process. For multi-in-multi-out blocks, we call they disentanglers(gray blocks in (a)), and for multi-in-single-out blocks, we can they decimators(white blocks in (a)). And stacking multiply layers of these blocks into a hierarchical structure forms NerualRG network, so NerualRG is also a bijector. In inference process, each layer tries to "separate" entangled variables into independent variables, and at layers composed of decimators, we only keep one of these independent variables, this is renormalization group.
+In NerualRG Network(a), we use realNVP (b) networks as building blocks, realNVP is a kind of bijectors(a normalizing flow), they can transform one distribution into other distribution and revert this process. For multi-in-multi-out blocks, we call they disentanglers(gray blocks in (a)), and for multi-in-single-out blocks, we can they decimators(white blocks in (a)). And stacking multiple layers of these blocks into a hierarchical structure forms NerualRG network, so NerualRG is also a bijector. In inference process, each layer tries to "separate" entangled variables into independent variables, and at layers composed of decimators, we only keep one of these independent variables, this is renormalization group.
 
 ![NerualRG Network](etc/Nflow.png)
 
 The structure we used to construct realNVP networks into NeuralRG network is inspired by multi-scale entanglement renormalization ansatz (MERA), as shown in (a). Also, the process of variable going through our network can be viewed as a renormalization process.
 
-The resulted effect of a trained NeuralRG network can be visualized using gradients plot (a) and MI plot of variables of the same layer (b)(c).
+The resulted effect of a trained NeuralRG network can be visualized using gradients plot (a) and MI plot of variables of the same layer (b)(c). The latent variables of NeuralRG appears to be a nonlinear and adaptive generalization of wavelet basis.
 
 ![gradientAndMi](etc/gradAndMi.png)
 
