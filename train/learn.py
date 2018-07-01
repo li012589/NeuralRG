@@ -43,7 +43,7 @@ def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,
     f.to(device = device,dtype = dtype)
     return f
 
-def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None, weight_decay = 0.001, adaptivelr = True, measureFn = None):
+def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None, weight_decay = 0.001, adaptivelr = False, measureFn = None):
     if savePath is None:
         savePath = "./opt/tmp/"
     params = list(flow.parameters())
@@ -69,7 +69,8 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
         print("epoch:",epoch, "L:",loss.item())
 
         LOSS.append(loss.item())
-
+        if adaptivelr:
+            scheduler.step()
         if save and epoch%saveSteps == 0:
             d = flow.save()
             torch.save(d,savePath+flow.name+".saving")
@@ -77,7 +78,7 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
     return LOSS,ACC,OBS
 
 
-def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None,keepSavings = 3, weight_decay = 0.001, adaptivelr = True, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None):
+def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None,keepSavings = 3, weight_decay = 0.001, adaptivelr = False, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None):
 
     def cleanSaving(epoch):
         if epoch >= keepSavings*saveSteps:
@@ -116,6 +117,8 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
         flow.zero_grad()
         loss.backward()
         optimizer.step()
+        if adaptivelr:
+            scheduler.step()
 
         del sampleLogProbability
         del x
