@@ -12,7 +12,7 @@ import source
 import math
 
 def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,name = None):
-    s = source.Gaussian([L]*d)
+    s = source.Gaussian([1]+[L]*d)
 
     depth = int(math.log(L,2))*nrepeat*2
 
@@ -24,7 +24,7 @@ def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,
                 b = torch.zeros(1,4)
                 i = torch.randperm(b.numel()).narrow(0, 0, b.numel() // 2)
                 b.zero_()[:,i] = 1
-                b=b.view(1,2,2)
+                b=b.view(1,1,2,2)
             else:
                 b = 1-b
             masklist.append(b)
