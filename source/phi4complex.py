@@ -4,7 +4,7 @@ import torch
 from .source import Source
 from utils import roll
 
-class Phi4(Source):
+class Phi4c(Source):
     def __init__(self,l,dims,kappa,lamb,name = None):
         if name is None:
             self.name = "phi4_l"+str(l)+"_d"+str(dims)+"_kappa"+str(kappa)+"_lamb"+str(lamb)
