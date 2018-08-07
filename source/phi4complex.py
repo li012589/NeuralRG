@@ -26,7 +26,7 @@ class Phi4c(Source):
     def energy(self,x):
         S = 0
         for i in range(self.dims):
-            S += x*roll(x,[1],[i+1])
+            S += x*roll(x,[1],[i+2])
             #S += x*roll(x,[-1],[i+1])
         term1 = x**2
         term20 = (term1[:,0]-1)**2
@@ -37,8 +37,8 @@ class Phi4c(Source):
             term20 = term20.sum(-1)
             term21 = term21.sum(-1)
         S *= -2*self.kappa
-        term20 *= self.lamb
         term21 *= self.lamb
+        term20 *= self.lamb
         S += term1
-        out = S[:,0]-S[:,1]+term20+term21
+        out = S[:,0]-S[:,1]+term21+term20
         return out
