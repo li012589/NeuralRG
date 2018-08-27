@@ -11,7 +11,7 @@ class Phi4c(Source):
         else:
             self.name = name
 
-        nvars = []
+        nvars = [2]
         for _ in range(dims):
             nvars += [l]
         super(Phi4c,self).__init__(nvars,name)
