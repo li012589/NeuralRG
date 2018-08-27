@@ -138,7 +138,7 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
 
         LOSS.append(loss.item())
 
-        if epoch%saveSteps == 0 or epoch == epochs:
+        if (epoch%saveSteps == 0 and epoch > 50) or epoch == epochs:
             z_,zaccept = HMCwithAccept(latentU,z_.detach(),HMCthermal,HMCsteps,HMCepsilon)
             x_,xaccept = HMCwithAccept(source.energy,x_.detach(),HMCthermal,HMCsteps,HMCepsilon)
             with torch.no_grad():
