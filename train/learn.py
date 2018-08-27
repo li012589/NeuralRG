@@ -11,32 +11,43 @@ import flow
 import source
 import math
 
-def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,name = None):
-    s = source.Gaussian([1]+[L]*d)
+def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,name = None,compl = False):
+    if compl:
+        s = source.Gaussian([2]+[L]*d)
+    else:
+        s = source.Gaussian([1]+[L]*d)
 
     depth = int(math.log(L,2))*nrepeat*2
+
+    if compl:
+        coreSize = 8
+    else:
+        coreSize = 4
 
     MaskList = []
     for _ in range(depth):
         masklist = []
         for n in range(nlayers):
             if n%2 == 0:
-                b = torch.zeros(1,4)
+                b = torch.zeros(1,coreSize)
                 i = torch.randperm(b.numel()).narrow(0, 0, b.numel() // 2)
                 b.zero_()[:,i] = 1
-                b=b.view(1,1,2,2)
+                if compl:
+                    b=b.view(1,2,2,2)
+                else:
+                    b=b.view(1,1,2,2)
             else:
                 b = 1-b
             masklist.append(b)
         masklist = torch.cat(masklist,0).to(torch.float32)
         MaskList.append(masklist)
 
-    dimList = [4]
+    dimList = [coreSize]
     for _ in range(nmlp):
         dimList.append(nhidden)
-    dimList.append(4)
+    dimList.append(coreSize)
 
-    layers = [flow.RNVP(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(4)]) for _ in range(nlayers)]) for n in range(depth)]
+    layers = [flow.RNVP(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(coreSize)]) for _ in range(nlayers)]) for n in range(depth)]
 
     f = flow.MERA(2,L,layers,nrepeat,s)
     f = Symmetrized(f,symmetryList,name = name)
@@ -61,7 +72,7 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
 
 
     for epoch in range(epochs):
-        x,sampleLogProbability = flow.sample(batchSize)
+        x ,sampleLogProbability = flow.sample(batchSize)
         loss = sampleLogProbability.mean() - source.logProbability(x).mean()
         flow.zero_grad()
         loss.backward()
