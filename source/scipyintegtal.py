@@ -3,7 +3,7 @@ from scipy import integrate
 import numpy as np
 import math
 
-kappa = 1
+kappa = 1.5
 lamb = 1.145
 
 def energy(a000,a001,a002,a003,a010,a011,a012,a013,a020,a021,a022,a023,a030,a031,a032,a033,a100,a101,a102,a103,a110,a111,a112,a113,a120,a121,a122,a123,a130,a131,a132,a133):
