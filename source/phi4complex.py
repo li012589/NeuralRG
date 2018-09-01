@@ -28,17 +28,13 @@ class Phi4c(Source):
         for i in range(self.dims):
             S += x*roll(x,[1],[i+2])
             #S += x*roll(x,[-1],[i+1])
-        term1 = x**2
-        term20 = (term1[:,0]-1)**2
-        term21 = (-term1[:,1]-1)**2
+        term1 = x[:,0]**2+x[:,1]**2
+        term2 = (term1-1)**2
         for _ in range(self.dims):
             S = S.sum(-1)
             term1 = term1.sum(-1)
-            term20 = term20.sum(-1)
-            term21 = term21.sum(-1)
+            term2 = term2.sum(-1)
         S *= -2*self.kappa
-        term21 *= self.lamb
-        term20 *= self.lamb
-        S += term1
-        out = S[:,0]-S[:,1]+term21+term20
+        term2 *= self.lamb
+        out = S[:,0]-S[:,1]+term2+term1
         return out
