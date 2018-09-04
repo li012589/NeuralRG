@@ -87,9 +87,9 @@ class Phi4complex(Source):
         nvars = [2]
         for _ in range(dims):
             nvars += [l]
-        super(Phi4c,self).__init__(nvars,name)
+        super(Phi4complex,self).__init__(nvars,name)
 
-        self.K = Kijbuilder([2]+[l]*dims,kappa,0,skip=0)
+        self.K = Kijbuilder([2]+[l]*dims,kappa,0,skip=[0])
         maxNo = self.K.shape[0]
         diag = torch.diagonal(self.K)
         self.K[int(maxNo/2):,int(maxNo/2):] = -self.K[int(maxNo/2):,int(maxNo/2)]
