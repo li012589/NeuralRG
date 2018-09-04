@@ -22,7 +22,7 @@ def ij2no(cood,dList):
         n += (cood[d-dim-1])*(L**dim)
     return n
 
-def Kijbuilder(dList,k,lamb,peridic=True,skip=None):
+def Kijbuilder(dList,k,lamb,peridic=True,skip=[]):
     maxNo = 1
     for d in dList:
         maxNo *= d
@@ -40,7 +40,7 @@ def Kijbuilder(dList,k,lamb,peridic=True,skip=None):
     tmp = torch.diag(torch.tensor([lamb]*(maxNo),dtype=torch.float32))
     return Kij+tmp
 
-
+'''
 class Phi4c(Source):
     def __init__(self,l,dims,kappa,lamb,name = None):
         if name is None:
@@ -75,7 +75,7 @@ class Phi4c(Source):
         term2 *= self.lamb
         out = S[:,0]-S[:,1]+term2+term1
         return out
-
+'''
 
 class Phi4complex(Source):
     def __init__(self,l,dims,kappa,lamb,name = None):
@@ -93,8 +93,8 @@ class Phi4complex(Source):
         self.lamb = lamb
         maxNo = self.K.shape[0]
         self.K[int(maxNo/2):,int(maxNo/2):] = -self.K[int(maxNo/2):,int(maxNo/2):]
-        self.Kp = torch.diag(torch.tensor([1]*maxNo,dtype=torch.float32))
-        self.K += self.Kp
+        Kp = torch.diag(torch.tensor([1]*maxNo,dtype=torch.float32))
+        self.K += Kp
 
     def sample(self, batchSize, thermalSteps = 50, interSteps=5, epsilon=0.1):
         return self._sampleWithHMC(batchSize,thermalSteps,interSteps, epsilon)
@@ -103,4 +103,28 @@ class Phi4complex(Source):
         batchSize = x.shape[0]
         out = torch.matmul(torch.matmul(x.reshape(batchSize,1,-1),self.K),x.reshape(batchSize,-1,1)).reshape(batchSize)
         out += (((x.reshape(batchSize,-1)*x.reshape(batchSize,-1)).reshape(batchSize,2,-1).sum(-2)-1)**2).sum(-1)*self.lamb
+        return out
+
+class Phi4(Source):
+    def __init__(self,l,dims,kappa,lamb,name = None):
+        if name is None:
+            self.name = "phi4_l"+str(l)+"_d"+str(dims)+"_kappa"+str(kappa)+"_lamb"+str(lamb)
+        else:
+            self.name = name
+
+        nvars = []
+        for _ in range(dims):
+            nvars += [l]
+        super(Phi4,self).__init__(nvars,name)
+
+        self.K = Kijbuilder([l]*dims,-kappa,1)
+        self.lamb = lamb
+
+    def sample(self, batchSize, thermalSteps = 50, interSteps=5, epsilon=0.1):
+        return self._sampleWithHMC(batchSize,thermalSteps,interSteps, epsilon)
+
+    def energy(self,x):
+        batchSize = x.shape[0]
+        out = torch.matmul(torch.matmul(x.reshape(batchSize,1,-1),self.K),x.reshape(batchSize,-1,1)).reshape(batchSize)
+        out += (((x.reshape(batchSize,-1)*x.reshape(batchSize,-1))-1)**2).sum(-1)*self.lamb
         return out

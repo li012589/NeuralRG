@@ -101,7 +101,7 @@ if double:
 else:
     dtype = torch.float32
 
-target = source.Phi4c(L, d, kappa, lamb)
+target = source.Phi4complex(L, d, kappa, lamb)
 target = target.to(device=device,dtype=dtype)
 
 if args.name is None:
