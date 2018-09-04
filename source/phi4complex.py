@@ -101,5 +101,6 @@ class Phi4complex(Source):
         return self._sampleWithHMC(batchSize,thermalSteps,interSteps, epsilon)
 
     def energy(self,x):
-        out = torch.matmul(torch.matmul(x.reshape(1,-1),self.K),x.reshape(-1,1))
+        batchSize = x.shape[0]
+        out = torch.matmul(torch.matmul(x.reshape(batchSize,1,-1),self.K),x.reshape(batchSize,-1,1)).reshape(batchSize)
         return out
