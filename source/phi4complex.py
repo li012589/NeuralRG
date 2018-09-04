@@ -89,12 +89,11 @@ class Phi4complex(Source):
             nvars += [l]
         super(Phi4complex,self).__init__(nvars,name)
 
-        self.K = Kijbuilder([2]+[l]*dims,kappa,0,skip=[0])
+        self.K = Kijbuilder([2]+[l]*dims,-kappa,0,skip=[0])
+        self.lamb = lamb
         maxNo = self.K.shape[0]
-        diag = torch.diagonal(self.K)
         self.K[int(maxNo/2):,int(maxNo/2):] = -self.K[int(maxNo/2):,int(maxNo/2):]
-        self.Kp = torch.diag(torch.tensor([1]*int(maxNo/2)+[-1]*int(maxNo/2),dtype=torch.float32))
-        self.Kp = torch.diag(torch.tensor([1]*int(maxNo/2)+[1]*int(maxNo/2),dtype=torch.float32))
+        self.Kp = torch.diag(torch.tensor([1]*maxNo,dtype=torch.float32))
         self.K += self.Kp
 
     def sample(self, batchSize, thermalSteps = 50, interSteps=5, epsilon=0.1):
@@ -103,4 +102,5 @@ class Phi4complex(Source):
     def energy(self,x):
         batchSize = x.shape[0]
         out = torch.matmul(torch.matmul(x.reshape(batchSize,1,-1),self.K),x.reshape(batchSize,-1,1)).reshape(batchSize)
+        out += (((x.reshape(batchSize,-1)*x.reshape(batchSize,-1)).reshape(batchSize,2,-1).sum(-2)-1)**2).sum(-1)*self.lamb
         return out
