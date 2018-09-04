@@ -89,12 +89,13 @@ class Phi4complex(Source):
             nvars += [l]
         super(Phi4complex,self).__init__(nvars,name)
 
-        self.K = Kijbuilder([2]+[l]*dims,-kappa,0,skip=[0])
         self.lamb = lamb
-        maxNo = self.K.shape[0]
-        self.K[int(maxNo/2):,int(maxNo/2):] = -self.K[int(maxNo/2):,int(maxNo/2):]
+        K = Kijbuilder([2]+[l]*dims,-kappa,0,skip=[0])
+        maxNo = K.shape[0]
+        K[int(maxNo/2):,int(maxNo/2):] = -K[int(maxNo/2):,int(maxNo/2):]
         Kp = torch.diag(torch.tensor([1]*maxNo,dtype=torch.float32))
-        self.K += Kp
+        K += Kp
+        self.register_buffer("K",K)
 
     def sample(self, batchSize, thermalSteps = 50, interSteps=5, epsilon=0.1):
         return self._sampleWithHMC(batchSize,thermalSteps,interSteps, epsilon)
@@ -117,7 +118,8 @@ class Phi4(Source):
             nvars += [l]
         super(Phi4,self).__init__(nvars,name)
 
-        self.K = Kijbuilder([l]*dims,-kappa,1)
+        K = Kijbuilder([l]*dims,-kappa,1)
+        self.register_buffer("K",K)
         self.lamb = lamb
 
     def sample(self, batchSize, thermalSteps = 50, interSteps=5, epsilon=0.1):
