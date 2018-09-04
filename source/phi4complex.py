@@ -92,8 +92,10 @@ class Phi4complex(Source):
         self.K = Kijbuilder([2]+[l]*dims,kappa,0,skip=[0])
         maxNo = self.K.shape[0]
         diag = torch.diagonal(self.K)
-        self.K[int(maxNo/2):,int(maxNo/2):] = -self.K[int(maxNo/2):,int(maxNo/2)]
-        self.K += torch.diag(torch.tensor([1]*(maxNo),dtype=torch.float32))
+        self.K[int(maxNo/2):,int(maxNo/2):] = -self.K[int(maxNo/2):,int(maxNo/2):]
+        self.Kp = torch.diag(torch.tensor([1]*int(maxNo/2)+[-1]*int(maxNo/2),dtype=torch.float32))
+        self.Kp = torch.diag(torch.tensor([1]*int(maxNo/2)+[1]*int(maxNo/2),dtype=torch.float32))
+        self.K += self.Kp
 
     def sample(self, batchSize, thermalSteps = 50, interSteps=5, epsilon=0.1):
         return self._sampleWithHMC(batchSize,thermalSteps,interSteps, epsilon)
