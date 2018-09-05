@@ -62,7 +62,8 @@ if args.load:
         nrepeat = int(np.array(f["nrepeat"]))
         L = int(np.array(f["L"]))
         d = int(np.array(f["d"]))
-        T = float(np.array(f["T"]))
+        kappa = int(np.array(f["kappa"]))
+        lamb = int(np.array(f["lamb"]))
 else:
     epochs = args.epochs
     batch = args.batch
