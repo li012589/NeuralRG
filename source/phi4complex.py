@@ -22,7 +22,7 @@ def ij2no(cood,dList):
         n += (cood[d-dim-1])*(L**dim)
     return n
 
-def Kijbuilder(dList,k,lamb,peridic=True,skip=[]):
+def Kijbuilder(dList,k,lamb,skip=[]):
     maxNo = 1
     for d in dList:
         maxNo *= d
