@@ -34,9 +34,9 @@ def Kijbuilder(dList,k,lamb,skip=[]):
                 continue
             coodp = cood.copy()
             coodp[i] = (cood[i]+1)%dList[i]
-            Kij[no,ij2no(coodp,dList)] = k
+            Kij[no,ij2no(coodp,dList)] += k
             coodp[i] = (cood[i]-1)%dList[i]
-            Kij[no,ij2no(coodp,dList)] = k
+            Kij[no,ij2no(coodp,dList)] += k
     tmp = torch.diag(torch.tensor([lamb]*(maxNo),dtype=torch.float32))
     return Kij+tmp
 
