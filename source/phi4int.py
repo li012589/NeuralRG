@@ -6,10 +6,10 @@ dims = 2
 batchSize = 1
 step = 0.01
 k = 0.15
-lamb = 1.145
+lamb = 0
 start = -2
 end = 2
-num = 10
+num = 20
 
 def no2ij(n,dList):
     cood =  []
@@ -51,7 +51,11 @@ def energy(Kij,x,lamb):
     batchSize = x.shape[0]
     out = (np.matmul(np.matmul(x.reshape(batchSize,1,-1),Kij),x.reshape(batchSize,-1,1))).reshape(-1)
     out += (((x.reshape(batchSize,-1)*x.reshape(batchSize,-1))-1)**2).sum(-1)*lamb
+    out = np.exp(-out)
     return out
+
+def fx(x):
+    return x^2
 
 def expandSpace(start,end,dims,num,endpoint=True):
     space = []
@@ -71,15 +75,19 @@ def main():
     j = ran[0]
     e = ran[-1]
     res = 0
+    nsamples = 0
     for i in ran[1:]:
         if i != e:
             space = expandSpace(j,i,ndim,num,endpoint=False)
         else:
             space = expandSpace(j,i,ndim,num)
+        en = energy(Kij,space,lamb)
+        nsamples += en.shape[0]
+        res += en.sum()
         j = i
-        res += (energy(Kij,space,lamb)).sum()
         del space
-
+    print(nsamples)
+    res = res*(end-start)/nsamples
     print(res)
     print(np.log(res))
 
