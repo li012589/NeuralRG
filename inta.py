@@ -23,6 +23,7 @@ group = parser.add_argument_group('integration parameters')
 #
 group.add_argument("-start",type=int, default=-2,help="start point")
 group.add_argument("-end",type=int, default=2,help="end point")
+group.add_argument("-double", action='store_true', help="use float64")
 group.add_argument("-points",type=int, default=10,help="sampled points at each dimension")
 
 args = parser.parse_args()
@@ -37,10 +38,15 @@ def expandSpace(start,end,dims,num,endpoint=True):
     return torch.from_numpy(space)#.to(torch.float32)
 
 with torch.no_grad():
-    t = source.Phi4(args.L,args.d,args.kappa,args.lamb).to(torch.float64)
+    if args.double:
+        t = source.Phi4(args.L,args.d,args.kappa,args.lamb).to(torch.float64)
+        space = expandSpace(args.start,args.end,args.L**args.d,args.points)
+    else:
+        print("using float32")
+        t = source.Phi4(args.L,args.d,args.kappa,args.lamb).to(torch.float32)
+        space = expandSpace(args.start,args.end,args.L**args.d,args.points).to(torch.float32)
     volume = (args.end-args.start)**(args.L**args.d)
     enfn = lambda space,volume: torch.exp(-t.energy(space)).mean()*volume
-    space = expandSpace(args.start,args.end,args.L**args.d,args.points)
     En = enfn(space,volume)
     print(En.item())
     print(-torch.log(En).item())
