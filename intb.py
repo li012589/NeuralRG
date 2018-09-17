@@ -40,11 +40,11 @@ def expandSpace(start,end,dims,num,endpoint=True):
 with torch.no_grad():
     if args.double:
         t = source.Phi4complex(args.L,args.d,args.kappa,args.lamb).to(torch.float64)
-        space = expandSpace(args.start,args.end,args.L**args.d*2,args.points)
+        space = expandSpace(args.start+(args.end-args.start)/(2*args.points),args.end-(args.end-args.start)/(2*args.points),args.L**args.d*2,args.points)
     else:
         print("using float32")
         t = source.Phi4complex(args.L,args.d,args.kappa,args.lamb).to(torch.float32)
-        space = expandSpace(args.start,args.end,args.L**args.d*2,args.points).to(torch.float32)
+        space = expandSpace(args.start+(args.end-args.start)/(2*args.points),args.end-(args.end-args.start)/(2*args.points),args.L**args.d*2,args.points).to(torch.float32)
     volume = (args.end-args.start)**(args.L**args.d)
     enfn = lambda space,volume: torch.exp(-t.energy(space.reshape(space.shape[0],2,args.L,args.L))).mean()*volume
     En = enfn(space,volume)
