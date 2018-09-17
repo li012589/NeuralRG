@@ -44,7 +44,7 @@ with torch.no_grad():
     else:
         print("using float32")
         t = source.Phi4(args.L,args.d,args.kappa,args.lamb).to(torch.float32)
-        space = expandSpace(args.start,args.end,args.L**args.d,args.points).to(torch.float32)
+        space = expandSpace(args.start+(args.end-args.start)/(2*args.points),args.end-(args.end-args.start)/(2*args.points),args.L**args.d,args.points).to(torch.float32)
     volume = (args.end-args.start)**(args.L**args.d)
     enfn = lambda space,volume: torch.exp(-t.energy(space)).mean()*volume
     En = enfn(space,volume)
