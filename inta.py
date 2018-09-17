@@ -40,7 +40,7 @@ def expandSpace(start,end,dims,num,endpoint=True):
 with torch.no_grad():
     if args.double:
         t = source.Phi4(args.L,args.d,args.kappa,args.lamb).to(torch.float64)
-        space = expandSpace(args.start,args.end,args.L**args.d,args.points)
+        space = expandSpace(args.start+(args.end-args.start)/(2*args.points),args.end-(args.end-args.start)/(2*args.points),args.L**args.d,args.points)
     else:
         print("using float32")
         t = source.Phi4(args.L,args.d,args.kappa,args.lamb).to(torch.float32)
