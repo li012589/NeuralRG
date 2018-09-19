@@ -73,13 +73,17 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
 
     for epoch in range(epochs):
         x ,sampleLogProbability = flow.sample(batchSize)
-        loss = sampleLogProbability.mean() - source.logProbability(x).mean()
+        #loss = sampleLogProbability.mean() - source.logProbability(x).mean()
+        lossorigin = (sampleLogProbability - source.logProbability(x))
+        loss = lossorigin.mean()
+        lossstd = lossorigin.std()
+        del lossorigin
         flow.zero_grad()
         loss.backward()
         optimizer.step()
-        print("epoch:",epoch, "L:",loss.item())
+        print("epoch:",epoch, "L:",loss.item(),"+/-",lossstd.item())
 
-        LOSS.append(loss.item())
+        LOSS.append([loss.item(),lossstd.item()])
         if adaptivelr:
             scheduler.step()
         if save and epoch%saveSteps == 0:
@@ -124,7 +128,10 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
 
     for epoch in range(epochs):
         x,sampleLogProbability = flow.sample(batchSize)
-        loss = sampleLogProbability.mean() - source.logProbability(x).mean()
+        lossorigin = (sampleLogProbability - source.logProbability(x))
+        loss = lossorigin.mean()
+        lossstd = lossorigin.std()
+        del lossorigin
         flow.zero_grad()
         loss.backward()
         optimizer.step()
@@ -134,9 +141,9 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
         del sampleLogProbability
         del x
 
-        print("epoch:",epoch, "L:",loss.item())
+        print("epoch:",epoch, "L:",loss.item(),"+/-",lossstd.item())
 
-        LOSS.append(loss.item())
+        LOSS.append([loss.item(),lossstd.item()])
 
         if (epoch%saveSteps == 0 and epoch > 50) or epoch == epochs:
             z_,zaccept = HMCwithAccept(latentU,z_.detach(),HMCthermal,HMCsteps,HMCepsilon)
@@ -167,7 +174,8 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
                 del samples
 
                 with h5py.File(savePath+"records/"+flow.name+"Record_epoch"+str(epoch)+".hdf5", "w") as f:
-                    f.create_dataset("LOSS",data=np.array(LOSS))
+                    f.create_dataset("LOSS",data=np.array(LOSS)[:,0])
+                    f.create_dataset("LOSSSTD",data=np.array(LOSS)[:,1])
                     f.create_dataset("ZACC",data=np.array(ZACC))
                     f.create_dataset("ZOBS",data=np.array(ZOBS))
                     f.create_dataset("XACC",data=np.array(XACC))
