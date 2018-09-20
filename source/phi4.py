@@ -26,7 +26,7 @@ class Phi4(Source):
     def energy(self,x):
         S = 0
         for i in range(self.dims):
-            S += x*roll(x,[1],[i+1])
+            S += x*roll(x,[1],[i+2])
             #S += x*roll(x,[-1],[i+1])
         term1 = x**2
         term2 = (term1-1)**2
