@@ -75,7 +75,6 @@ class Phi4c(Source):
         term2 *= self.lamb
         out = S[:,0]-S[:,1]+term2+term1
         return out
-'''
 
 class Phi4complex(Source):
     def __init__(self,l,dims,kappa,lamb,name = None):
@@ -105,22 +104,32 @@ class Phi4complex(Source):
         out = torch.matmul(torch.matmul(x.reshape(batchSize,1,-1),self.K),x.reshape(batchSize,-1,1)).reshape(batchSize)
         out += (((x.reshape(batchSize,-1)*x.reshape(batchSize,-1)).reshape(batchSize,2,-1).sum(-2)-1)**2).sum(-1)*self.lamb
         return out
+'''
 
 class Phi4(Source):
-    def __init__(self,l,dims,kappa,lamb,name = None):
+    def __init__(self,n,l,dims,kappa,lamb,name = None):
         if name is None:
             self.name = "phi4_l"+str(l)+"_d"+str(dims)+"_kappa"+str(kappa)+"_lamb"+str(lamb)
         else:
             self.name = name
 
-        nvars = []
+        nvars = [n]
         for _ in range(dims):
             nvars += [l]
         super(Phi4,self).__init__(nvars,name)
 
-        K = Kijbuilder([l]*dims,-kappa,1)
+        Kt = Kijbuilder([l]*dims,-kappa,1)
+        K = Kt
+        for _ in range(n-1):
+            tmp1 = torch.zeros([K.shape[0],Kt.shape[1]])
+            tmp1 = torch.cat([K,tmp1],1)
+            tmp2 = torch.zeros([Kt.shape[0],K.shape[1]])
+            tmp2 = torch.cat([tmp2,Kt],1)
+            K = torch.cat([tmp1,tmp2],0)
         self.register_buffer("K",K)
         self.lamb = lamb
+        self.kappa = kappa
+        self.channel = n
 
     def sample(self, batchSize, thermalSteps = 50, interSteps=5, epsilon=0.1):
         return self._sampleWithHMC(batchSize,thermalSteps,interSteps, epsilon)
@@ -128,5 +137,5 @@ class Phi4(Source):
     def energy(self,x):
         batchSize = x.shape[0]
         out = torch.matmul(torch.matmul(x.reshape(batchSize,1,-1),self.K),x.reshape(batchSize,-1,1)).reshape(batchSize)
-        out += (((x.reshape(batchSize,-1)*x.reshape(batchSize,-1))-1)**2).sum(-1)*self.lamb
+        out += (((x**2).sum(1)-1)**2).reshape(batchSize,-1).sum(-1)*self.lamb
         return out
