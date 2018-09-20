@@ -11,18 +11,12 @@ import flow
 import source
 import math
 
-def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,name = None,compl = False):
-    if compl:
-        s = source.Gaussian([2]+[L]*d)
-    else:
-        s = source.Gaussian([1]+[L]*d)
+def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,name = None, channel = 1):
+    s = source.Gaussian([channel]+[L]*d)
 
     depth = int(math.log(L,2))*nrepeat*2
 
-    if compl:
-        coreSize = 8
-    else:
-        coreSize = 4
+    coreSize = 4*channel
 
     MaskList = []
     for _ in range(depth):
@@ -32,10 +26,7 @@ def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,
                 b = torch.zeros(1,coreSize)
                 i = torch.randperm(b.numel()).narrow(0, 0, b.numel() // 2)
                 b.zero_()[:,i] = 1
-                if compl:
-                    b=b.view(1,2,2,2)
-                else:
-                    b=b.view(1,1,2,2)
+                b=b.view(1,channel,2,2)
             else:
                 b = 1-b
             masklist.append(b)

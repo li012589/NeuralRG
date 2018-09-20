@@ -122,7 +122,7 @@ def op(x):
 
 sym = [op]
 
-fw = train.symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,name)
+fw = train.symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,name,channel = n)
 
 if args.load:
     import os
