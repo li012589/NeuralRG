@@ -37,6 +37,7 @@ group = parser.add_argument_group('Ising target parameters')
 #
 group.add_argument("-L",type=int, default=4,help="linear size")
 group.add_argument("-d",type=int, default=2,help="dimension")
+group.add_argument("-n",type=int, default=1,help="O(n) model")
 #group.add_argument("-T",type=float, default=2.269185314213022, help="Temperature")
 group.add_argument("-kappa",type=float, default=0.15, help="Kappa")
 group.add_argument("-lamb",type=float, default=1.145, help="Lambda")
@@ -62,6 +63,7 @@ if args.load:
         nrepeat = int(np.array(f["nrepeat"]))
         L = int(np.array(f["L"]))
         d = int(np.array(f["d"]))
+        n = int(np.array(f["n"]))
         kappa = int(np.array(f["kappa"]))
         lamb = int(np.array(f["lamb"]))
 
@@ -78,6 +80,7 @@ else:
     nrepeat = args.nrepeat
     L = args.L
     d = args.d
+    n = args.n
     kappa = args.kappa
     lamb = args.lamb
 
@@ -94,6 +97,7 @@ else:
         f.create_dataset("nrepeat",data=args.nrepeat)
         f.create_dataset("L",data=args.L)
         f.create_dataset("d",data=args.d)
+        f.create_dataset("n",data=args.n)
         f.create_dataset("kappa",data=args.kappa)
         f.create_dataset("lamb",data=args.lamb)
 
@@ -105,7 +109,7 @@ if double:
 else:
     dtype = torch.float32
 
-target = source.Phi4(L, d, kappa, lamb)
+target = source.Phi4(n, L, d, kappa, lamb)
 target = target.to(device=device,dtype=dtype)
 
 if args.name is None:
