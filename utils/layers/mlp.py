@@ -31,6 +31,6 @@ class SimpleMLPreshape(SimpleMLP):
         super(SimpleMLPreshape,self).__init__(*args,**kwargs)
     def forward(self,x):
         shape = x.shape
-        x = x.view(shape[0],-1)
+        x = x.reshape(shape[0],-1)
         x = super(SimpleMLPreshape,self).forward(x)
-        return x.view(shape)
+        return x.reshape(shape)
