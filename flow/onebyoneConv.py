@@ -19,7 +19,7 @@ class OnebyoneConv(Flow):
 
     def inverse(self,y):
         s = torch.diagonal(self.u)
-        inverseLogjac = torch.log(torch.abs(s)).sum()*y.shape[0]*y.shape[1]
+        inverseLogjac = torch.log(torch.abs(s)).sum()*y.shape[-1]*y.shape[-2]*torch.ones(y.shape[0])
         w  = torch.matmul(self.p,(torch.matmul(torch.tril(self.l),torch.triu(self.u))))
         y = torch.matmul(y.permute([0,2,3,1]),w.reshape(1,1,*w.shape)).permute(0,3,1,2)
         return y,inverseLogjac
@@ -29,7 +29,7 @@ class OnebyoneConv(Flow):
         l_ = self.l.inverse()
 
         s = torch.diagonal(u_)
-        forwardLogjac = torch.log(torch.abs(s)).sum()*z.shape[0]*z.shape[1]
+        forwardLogjac = torch.log(torch.abs(s)).sum()*z.shape[-1]*z.shape[-2]*torch.ones(z.shape[0])
         w_ = torch.matmul(torch.triu(u_),torch.matmul(torch.tril(l_),self.p_))
         z = torch.matmul(z.permute([0,2,3,1]),w_.reshape(1,1,*w_.shape)).permute(0,3,1,2)
         return z,forwardLogjac
