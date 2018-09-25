@@ -21,7 +21,7 @@ def test_bijective():
             b = torch.zeros(1,4)
             i = torch.randperm(b.numel()).narrow(0, 0, b.numel() // 2)
             b.zero_()[:,i] = 1
-            b=b.view(1,1,2,2)
+            b=b.reshape(1,1,2,2)
         else:
             b = 1-b
         maskList.append(b)
@@ -38,7 +38,7 @@ def test_saveload():
             b = torch.zeros(1,4)
             i = torch.randperm(b.numel()).narrow(0, 0, b.numel() // 2)
             b.zero_()[:,i] = 1
-            b=b.view(1,1,2,2)
+            b=b.reshape(1,1,2,2)
         else:
             b = 1-b
         maskList.append(b)
@@ -53,7 +53,7 @@ def test_saveload():
             b = torch.zeros(1,4)
             i = torch.randperm(b.numel()).narrow(0, 0, b.numel() // 2)
             b.zero_()[:,i] = 1
-            b=b.view(1,1,2,2)
+            b=b.reshape(1,1,2,2)
         else:
             b = 1-b
         maskList.append(b)

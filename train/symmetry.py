@@ -44,11 +44,11 @@ class Symmetrized(Flow):
     def forward(self,x):
         xp = torch.zeros_like(x)
         logP = [self.flow.logProbability(x).reshape(1,-1)]
-        logP += [self.flow.logProbability(self.symmetryList[i](x)).view(1,-1) for i in range(len(self.symmetryList))]
+        logP += [self.flow.logProbability(self.symmetryList[i](x)).reshape(1,-1) for i in range(len(self.symmetryList))]
         logP = torch.cat(logP,0)
         logP = torch.nn.functional.softmax(logP,0)
 
-        noBatch = torch.multinomial(logP.transpose(1,0),1).view(-1) - 1
+        noBatch = torch.multinomial(logP.transpose(1,0),1).reshape(-1) - 1
         no = (noBatch == -1)
         xp[no] = x[no].detach()
         for i in range(len(self.symmetryList)):

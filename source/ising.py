@@ -76,5 +76,5 @@ class Ising(Source):
         self.register_buffer("Kinv",Kinv)
 
     def energy(self,x):
-        return -(-0.5*(torch.mm(x.view(-1, self.nvars[0]),self.Kinv) * x.view(-1, self.nvars[0])).sum(dim=1) \
-        + (torch.nn.Softplus()(2.*self.beta*x.view(-1, self.nvars[0])) - self.beta*x.view(-1, self.nvars[0]) - math.log(2.)).sum(dim=1))
+        return -(-0.5*(torch.mm(x.reshape(-1, self.nvars[0]),self.Kinv) * x.reshape(-1, self.nvars[0])).sum(dim=1) \
+        + (torch.nn.Softplus()(2.*self.beta*x.reshape(-1, self.nvars[0])) - self.beta*x.reshape(-1, self.nvars[0]) - math.log(2.)).sum(dim=1))

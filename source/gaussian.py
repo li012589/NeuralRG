@@ -13,4 +13,4 @@ class Gaussian(Source):
         return torch.randn(size).to(self.sigma)
 
     def energy(self, z):
-        return -(-0.5 * (z/self.sigma)**2-0.5*torch.log(2.*np.pi*self.sigma**2)).view(z.shape[0],-1).sum(dim=1)
+        return -(-0.5 * (z/self.sigma)**2-0.5*torch.log(2.*np.pi*self.sigma**2)).reshape(z.shape[0],-1).sum(dim=1)

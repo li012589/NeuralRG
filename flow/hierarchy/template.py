@@ -26,7 +26,7 @@ class HierarchyBijector(Flow):
         for no in range(len(self.indexI)):
             x, x_ = dispatch(self.indexI[no],self.indexJ[no],x)
             x_,logProbability = self.layerList[no].forward(x_.reshape(-1,channelSize,*self.kernelShape))
-            forwardLogjac +=logProbability.view(batchSize,-1).sum(1)
+            forwardLogjac +=logProbability.reshape(batchSize,-1).sum(1)
             x = collect(self.indexI[no],self.indexJ[no],x,x_)
         return x,forwardLogjac
 
@@ -37,6 +37,6 @@ class HierarchyBijector(Flow):
         for no in reversed(range(len(self.indexI))):
             z,z_ = dispatch(self.indexI[no],self.indexJ[no],z)
             z_,logProbability = self.layerList[no].inverse(z_.reshape(-1,channelSize,*self.kernelShape))
-            inverseLogjac += logProbability.view(batchSize,-1).sum(1)
+            inverseLogjac += logProbability.reshape(batchSize,-1).sum(1)
             z = collect(self.indexI[no],self.indexJ[no],z,z_)
         return z,inverseLogjac

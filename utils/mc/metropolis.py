@@ -18,7 +18,7 @@ def MetropolisWithAccept(energy,x,length,tranCore = None):
         accept = (diff.exp()>=diff.uniform_()).to(x)
 
         E = accept*Enew + (1.-accept)*E
-        acceptMask = accept.view(shape)
+        acceptMask = accept.reshape(shape)
         x = acceptMask*xnew+(1.-acceptMask)*x
     torch.set_grad_enabled(True)
 

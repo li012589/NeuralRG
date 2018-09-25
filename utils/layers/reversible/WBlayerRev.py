@@ -15,15 +15,15 @@ class Wide2bacthRev(nn.Module):
     def forward(self,*args,**kwargs):
         return getattr(self,self.pointer)(*args,**kwargs)
     def _forward2d(self,x,kernalSize):
-        x = x.view(-1,kernalSize)
+        x = x.reshape(-1,kernalSize)
         return x
     def _forward3d(self,x,kernalSize):
         shape = x.shape
         outSize0 = shape[1]//kernalSize[0]
         outSize1 = shape[2]//kernalSize[1]
-        x = x.view(-1,outSize0,kernalSize[0],outSize1,kernalSize[1])
+        x = x.reshape(-1,outSize0,kernalSize[0],outSize1,kernalSize[1])
         x = x.permute(0,1,3,2,4).contiguous()
-        x = x.view(-1,kernalSize[0],kernalSize[1])
+        x = x.reshape(-1,kernalSize[0],kernalSize[1])
         return x
 
 class Batch2wideRev(nn.Module):
@@ -38,13 +38,13 @@ class Batch2wideRev(nn.Module):
     def forward(self,*args,**kwargs):
         return getattr(self,self.pointer)(*args,**kwargs)
     def _forward2d(self,x,kernalSize):
-        x = x.view(-1,kernalSize)
+        x = x.reshape(-1,kernalSize)
         return x
     def _forward3d(self,x,kernalSize):
         shape = x.shape
         outSize0 = kernalSize[0]//shape[1]
         outSize1 = kernalSize[1]//shape[2]
-        x = x.view(-1,outSize0,outSize1,shape[1],shape[2])
+        x = x.reshape(-1,outSize0,outSize1,shape[1],shape[2])
         x = x.permute(0,1,3,2,4).contiguous()
-        x = x.view(-1,kernalSize[0],kernalSize[1])
+        x = x.reshape(-1,kernalSize[0],kernalSize[1])
         return x

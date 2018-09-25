@@ -121,7 +121,7 @@ if args.load:
     fw.load(saved)
 
 def measure(x):
-        p = torch.sigmoid(2.*x).view(-1, target.nvars[0])
+        p = torch.sigmoid(2.*x).reshape(-1, target.nvars[0])
         s = 2.*p.data.cpu().numpy() - 1.
         sf = (s.mean(axis=1))**2 - (s**2).sum(axis=1)/target.nvars[0]**2  +1./target.nvars[0] #structure factor
         return  sf

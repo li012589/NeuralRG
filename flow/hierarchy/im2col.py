@@ -16,10 +16,10 @@ def getIndeices(shape,height,width,stride,dialation, offset):
     return (i.transpose(1,0)+offset)%H, (j.transpose(1,0)+offset)%W
 
 def dispatch(i,j,x):
-    x_ = x[:,:,i,j].view(x.shape[0],x.shape[1],i.shape[0],i.shape[1])
+    x_ = x[:,:,i,j].reshape(x.shape[0],x.shape[1],i.shape[0],i.shape[1])
     return x, x_
 
 def collect(i,j,x,x_):
     xi = x.clone()
-    xi[:,:,i,j]=x_.view(x.shape[0],-1,i.shape[0],i.shape[1])
+    xi[:,:,i,j]=x_.reshape(x.shape[0],-1,i.shape[0],i.shape[1])
     return xi
