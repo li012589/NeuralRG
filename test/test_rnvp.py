@@ -60,5 +60,3 @@ def test_saveload():
     blankf = flow.RNVP(maskList, [utils.SimpleMLPreshape([4,32,32,4],[nn.ELU(),nn.ELU(),None]) for _ in range(4)], [utils.SimpleMLPreshape([4,32,32,4],[nn.ELU(),nn.ELU(),utils.ScalableTanh(4)]) for _ in range(4)],p)
     saveload(f,blankf)
 
-if __name__ == "__main__":
-    test_bijective()
