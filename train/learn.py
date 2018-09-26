@@ -55,7 +55,7 @@ def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,
         dimList.append(nhidden)
     dimList.append(coreSize)
 
-    layers = [flow.RNVP(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(coreSize)]) for _ in range(nlayers)]) for n in range(depth)]
+    layers = [OnebyonePlusRNVP(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(coreSize)]) for _ in range(nlayers)],2,2,channel) for n in range(depth)]
 
     f = flow.MERA(2,L,layers,nrepeat,s)
     f = Symmetrized(f,symmetryList,name = name)
