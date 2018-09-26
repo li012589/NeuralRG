@@ -25,21 +25,20 @@ class OnebyoneConv(Flow):
         self.logs = nn.Parameter(torch.from_numpy(logs).to(torch.float32))
 
     def inverse(self,y):
-        l = torch.tril(self.l,diagonal=-1)+torch.diag(torch.ones(self.l.shape[0]))
+        l = torch.tril(self.l,diagonal=-1)+torch.diag(torch.ones(self.l.shape[0])).to(self.p)
         u = torch.triu(self.u,diagonal=1)+torch.diag(self.sign*torch.exp(self.logs))
-        w = torch.matmul(self.p,torch.matmul(torch.tril(self.l,diagonal=-1)+torch.diag(torch.ones(self.l.shape[0])),u))
-        inverseLogjac = self.logs.sum()*y.shape[-1]*y.shape[-2]*torch.ones(y.shape[0])
+        w = torch.matmul(self.p,torch.matmul(l,u))
+        inverseLogjac = self.logs.sum()*y.shape[-1]*y.shape[-2]*(torch.ones(y.shape[0]).to(self.p))
         yp = torch.matmul(y.permute([0,2,3,1]),w.reshape(1,1,*w.shape)).permute(0,3,1,2)
         return yp,inverseLogjac
 
     def forward(self,z):
-        l = torch.tril(self.l,diagonal=-1)+torch.diag(torch.ones(self.l.shape[0]))
+        l = torch.tril(self.l,diagonal=-1)+torch.diag(torch.ones(self.l.shape[0])).to(self.p)
         u = torch.triu(self.u,diagonal=1)+torch.diag(self.sign*torch.exp(self.logs))
-        w = torch.matmul(self.p,torch.matmul(l,u))
 
         u_ = torch.inverse(u)
         l_ = torch.inverse(l)
         w_ = torch.matmul(u_,torch.matmul(l_,self.p_))
-        forwardLogjac = -self.logs.sum()*z.shape[-1]*z.shape[-2]*torch.ones(z.shape[0])
+        forwardLogjac = -self.logs.sum()*z.shape[-1]*z.shape[-2]*(torch.ones(z.shape[0]).to(self.p))
         zp = torch.matmul(z.permute([0,2,3,1]),w_.reshape(1,1,*w_.shape)).permute(0,3,1,2)
         return zp,forwardLogjac
