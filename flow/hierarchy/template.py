@@ -6,10 +6,11 @@ from .im2col import dispatch,collect
 
 
 class HierarchyBijector(Flow):
-    def __init__(self, kernelShape, indexI, indexJ, layerList,prior=None,name = "HierarchyBijector"):
+    def __init__(self, kernelShape, indexI, indexJ, layerList,skipCheck = False, prior=None,name = "HierarchyBijector"):
         super(HierarchyBijector,self).__init__(prior,name)
-        assert len(layerList) == len(indexI)
-        assert len(layerList) == len(indexJ)
+        if not skipCheck:
+            assert len(layerList) == len(indexI)
+            assert len(layerList) == len(indexJ)
 
         self.depth = len(layerList)
 
