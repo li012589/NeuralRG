@@ -12,23 +12,8 @@ import source
 import math
 from flow import Flow
 
-class OnebyonePlusRNVP(Flow):
-    def __init__(self,maskList, tList, sList, h,w,c, prior=None, name="OnebyonePlusRNVP"):
-        super(OnebyonePlusRNVP,self).__init__(prior,name)
-        self.onebyone = flow.OnebyoneConv(h,w,c)
-        self.rnvp = flow.RNVP(maskList, tList, sList)
-    def inverse(self,y):
-        y,inverseLogjac = self.onebyone.inverse(y)
-        y,inverseLogjac1 = self.rnvp.inverse(y)
-        inverseLogjac += inverseLogjac1
-        return y,inverseLogjac
-    def forward(self,z):
-        z,forwardLogjac = self.rnvp.forward(z)
-        z,forwardLogjac1 = self.onebyone.forward(z)
-        forwardLogjac += forwardLogjac1
-        return z,forwardLogjac
 
-def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,name = None, channel = 1):
+def replySymmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,name = None, channel = 1):
     s = source.Gaussian([channel]+[L]*d)
 
     depth = int(math.log(L,2))*nrepeat*2
@@ -55,7 +40,7 @@ def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,
         dimList.append(nhidden)
     dimList.append(coreSize)
 
-    layers = [flow.rnvp(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(coreSize)]) for _ in range(nlayers)]) for n in range(depth)]
+    layers = [flow.RNVP(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(coreSize)]) for _ in range(nlayers)]) for n in range(depth)]
 
     f = flow.MERA(2,L,layers,nrepeat,s)
     f = Symmetrized(f,symmetryList,name = name)
@@ -101,7 +86,7 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
     return LOSS,ACC,OBS
 
 
-def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None,keepSavings = 3, weight_decay = 0.001, adaptivelr = False, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None):
+def replyLearnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None,keepSavings = 3, weight_decay = 0.001, adaptivelr = False, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None):
 
     def cleanSaving(epoch):
         if epoch >= keepSavings*saveSteps:
@@ -154,31 +139,32 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
         LOSS.append([loss.item(),lossstd.item()])
 
         if (epoch%saveSteps == 0 and epoch > 50) or epoch == epochs:
-            z_,zaccept = HMCwithAccept(latentU,z_.detach(),HMCthermal,HMCsteps,HMCepsilon)
-            x_,xaccept = HMCwithAccept(source.energy,x_.detach(),HMCthermal,HMCsteps,HMCepsilon)
-            with torch.no_grad():
-                x_z,_ = flow.inverse(z_)
-                z_last,_ = flow.forward(x_z)
+            #z_,zaccept = HMCwithAccept(latentU,z_.detach(),HMCthermal,HMCsteps,HMCepsilon)
+            #x_,xaccept = HMCwithAccept(source.energy,x_.detach(),HMCthermal,HMCsteps,HMCepsilon)
+            #with torch.no_grad():
+                #x_z,_ = flow.inverse(z_)
+                #z_last,_ = flow.forward(x_z)
 
-            with torch.no_grad():
-                Zobs = measureFn(x_z)
-                Xobs = measureFn(x_)
-            print("accratio_z:",zaccept.mean().item(),"obs_z:",Zobs.mean(),  ' +/- ' , Zobs.std()/np.sqrt(1.*batchSize))
-            print("accratio_x:",xaccept.mean().item(),"obs_x:",Xobs.mean(),  ' +/- ' , Xobs.std()/np.sqrt(1.*batchSize))
-            ZACC.append(zaccept.mean().cpu().item())
-            XACC.append(xaccept.mean().cpu().item())
-            ZOBS.append([Zobs.mean().item(),Zobs.std().item()/np.sqrt(1.*batchSize)])
-            XOBS.append([Xobs.mean().item(),Xobs.std().item()/np.sqrt(1.*batchSize)])
+            #with torch.no_grad():
+                #Zobs = measureFn(x_z)
+                #Xobs = measureFn(x_)
+            print("Skip HMC")
+            #print("accratio_z:",zaccept.mean().item(),"obs_z:",Zobs.mean(),  ' +/- ' , Zobs.std()/np.sqrt(1.*batchSize))
+            #print("accratio_x:",xaccept.mean().item(),"obs_x:",Xobs.mean(),  ' +/- ' , Xobs.std()/np.sqrt(1.*batchSize))
+            ZACC.append(np.nan)
+            XACC.append(np.nan)
+            ZOBS.append([np.nan,np.nan])
+            XOBS.append([np.nan,np.nan])
 
             if save:
                 with torch.no_grad():
                     samples,_ = flow.sample(batchSize)
                 with h5py.File(savePath+"records/"+flow.name+"HMCresult_epoch"+str(epoch)+".hdf5","w") as f:
-                    f.create_dataset("XZ",data=x_z.detach().cpu().numpy())
-                    f.create_dataset("Y",data=x_.detach().cpu().numpy())
+                    f.create_dataset("XZ",data=samples.detach().cpu().numpy())
+                    f.create_dataset("Y",data=samples.detach().cpu().numpy())
                     f.create_dataset("X",data=samples.detach().cpu().numpy())
 
-                del x_z
+                #del x_z
                 del samples
 
                 with h5py.File(savePath+"records/"+flow.name+"Record_epoch"+str(epoch)+".hdf5", "w") as f:
