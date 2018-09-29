@@ -32,6 +32,7 @@ group.add_argument("-nlayers", type=int, default=4, help="# of layers in RNVP bl
 group.add_argument("-nmlp",type = int, default=2,help="# of layers in MLP")
 group.add_argument("-nhidden", type=int, default=32, help="")
 group.add_argument("-nrepeat", type=int, default=2, help="repeat of mera block")
+group.add_argument("-depthMERA", type=int, default=-1, help="maximum depth of MERA flow")
 
 group = parser.add_argument_group('Ising target parameters')
 #
@@ -58,6 +59,7 @@ if args.load:
         nmlp = int(np.array(f["nmlp"]))
         nhidden = int(np.array(f["nhidden"]))
         nrepeat = int(np.array(f["nrepeat"]))
+        depthMERA = int(np.array(f["depthMERA"]))
         L = int(np.array(f["L"]))
         d = int(np.array(f["d"]))
         T = float(np.array(f["T"]))
@@ -72,6 +74,7 @@ else:
     nmlp = args.nmlp
     nhidden = args.nhidden
     nrepeat = args.nrepeat
+    depthMERA = args.depthMERA
     L = args.L
     d = args.d
     T = args.T
@@ -86,6 +89,7 @@ else:
         f.create_dataset("nmlp",data=args.nmlp)
         f.create_dataset("nhidden",data=args.nhidden)
         f.create_dataset("nrepeat",data=args.nrepeat)
+        f.create_dataset("depthMERA",data=args.depthMERA)
         f.create_dataset("L",data=args.L)
         f.create_dataset("d",data=args.d)
         f.create_dataset("T",data=args.T)
@@ -109,8 +113,9 @@ def op(x):
     return -x
 
 sym = [op]
-
-fw = train.replySymmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,name)
+if depthMERA == -1:
+    depthMERA = None
+fw = train.replySymmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,name,depthMERA=depthMERA)
 
 if args.load:
     import os
