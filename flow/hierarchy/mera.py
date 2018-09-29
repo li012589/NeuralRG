@@ -6,10 +6,11 @@ from .template import HierarchyBijector
 from .im2col import getIndeices
 
 class MERA(HierarchyBijector):
-    def __init__(self, kernelDim, length, layerList, repeat=1, prior=None, name = "MERA"):
+    def __init__(self, kernelDim, length, layerList, repeat=1, depth = None,prior=None, name = "MERA"):
         kernelSize = 2
         shape = [length,length]
-        depth = int(math.log(length,kernelSize))
+        if depth is None:
+            depth = int(math.log(length,kernelSize))
         indexList = []
         for no in range(depth):
             for _ in range(repeat):

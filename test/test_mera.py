@@ -35,7 +35,7 @@ def test_bijective():
     length = 4
     repeat = 2
 
-    t = flow.MERA(2,length,layers,repeat,p)
+    t = flow.MERA(2,length,layers,repeat,prior = p)
     bijective(t)
 
 def test_saveload():
@@ -62,7 +62,7 @@ def test_saveload():
     length = 4
     repeat = 2
 
-    t = flow.MERA(2,length,layers,repeat,p)
+    t = flow.MERA(2,length,layers,repeat,prior = p)
 
     p = source.Gaussian([1,4,4])
 
@@ -87,5 +87,5 @@ def test_saveload():
     length = 4
     repeat = 2
 
-    blankt = flow.MERA(2,length,layers,repeat,p)
+    blankt = flow.MERA(2,length,layers,repeat,prior = p)
     saveload(t,blankt)

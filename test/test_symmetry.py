@@ -36,7 +36,7 @@ def test_bijective():
     length = 4
     repeat = 2
 
-    t = flow.MERA(2,length,layers,repeat,p)
+    t = flow.MERA(2,length,layers,repeat,prior = p)
     def op(x):
         return -x
 
@@ -80,7 +80,7 @@ def test_saveload():
     length = 4
     repeat = 2
 
-    t = flow.MERA(2,length,layers,repeat,p)
+    t = flow.MERA(2,length,layers,repeat,prior = p)
     def op(x):
         return -x
 
@@ -110,7 +110,7 @@ def test_saveload():
     length = 4
     repeat = 2
 
-    t = flow.MERA(2,length,layers,repeat,p)
+    t = flow.MERA(2,length,layers,repeat,prior = p)
     def op(x):
         return -x
 
