@@ -15,7 +15,7 @@ import argparse
 torch.manual_seed(42)
 
 parser = argparse.ArgumentParser(description='')
-parser.add_argument("-folder", default='./opt/tmp/')
+parser.add_argument("-folder", default=None)
 parser.add_argument("-name", default=None, help='name of flow')
 
 group = parser.add_argument_group('learning  parameters')
@@ -42,7 +42,11 @@ group.add_argument("-T",type=float, default=2.269185314213022, help="Temperature
 
 args = parser.parse_args()
 
-rootFolder = args.folder
+if args.folder is None:
+    rootFolder = './opt/replyMERA_ising_' + str(args.L)+"_T_"+str(args.T)+"_depthLevel_"+str(args.depthMERA)+"/"
+    print("No specified saving path, using",rootFolder)
+else:
+    rootFolder = args.folder
 if rootFolder[-1] != '/':
     rootFolder += '/'
 
