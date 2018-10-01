@@ -44,7 +44,7 @@ def replySymmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,d
     layers = [flow.RNVP(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(coreSize)]) for _ in range(nlayers)]) for n in range(depth)]
 
     f = flow.MERA(2,L,layers,nrepeat,depth = depthMERA,prior = s)
-    f = Symmetrized(f,symmetryList,name = name)
+    #f = Symmetrized(f,symmetryList,name = name)
     f.to(device = device,dtype = dtype)
     return f
 
@@ -87,7 +87,7 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
     return LOSS,ACC,OBS
 
 
-def replyLearnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None,keepSavings = 3, weight_decay = 0.001, adaptivelr = False, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None):
+def replyLearnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None,keepSavings = 3, weight_decay = 0.001, adaptivelr = False, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None,alpha=1.0):
 
     def cleanSaving(epoch):
         if epoch >= keepSavings*saveSteps:
@@ -123,9 +123,8 @@ def replyLearnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, s
     for epoch in range(epochs):
         x,sampleLogProbability = flow.sample(batchSize)
         lossorigin = (sampleLogProbability - source.logProbability(x))
-        loss = lossorigin.mean()
         lossstd = lossorigin.std()
-        del lossorigin
+        loss = (lossorigin+alpha*(sampleLogProbability-flow.logProbability(-x))).mean()
         flow.zero_grad()
         loss.backward()
         optimizer.step()
@@ -133,14 +132,14 @@ def replyLearnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, s
             scheduler.step()
 
         del sampleLogProbability
-
-        print("epoch:",epoch, "L:",loss.item(),"+/-",lossstd.item())
+        print("epoch:",epoch, "L:",loss.item(),"F:",lossorigin.mean().item(),"+/-",lossstd.item())
+        del lossorigin
 
         LOSS.append([loss.item(),lossstd.item()])
 
         if (epoch%saveSteps == 0 and epoch > 50) or epoch == epochs:
             L = int(x.shape[-1]**0.5)
-            configuration = torch.sigmoid(2.*x[:100])
+            configuration = torch.sigmoid(2.*x[:10])
             #img = make_grid(p, padding=1, nrow=10,normalize=False,scale_each=False).to(‘cpu’).numpy()
             save_image(configuration, savePath+'/proposals_{:04d}.png'.format(epoch), nrow=10, padding=1)
             #z_,zaccept = HMCwithAccept(latentU,z_.detach(),HMCthermal,HMCsteps,HMCepsilon)
