@@ -6,6 +6,7 @@ import subprocess
 import utils
 from utils import HMCwithAccept
 from .symmetry import Symmetrized
+from torchvision.utils import make_grid, save_image
 
 import flow
 import source
@@ -132,13 +133,16 @@ def replyLearnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, s
             scheduler.step()
 
         del sampleLogProbability
-        del x
 
         print("epoch:",epoch, "L:",loss.item(),"+/-",lossstd.item())
 
         LOSS.append([loss.item(),lossstd.item()])
 
         if (epoch%saveSteps == 0 and epoch > 50) or epoch == epochs:
+            L = int(x.shape[-1]**0.5)
+            configuration = torch.sigmoid(2.*x[:100])
+            #img = make_grid(p, padding=1, nrow=10,normalize=False,scale_each=False).to(‘cpu’).numpy()
+            save_image(configuration, savePath+'/proposals_{:04d}.png'.format(epoch), nrow=10, padding=1)
             #z_,zaccept = HMCwithAccept(latentU,z_.detach(),HMCthermal,HMCsteps,HMCepsilon)
             #x_,xaccept = HMCwithAccept(source.energy,x_.detach(),HMCthermal,HMCsteps,HMCepsilon)
             #with torch.no_grad():
@@ -177,5 +181,6 @@ def replyLearnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, s
                 d = flow.save()
                 torch.save(d,savePath+"savings/"+flow.name+"Saving_epoch"+str(epoch)+".saving")
                 cleanSaving(epoch)
+        del x
 
     return LOSS,ZACC,ZOBS,XACC,XOBS
