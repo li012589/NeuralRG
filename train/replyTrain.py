@@ -124,7 +124,7 @@ def replyLearnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, s
         x,sampleLogProbability = flow.sample(batchSize)
         lossorigin = (sampleLogProbability - source.logProbability(x))
         lossstd = lossorigin.std()
-        loss = (lossorigin+alpha*(sampleLogProbability-flow.logProbability(-x))).mean()
+        loss = (lossorigin.mean()+alpha*(sampleLogProbability.mean()-flow.logProbability(-x).mean()))
         flow.zero_grad()
         loss.backward()
         optimizer.step()
