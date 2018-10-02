@@ -139,7 +139,7 @@ def replyLearnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, s
 
         if (epoch%saveSteps == 0 and epoch > 50) or epoch == epochs:
             L = int(x.shape[-1]**0.5)
-            configuration = torch.sigmoid(2.*x[:10])
+            configuration = torch.sigmoid(2.*x[:100])
             #img = make_grid(p, padding=1, nrow=10,normalize=False,scale_each=False).to(‘cpu’).numpy()
             save_image(configuration, savePath+'/proposals_{:04d}.png'.format(epoch), nrow=10, padding=1)
             #z_,zaccept = HMCwithAccept(latentU,z_.detach(),HMCthermal,HMCsteps,HMCepsilon)
