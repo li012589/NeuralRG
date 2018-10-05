@@ -3,6 +3,7 @@ import sys
 import subprocess
 import setting
 import numpy
+import copy
 
 q = Queue()
 
