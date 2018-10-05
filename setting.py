@@ -8,7 +8,7 @@ command = ['python','./replyMain.py','-epochs 5000','-batch 512','-nllayers 10',
 
 settings = [['-cuda',str(i)] for i in range(8)]
 
-parameters = {"-T":[str(i/10) for i in range(10,21)],"-depthMERA":[str(i) for i in range(5)]}
+parameters = {"-T":[str(i/10) for i in range(10,21)],"-depthMERA":[str(i+1) for i in range(4)]}
 
 def before():
     #print("this is pre-process")
