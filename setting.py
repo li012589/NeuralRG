@@ -20,7 +20,7 @@ def after():
 
 def process(result):
     nums = []
-    for i in result[-10:-1]:
+    for i in result[-2:-1]:
         nums.append([float(s) for s in re.findall(r'-?\d+\.?\d*',i)])
     return np.array(nums)
 
