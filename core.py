@@ -28,7 +28,7 @@ def worker(settings):
         setting.before()
         command = q.get()
         command += settings
-        print("working on:",command)
+        print("working on:",''.join(i+' ' for i in command))
         output = subprocess.check_output(command)
         save = setting.process(output.decode('utf-8').split('\n'))
         qRev.put([command,save])
