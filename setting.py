@@ -4,7 +4,7 @@ import numpy as np
 
 maximumJobs = 8
 
-command = ['python','./replyMain.py','-epochs','5000','-batch','512','-nllayers','10','-nmlp','1','-nhidden','10','-L','32','-nrepeat','1','-savePeriod','100','-alpha','1']
+command = ['python','./replyMain.py','-epochs','5000','-batch','512','-nlayers','10','-nmlp','1','-nhidden','10','-L','32','-nrepeat','1','-savePeriod','100','-alpha','1']
 
 settings = [['-cuda',str(i)] for i in range(8)]
 
