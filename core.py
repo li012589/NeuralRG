@@ -4,12 +4,28 @@ import subprocess
 import setting
 import numpy
 
+q = Queue()
+
+commands=[]
+for name,content in setting.parameters.items():
+    if len(commands) == 0:
+        commands = [setting.command+[name]+[i] for i in content]
+    else:
+        step = len(commands)
+        commands = [x for _ in range(len(content)) for x in copy.deepcopy(commands)]
+        for n,i in enumerate(content):
+            for j in range(step):
+                commands[n*step+j] += [name]+[i]
+for c in commands:
+    q.put(c)
+
+
 qRev = SimpleQueue()
 
 def worker(settings):
-    while not setting.q.empty():
+    while not q.empty():
         setting.before()
-        command = setting.q.get()
+        command = q.get()
         command += settings
         print("working on:",command)
         output = subprocess.check_output(command)

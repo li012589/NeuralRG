@@ -1,27 +1,14 @@
-from multiprocessing import Queue
 import time
 import re
 import numpy as np
 
 maximumJobs = 8
 
-command = ['python','./replyMain.py']
+command = ['python','./replyMain.py','-epochs 5000','-batch 512','-nllayers 10','-nmlp 1','-nhidden 10','-L 32','-nrepeat 1','-savePeriod 100','-alpha 1']
 
 settings = [['-cuda',str(i)] for i in range(8)]
 
-if settings != []:
-    assert len(settings) == maximumJobs
-
-parameters = {"-T":[str(i/10) for i in range(10,21)]}
-
-q = Queue()
-commands = []
-
-for name,content in parameters.items():
-    for i in content:
-        q.put(command+[name]+[i])
-        commands.append(command+[name]+[i])
-
+parameters = {"-T":[str(i/10) for i in range(10,21)],"-depthMERA":[str(i) for i in range(5)]}
 
 def before():
     #print("this is pre-process")
@@ -36,3 +23,6 @@ def process(result):
     for i in result[-10:-1]:
         nums.append([float(s) for s in re.findall(r'-?\d+\.?\d*',i)])
     return np.array(nums)
+
+if settings != []:
+    assert len(settings) == maximumJobs
