@@ -2,7 +2,7 @@ import time
 import re
 import numpy as np
 
-maximumJobs = 8
+maximumJobs = 7
 
 command = ['python','./replyMain.py','-epochs','5000','-batch','512','-nlayers','10','-nmlp','3','-nhidden','10','-L','32','-nrepeat','1','-savePeriod','100','-alpha','1']
 
