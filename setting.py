@@ -18,6 +18,9 @@ def after():
     #print("this is sub-process")
     pass
 
+def finish(result):
+    print(result)
+
 def process(result):
     nums = []
     for i in result[-2:-1]:
