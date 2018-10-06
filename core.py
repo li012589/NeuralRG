@@ -28,18 +28,18 @@ def worker(settings):
         setting.before()
         command = q.get()
         command += settings
-        print("Working on:",''.join(i+' ' for i in command))
+        print("[Core] Working on:",''.join(i+' ' for i in command))
         output = subprocess.check_output(command)
         save = setting.process(output.decode('utf-8').split('\n'))
         qRev.put([''.join(i+' ' for i in command),save])
         setting.after()
-        print("Work finish:",''.join(i+' ' for i in command))
+        print("[Core] Work finish:",''.join(i+' ' for i in command))
         sys.stdout.flush()
     return 0
 
 processes = []
 for i in range(setting.maximumJobs):
-    print("Initing work",str(i),"with setting:",''.join(i+' ' for i in setting.settings[i]))
+    print("[Core] Initing work",str(i),"with setting:",''.join(i+' ' for i in setting.settings[i]))
     p = Process(target = worker,args=(setting.settings[i],))
     p.start()
     processes.append(p)
@@ -47,7 +47,10 @@ for i in range(setting.maximumJobs):
 for p in processes:
     p.join()
 
-print("run all finish")
+print("[Core] Workers all finished")
+RES = {}
 while not qRev.empty():
-    print(qRev.get())
+    res = qRev.get()
+    RES[res[0]] = res[1]
+setting.finish(RES)
 
