@@ -3,11 +3,11 @@ import re
 import numpy as np
 import h5py
 
-maximumJobs = 7
+maximumJobs = 8
 
 command = ['python','./replyMain.py','-epochs','50','-batch','512','-nlayers','10','-nmlp','3','-nhidden','10','-L','32','-nrepeat','1','-savePeriod','100','-alpha','1']
 
-settings = [['-cuda',str(i)] for i in range(7)]
+settings = [['-cuda',str(i)] for i in range(8)]
 
 parameters = {"-T":[str(i/10) for i in range(20,36)],"-depthMERA":[str(3),str(5)]}
 
