@@ -32,7 +32,7 @@ def worker(settings):
         print("[Core] Working on:",''.join(i+' ' for i in command))
         output = subprocess.check_output(command)
         save = setting.process(output.decode('utf-8').split('\n'))
-        qRev.put([''.join(i+' ' for i in label[labelStart:]),save])
+        qRev.put([''.join(i+' ' for i in label[labelStart:])[:-1],save])
         setting.after()
         print("[Core] Work finish:",''.join(i+' ' for i in command))
         sys.stdout.flush()

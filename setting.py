@@ -26,8 +26,8 @@ def finish(result):
         tmploss = []
         tmpstd = []
         for i in parameters['-T']:
-            tmploss.append(result['-T '+i+' -depthMERA ' +j+' '][-1][-2])
-            tmpstd.append(result['-T '+i+' -depthMERA ' +j+' '][-1][-1])
+            tmploss.append(result['-T '+i+' -depthMERA ' +j][-1][-2])
+            tmpstd.append(result['-T '+i+' -depthMERA ' +j][-1][-1])
         loss.append(tmploss)
         std.append(tmpstd)
     print('loss:',loss)
