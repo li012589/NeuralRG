@@ -1,10 +1,11 @@
 import time
 import re
 import numpy as np
+import h5py
 
 maximumJobs = 7
 
-command = ['python','./replyMain.py','-epochs','5000','-batch','512','-nlayers','10','-nmlp','3','-nhidden','10','-L','32','-nrepeat','1','-savePeriod','100','-alpha','1']
+command = ['python','./replyMain.py','-epochs','50','-batch','512','-nlayers','10','-nmlp','3','-nhidden','10','-L','32','-nrepeat','1','-savePeriod','100','-alpha','1']
 
 settings = [['-cuda',str(i)] for i in range(7)]
 
@@ -19,7 +20,16 @@ def after():
     pass
 
 def finish(result):
-    print(result)
+    res = []
+    for j in parameters['-depthMERA']:
+        tmp = []
+        for i in parameters['-T']:
+            tmp.append(result['-T '+str(i),+' -depthMERA ' +str(j)])
+        res.append(tmp)
+    print(res)
+    res = np.array(res)
+    with h5py.File("./core_result.hdf5","w") as f:
+        f.create_dataset('result',res)
 
 def process(result):
     nums = []
