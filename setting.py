@@ -35,7 +35,7 @@ def finish(result):
 
     loss = np.array(loss)
     std = np.array(std)
-    with h5py.File("./core_result.hdf5","w") as f:
+    with h5py.File("./core_result_Tfrom"str(parameters['-T'][0])+"to"+str(parameters['-T'][-1])+"_depthMERAfrom"+str(parameters['-depthMERA'][0])+"to"+str(parameters['-depthMERA'][-1])+".hdf5","w") as f:
         f.create_dataset('loss',data = loss)
         f.create_dataset('std',data = std)
 
