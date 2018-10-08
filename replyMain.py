@@ -44,7 +44,7 @@ group.add_argument("-T",type=float, default=2.269185314213022, help="Temperature
 args = parser.parse_args()
 
 if args.folder is None:
-    rootFolder = './opt/replyMERA_ising_' + str(args.L)+"_T_"+str(args.T)+"_depthLevel_"+str(args.depthMERA)+"/"
+    rootFolder = './opt/replyMERA_ising_' + str(args.L)+"_T_"+str(args.T)+"_depthLevel_"+str(args.depthMERA)+"_MERA"+'_l'+str(args.nlayers)+'_M'+str(args.nmlp)+'_H'+str(args.nhidden)+'_R'+str(args.nrepeat)+"/"
     print("No specified saving path, using",rootFolder)
 else:
     rootFolder = args.folder
