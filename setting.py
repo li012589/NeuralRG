@@ -5,7 +5,7 @@ import h5py
 
 maximumJobs = 8
 
-command = ['python','./replyMain.py','-epochs','5000','-batch','512','-nlayers','16','-nmlp','6','-nhidden','16','-L','32','-nrepeat','2','-savePeriod','100','-alpha','1']
+command = ['python','./replyMain.py','-epochs','5000','-batch','512','-nlayers','12','-nmlp','6','-nhidden','12','-L','32','-nrepeat','2','-savePeriod','100','-alpha','1']
 
 settings = [['-cuda',str(i)] for i in range(8)]
 
