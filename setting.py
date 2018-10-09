@@ -5,11 +5,11 @@ import h5py
 
 maximumJobs = 8
 
-command = ['python','./replyMain.py','-epochs','5000','-batch','512','-nlayers','10','-nmlp','3','-nhidden','10','-L','32','-nrepeat','2','-savePeriod','100','-alpha','1']
+command = ['python','./replyMain.py','-epochs','5000','-batch','512','-nlayers','16','-nmlp','6','-nhidden','16','-L','32','-nrepeat','2','-savePeriod','100','-alpha','1']
 
 settings = [['-cuda',str(i)] for i in range(8)]
 
-parameters = {"-T":[str(i/10) for i in range(20,36)],"-depthMERA":[str(i+1) for i in range(5)]}
+parameters = {"-T":[str(i/10) for i in range(20,28)],"-depthMERA":[str(i+1) for i in range(5)]}
 
 def before():
     #print("this is pre-process")
