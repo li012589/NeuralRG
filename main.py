@@ -15,7 +15,7 @@ import argparse
 torch.manual_seed(42)
 
 parser = argparse.ArgumentParser(description='')
-parser.add_argument("-folder", default='./opt/tmp/')
+parser.add_argument("-folder", default=None)
 parser.add_argument("-name", default=None, help='name of flow')
 
 group = parser.add_argument_group('learning  parameters')
@@ -25,6 +25,7 @@ group.add_argument("-cuda", type=int, default=-1, help="use GPU")
 group.add_argument("-double", action='store_true', help="use float64")
 group.add_argument("-lr", type=float, default=0.001, help="learning rate")
 group.add_argument("-savePeriod", type=int, default=10, help="")
+group.add_argument("-alpha", type=float, default=1, help="")
 
 group = parser.add_argument_group('network parameters')
 group.add_argument("-load", action='store_true', help="if load from folder")
@@ -32,6 +33,7 @@ group.add_argument("-nlayers", type=int, default=4, help="# of layers in RNVP bl
 group.add_argument("-nmlp",type = int, default=2,help="# of layers in MLP")
 group.add_argument("-nhidden", type=int, default=32, help="")
 group.add_argument("-nrepeat", type=int, default=2, help="repeat of mera block")
+group.add_argument("-depthMERA", type=int, default=-1, help="maximum depth of MERA flow")
 
 group = parser.add_argument_group('Ising target parameters')
 #
@@ -41,7 +43,11 @@ group.add_argument("-T",type=float, default=2.269185314213022, help="Temperature
 
 args = parser.parse_args()
 
-rootFolder = args.folder
+if args.folder is None:
+    rootFolder = './opt/replyMERA_ising_' + str(args.L)+"_T_"+str(args.T)+"_depthLevel_"+str(args.depthMERA)+"_MERA"+'_l'+str(args.nlayers)+'_M'+str(args.nmlp)+'_H'+str(args.nhidden)+'_R'+str(args.nrepeat)+"/"
+    print("No specified saving path, using",rootFolder)
+else:
+    rootFolder = args.folder
 if rootFolder[-1] != '/':
     rootFolder += '/'
 
@@ -58,6 +64,7 @@ if args.load:
         nmlp = int(np.array(f["nmlp"]))
         nhidden = int(np.array(f["nhidden"]))
         nrepeat = int(np.array(f["nrepeat"]))
+        depthMERA = int(np.array(f["depthMERA"]))
         L = int(np.array(f["L"]))
         d = int(np.array(f["d"]))
         T = float(np.array(f["T"]))
@@ -72,6 +79,7 @@ else:
     nmlp = args.nmlp
     nhidden = args.nhidden
     nrepeat = args.nrepeat
+    depthMERA = args.depthMERA
     L = args.L
     d = args.d
     T = args.T
@@ -86,6 +94,7 @@ else:
         f.create_dataset("nmlp",data=args.nmlp)
         f.create_dataset("nhidden",data=args.nhidden)
         f.create_dataset("nrepeat",data=args.nrepeat)
+        f.create_dataset("depthMERA",data=args.depthMERA)
         f.create_dataset("L",data=args.L)
         f.create_dataset("d",data=args.d)
         f.create_dataset("T",data=args.T)
@@ -109,8 +118,10 @@ def op(x):
     return -x
 
 sym = [op]
-
-fw = train.symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,name)
+if depthMERA == -1:
+    depthMERA = None
+fw = train.replySymmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,name,depthMERA=depthMERA)
+#fw = train.symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,name)
 
 if args.load:
     import os
@@ -127,4 +138,5 @@ def measure(x):
         return  sf
 
 
-LOSS,ZACC,ZOBS,XACC,XOBS = train.learnInterface(target,fw,batch,epochs,save=True,saveSteps = savePeriod,savePath=rootFolder,measureFn = measure)
+LOSS,ZACC,ZOBS,XACC,XOBS = train.replyLearnInterface(target,fw,batch,epochs,save=True,saveSteps = savePeriod,savePath=rootFolder,measureFn = measure,alpha=args.alpha)
+#LOSS,ZACC,ZOBS,XACC,XOBS = train.learnInterface(target,fw,batch,epochs,save=True,saveSteps = savePeriod,savePath=rootFolder,measureFn = measure)
