@@ -10,7 +10,6 @@ import numpy as np
 import utils
 import flow
 import source
-import train
 
 def test_bijective():
     p = source.Gaussian([3,2,2])
@@ -26,7 +25,7 @@ def test_bijective():
             b = 1-b
         maskList.append(b)
     maskList = torch.cat(maskList,0).to(torch.float32)
-    f = train.OnebyonePlusRNVP(maskList, [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),None]) for _ in range(4)], [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),utils.ScalableTanh(12)]) for _ in range(4)],2,2,3,p)
+    f = flow.OnebyonePlusRNVP(maskList, [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),None]) for _ in range(4)], [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),utils.ScalableTanh(12)]) for _ in range(4)],2,2,3,p)
     bijective(f,decimal=3)
 
 def test_saveload():
@@ -43,7 +42,7 @@ def test_saveload():
             b = 1-b
         maskList.append(b)
     maskList = torch.cat(maskList,0).to(torch.float32)
-    f = train.OnebyonePlusRNVP(maskList, [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),None]) for _ in range(4)], [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),utils.ScalableTanh(12)]) for _ in range(4)],2,2,3,p)
+    f = flow.OnebyonePlusRNVP(maskList, [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),None]) for _ in range(4)], [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),utils.ScalableTanh(12)]) for _ in range(4)],2,2,3,p)
 
     p = source.Gaussian([3,2,2])
 
@@ -58,7 +57,7 @@ def test_saveload():
             b = 1-b
         maskList.append(b)
     maskList = torch.cat(maskList,0).to(torch.float32)
-    blankf = train.OnebyonePlusRNVP(maskList, [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),None]) for _ in range(4)], [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),utils.ScalableTanh(12)]) for _ in range(4)],2,2,3,p)
+    blankf = flow.OnebyonePlusRNVP(maskList, [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),None]) for _ in range(4)], [utils.SimpleMLPreshape([12,32,32,12],[nn.ELU(),nn.ELU(),utils.ScalableTanh(12)]) for _ in range(4)],2,2,3,p)
 
     saveload(f,blankf,decimal=3)
 
