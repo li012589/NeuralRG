@@ -34,6 +34,7 @@ group.add_argument("-nmlp",type = int, default=2,help="# of layers in MLP")
 group.add_argument("-nhidden", type=int, default=32, help="")
 group.add_argument("-nrepeat", type=int, default=2, help="repeat of mera block")
 group.add_argument("-depthMERA", type=int, default=-1, help="maximum depth of MERA flow")
+group.add_argument("-symmetry", action='store_true', help="")
 
 group = parser.add_argument_group('Ising target parameters')
 #
@@ -114,13 +115,18 @@ if args.name is None:
 else:
     name = args.name
 
-def op(x):
-    return -x
+if args.symmetry:
+    def op(x):
+        return -x
 
-sym = [op]
+    sym = [op]
+else:
+    sym = None
+
 if depthMERA == -1:
     depthMERA = None
-fw = train.replySymmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,name,depthMERA=depthMERA)
+fw = train.symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,name,depthMERA=depthMERA)
+
 #fw = train.symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,sym,device,dtype,name)
 
 if args.load:

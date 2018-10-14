@@ -12,23 +12,7 @@ import source
 import math
 from flow import Flow
 
-class OnebyonePlusRNVP(Flow):
-    def __init__(self,maskList, tList, sList, h,w,c, prior=None, name="OnebyonePlusRNVP"):
-        super(OnebyonePlusRNVP,self).__init__(prior,name)
-        self.onebyone = flow.OnebyoneConv(h,w,c)
-        self.rnvp = flow.RNVP(maskList, tList, sList)
-    def inverse(self,y):
-        y,inverseLogjac = self.onebyone.inverse(y)
-        y,inverseLogjac1 = self.rnvp.inverse(y)
-        inverseLogjac += inverseLogjac1
-        return y,inverseLogjac
-    def forward(self,z):
-        z,forwardLogjac = self.rnvp.forward(z)
-        z,forwardLogjac1 = self.onebyone.forward(z)
-        forwardLogjac += forwardLogjac1
-        return z,forwardLogjac
-
-def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,name = None, channel = 1):
+def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,name = None, channel = 1, depthMERA = None):
     s = source.Gaussian([channel]+[L]*d)
 
     depth = int(math.log(L,2))*nrepeat*2
@@ -55,10 +39,11 @@ def symmetryMERAInit(L,d,nlayers,nmlp,nhidden,nrepeat,symmetryList,device,dtype,
         dimList.append(nhidden)
     dimList.append(coreSize)
 
-    layers = [OnebyonePlusRNVP(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(coreSize)]) for _ in range(nlayers)],2,2,channel) for n in range(depth)]
+    layers = [flow.RNVP(MaskList[n], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[None]) for _ in range(nlayers)], [utils.SimpleMLPreshape(dimList,[nn.ELU() for _ in range(nmlp)]+[utils.ScalableTanh(coreSize)]) for _ in range(nlayers)]) for n in range(depth)]
 
-    f = flow.MERA(2,L,layers,nrepeat,prior = s)
-    f = Symmetrized(f,symmetryList,name = name)
+    f = flow.MERA(2,L,layers,nrepeat,depth = depthMERA,prior = s)
+    if symmetryList is not None:
+        f = Symmetrized(f,symmetryList,name = name)
     f.to(device = device,dtype = dtype)
     return f
 
