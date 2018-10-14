@@ -26,6 +26,7 @@ group.add_argument("-double", action='store_true', help="use float64")
 group.add_argument("-lr", type=float, default=0.001, help="learning rate")
 group.add_argument("-savePeriod", type=int, default=10, help="")
 group.add_argument("-alpha", type=float, default=1, help="")
+group.add_argument("-skipHMC", action='store_true', help="")
 
 group = parser.add_argument_group('network parameters')
 group.add_argument("-load", action='store_true', help="if load from folder")
@@ -144,5 +145,5 @@ def measure(x):
         return  sf
 
 
-LOSS,ZACC,ZOBS,XACC,XOBS = train.replyLearnInterface(target,fw,batch,epochs,save=True,saveSteps = savePeriod,savePath=rootFolder,measureFn = measure,alpha=args.alpha)
+LOSS,ZACC,ZOBS,XACC,XOBS = train.learnInterface(target,fw,batch,epochs,save=True,saveSteps = savePeriod,savePath=rootFolder,measureFn = measure,alpha=args.alpha,skipHMC=args.skipHMC)
 #LOSS,ZACC,ZOBS,XACC,XOBS = train.learnInterface(target,fw,batch,epochs,save=True,saveSteps = savePeriod,savePath=rootFolder,measureFn = measure)

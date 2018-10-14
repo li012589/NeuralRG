@@ -6,6 +6,7 @@ import subprocess
 import utils
 from utils import HMCwithAccept
 from .symmetry import Symmetrized
+from torchvision.utils import make_grid, save_image
 
 import flow
 import source
@@ -86,7 +87,7 @@ def learn(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,
     return LOSS,ACC,OBS
 
 
-def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None,keepSavings = 3, weight_decay = 0.001, adaptivelr = False, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None):
+def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSteps = 10,savePath=None,keepSavings = 3, weight_decay = 0.001, adaptivelr = False, HMCsteps = 10, HMCthermal = 10, HMCepsilon = 0.2, measureFn = None, alpha=1.0,skipHMC = True):
 
     def cleanSaving(epoch):
         if epoch >= keepSavings*saveSteps:
@@ -119,12 +120,13 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
     z_ = flow.prior.sample(batchSize)
     x_ = flow.prior.sample(batchSize)
 
+    L = int(x_.shape[-1]**0.5)
+
     for epoch in range(epochs):
         x,sampleLogProbability = flow.sample(batchSize)
         lossorigin = (sampleLogProbability - source.logProbability(x))
-        loss = lossorigin.mean()
         lossstd = lossorigin.std()
-        del lossorigin
+        loss = (lossorigin.mean()+alpha*(sampleLogProbability.mean()-flow.logProbability(-x).mean()))
         flow.zero_grad()
         loss.backward()
         optimizer.step()
@@ -132,38 +134,57 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
             scheduler.step()
 
         del sampleLogProbability
-        del x
 
-        print("epoch:",epoch, "L:",loss.item(),"+/-",lossstd.item())
+        print("epoch:",epoch, "L:",loss.item(),"F:",lossorigin.mean().item(),"+/-",lossstd.item())
+        del lossorigin
 
         LOSS.append([loss.item(),lossstd.item()])
 
         if (epoch%saveSteps == 0 and epoch > 50) or epoch == epochs:
-            z_,zaccept = HMCwithAccept(latentU,z_.detach(),HMCthermal,HMCsteps,HMCepsilon)
-            x_,xaccept = HMCwithAccept(source.energy,x_.detach(),HMCthermal,HMCsteps,HMCepsilon)
-            with torch.no_grad():
-                x_z,_ = flow.inverse(z_)
-                z_last,_ = flow.forward(x_z)
+            configuration = torch.sigmoid(2.*x[:100])
+            save_image(configuration, savePath+'/proposals_{:04d}.png'.format(epoch), nrow=10, padding=1)
+            if skipHMC:
+                print("Skip HMC")
+                ZACC.append(np.nan)
+                XACC.append(np.nan)
+                ZOBS.append([np.nan,np.nan])
+                XOBS.append([np.nan,np.nan])
 
-            with torch.no_grad():
-                Zobs = measureFn(x_z)
-                Xobs = measureFn(x_)
-            print("accratio_z:",zaccept.mean().item(),"obs_z:",Zobs.mean(),  ' +/- ' , Zobs.std()/np.sqrt(1.*batchSize))
-            print("accratio_x:",xaccept.mean().item(),"obs_x:",Xobs.mean(),  ' +/- ' , Xobs.std()/np.sqrt(1.*batchSize))
-            ZACC.append(zaccept.mean().cpu().item())
-            XACC.append(xaccept.mean().cpu().item())
-            ZOBS.append([Zobs.mean().item(),Zobs.std().item()/np.sqrt(1.*batchSize)])
-            XOBS.append([Xobs.mean().item(),Xobs.std().item()/np.sqrt(1.*batchSize)])
+            else:
+                z_,zaccept = HMCwithAccept(latentU,z_.detach(),HMCthermal,HMCsteps,HMCepsilon)
+                x_,xaccept = HMCwithAccept(source.energy,x_.detach(),HMCthermal,HMCsteps,HMCepsilon)
+                with torch.no_grad():
+                    x_z,_ = flow.inverse(z_)
+                    z_last,_ = flow.forward(x_z)
+
+                with torch.no_grad():
+                    Zobs = measureFn(x_z)
+                    Xobs = measureFn(x_)
+                print("accratio_z:",zaccept.mean().item(),"obs_z:",Zobs.mean(),  ' +/- ' , Zobs.std()/np.sqrt(1.*batchSize))
+                print("accratio_x:",xaccept.mean().item(),"obs_x:",Xobs.mean(),  ' +/- ' , Xobs.std()/np.sqrt(1.*batchSize))
+                ZACC.append(zaccept.mean().cpu().item())
+                XACC.append(xaccept.mean().cpu().item())
+                ZOBS.append([Zobs.mean().item(),Zobs.std().item()/np.sqrt(1.*batchSize)])
+                XOBS.append([Xobs.mean().item(),Xobs.std().item()/np.sqrt(1.*batchSize)])
 
             if save:
                 with torch.no_grad():
                     samples,_ = flow.sample(batchSize)
                 with h5py.File(savePath+"records/"+flow.name+"HMCresult_epoch"+str(epoch)+".hdf5","w") as f:
-                    f.create_dataset("XZ",data=x_z.detach().cpu().numpy())
-                    f.create_dataset("Y",data=x_.detach().cpu().numpy())
+                    if skipHMC:
+                        tmpShape = samples.detach().cpu().numpy().shape
+                        placeHolder = np.empty(tmpShape)
+                        placeHolder[:] = np.nan
+                        f.create_dataset("XZ",data=placeHolder)
+                        f.create_dataset("Y",data=placeHolder)
+                    else:
+                        f.create_dataset("XZ",data=x_z.detach().cpu().numpy())
+                        f.create_dataset("Y",data=x_.detach().cpu().numpy())
                     f.create_dataset("X",data=samples.detach().cpu().numpy())
 
-                del x_z
+                if not skipHMC:
+                    del x_z
+                    del x_
                 del samples
 
                 with h5py.File(savePath+"records/"+flow.name+"Record_epoch"+str(epoch)+".hdf5", "w") as f:
@@ -176,5 +197,7 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
                 d = flow.save()
                 torch.save(d,savePath+"savings/"+flow.name+"Saving_epoch"+str(epoch)+".saving")
                 cleanSaving(epoch)
+
+        del x
 
     return LOSS,ZACC,ZOBS,XACC,XOBS
