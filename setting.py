@@ -3,13 +3,13 @@ import re
 import numpy as np
 import h5py
 
-maximumJobs = 8
+maximumJobs = 7
 
-command = ['python','./main.py','-epochs','5000','-batch','512','-nlayers','10','-nmlp','12','-nhidden','10','-L','16','-nrepeat','1','-savePeriod','100','-alpha','1','-skipHMC']
+command = ['python','./main.py','-epochs','5000','-batch','512','-nlayers','10','-nmlp','3','-nhidden','10','-L','32','-nrepeat','1','-savePeriod','100','-alpha','1','-skipHMC']
 
-settings = [['-cuda',str(i)] for i in range(8)]
+settings = [['-cuda',str(i)] for i in range(7)]
 
-parameters = {"-T":[str(i/10) for i in range(4,16)],"-depthMERA":[str(i+1) for i in range(4)][::-1]}
+parameters = {"-T":[str(i/10) for i in range(20,28)],"-depthMERA":[str(i+1) for i in range(5)][::-1]}
 
 def before():
     #print("this is pre-process")
