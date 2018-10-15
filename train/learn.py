@@ -184,7 +184,6 @@ def learnInterface(source, flow, batchSize, epochs, lr=1e-3, save = True, saveSt
 
                 if not skipHMC:
                     del x_z
-                    del x_
                 del samples
 
                 with h5py.File(savePath+"records/"+flow.name+"Record_epoch"+str(epoch)+".hdf5", "w") as f:
