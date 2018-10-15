@@ -38,7 +38,7 @@ Use `main.py` to train model. Options available are:
 For example, to train the Ising model mentioned in our paper:
 
 ```bash
-python ./main.py -epochs 5000 -folder ./opt/16Ising -batch 512 -nlayers 10 -nmlp 1 -nhidden 10 -L 16 -nrepeat 1 -savePeriod 100
+python ./main.py -epochs 5000 -folder ./opt/16Ising -batch 512 -nlayers 10 -nmlp 3 -nhidden 10 -L 16 -nrepeat 1 -savePeriod 100 -symmetry
 ```
 
 
