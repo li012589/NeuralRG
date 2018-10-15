@@ -121,6 +121,7 @@ if args.symmetry:
         return -x
 
     sym = [op]
+    print("Using symmetry")
 else:
     sym = None
 
