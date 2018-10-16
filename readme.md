@@ -34,6 +34,8 @@ Use `main.py` to train model. Options available are:
 * `nlayers` is used to construct realNVP networks, it suggests how many layers in each realNVP networks.
 * `nrepeat` is used to construct MERA network, it suggests how many layers of bijectors inside of each layer of MERA network.
 * `L`, `d`, `T` are used to construct the Ising model to learn, `L` is the size of configuration, `d` is the dimension, and `T` is the temperature.
+* `alpha` ,`symmetry` are options about symmetried , symmetrized will be used if use `-symmetry` option. If `-symmetry` option is not added, `-alpha` can add a regulation term to loss to try to inflate symmetry.
+* `skipHMC` is used to skip HMC process during training save memory.
 
 For example, to train the Ising model mentioned in our paper:
 
@@ -41,11 +43,9 @@ For example, to train the Ising model mentioned in our paper:
 python ./main.py -epochs 5000 -folder ./opt/16Ising -batch 512 -nlayers 10 -nmlp 3 -nhidden 10 -L 16 -nrepeat 1 -savePeriod 100 -symmetry
 ```
 
-
-
 ### Plot
 
-Use `plot.py` to plot the loss curve and HMC result results. Options available are:
+Use `plot.py` to plot the loss curve and HMC results. Options available are:
 
 * `folder` specifies saving path. `plot.py` will use the data saved in that path to plot. And if `save` is true, the plot will be saved in `folder`'s `pic` folder.
 * `per` specifies how many seconds between each refresh.
@@ -58,7 +58,9 @@ For example, to plot along with the training process mentioned above:
 python ./plot.py -folder ./opt/16Ising -per 30 -exact 0.544445
 ```
 
+### Train multiple models
 
+Change settings in `settings.py` to train diffierent models in different temperatures and different depths. Then `python core.py`  will read these settings and train these models. Figure of relative loss of different temperatures and depths can be plotted using `paperplot/plotCore.py`.
 
 ## Citation
 
